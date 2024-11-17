@@ -1,0 +1,30 @@
+@startuml
+class Phone {
+  - RatePolicy ratePolicy
+  + calculateFee()
+}
+note top of Phone
+Phone 내부에 RatePolicy 참조자 포함
+end note
+
+class RatePolicy <<interface>> {
+   + calculateFee(phone)
+}
+
+class BasicRatePolicy {
+   + calculateFee(phone)
+   # calculateCallFee(call)
+}
+class RegularPolicy {
+   # calculateCallFee(call)
+}
+class NightlyDiscountPolicy {
+   # calculateCallFee(call)
+}
+
+Phone -> RatePolicy : ratePolicy
+BasicRatePolicy -..d> RatePolicy
+RegularPolicy --|> BasicRatePolicy
+NightlyDiscountPolicy --|> BasicRatePolicy
+
+@enduml
