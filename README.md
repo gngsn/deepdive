@@ -1,4 +1,4 @@
-# 🤿💦 Deep Dive
+# Deep Dive 🤿💦
 
 | Subject                                                                                               | Duration                      |
 |-------------------------------------------------------------------------------------------------------|-------------------------------|
@@ -8,10 +8,12 @@
 | [Unit Testing:Principles, Practices and Patterns](./books/unit-testing/README.md)                     | _`2023-08-02`~`2023-10-04`_   |
 | [Objects](./books/objects/README.md)                                                                  | _`2023-04-12`~`2023-07-19`_   |
 
+<br><br>
 
-## 📝 Hands-On
+## Hands-On 📝
 
 | Subject                                                                  | Duration                    |
 |--------------------------------------------------------------------------|-----------------------------|
-| [GoF Design Patterns](./design-pattern/README.md)                        | _`2021-12-19`~`2024-12-31`_ |
+| [GoF Design Patterns](./design-pattern/README.md)                        | _`2021-12-19`~`2021-12-31`_ |
 
+<br>
