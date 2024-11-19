@@ -1,5 +1,18 @@
 # Cluster Upgrade Process
 
+<!-- TOC -->
+* [Cluster Upgrade Process](#cluster-upgrade-process)
+  * [`kubeadm`](#kubeadm)
+    * [Upgrading Master Node](#upgrading-master-node)
+    * [Upgrading Worker Node](#upgrading-worker-node)
+    * [kubeadm - upgrade](#kubeadm---upgrade)
+      * [1. upgrade kubeadm](#1-upgrade-kubeadm)
+      * [2. upgrade kubelet](#2-upgrade-kubelet)
+      * [3. upgrade worker nodes](#3-upgrade-worker-nodes)
+  * [Demo](#demo)
+    * [Drain the node](#drain-the-node)
+<!-- TOC -->
+
 쿠버네티스가 소프트웨어 컴포넌트 중엔 자체 프로젝트의 버전을 가진 컴포넌트가 존재
 
 <br/><img src="./img/kubernetes_software_version_img1.png" width="60%" /><br/>
@@ -347,7 +360,7 @@ node-2  Ready   <none>  1d  v1.11.3
 
 한 노드 씩 작업을 위해 Pod를 이동시켜야 함
 
-`kubectl drain` 명령어로 노드에서 모든 Pod를 안전하게 종료하 다른 노드의 일정을 재조정할 수 있음
+`kubectl drain` 명령어로 노드에서 모든 Pod를 안전하게 종료하여 다른 노드의 일정을 재조정할 수 있음
 
 ```Shell
 ❯ kubectl drain node-1

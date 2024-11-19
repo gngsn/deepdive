@@ -5,13 +5,25 @@
 **Commands**
 
 **1. Drain**
-: [kubectl cordon](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_cordon/)
-The given node will be marked unschedulable to prevent new pods from arriving.
-'drain' evicts the pods if the API server supports [disruptions](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/) eviction.
+: [kubectl drain](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_drain/)
 
 ```Bash
 kubectl drain [--ignore-daemonsets] [--grace-period] <node name>
 ```
+
+<details>
+<summary>Here's more</summary>
+
+The given node will be marked unschedulable to prevent new pods from arriving.
+'drain' evicts the pods if the API server supports [disruptions](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/) eviction.
+
+'drain' waits for graceful termination. You should not operate on the machine until the command completes.
+
+When you are ready to put the node back into service, use kubectl uncordon, which will make the node schedulable again.
+
+![How "kubectl drain" internally work](https://kubernetes.io/images/docs/kubectl_drain.svg)
+
+</details>
 
 **2. Cordon**
 : [kubectl cordon](https://kubernetes.io/docs/reference/kubectl/generated/kubectl_cordon/). Mark node as unschedulable
@@ -62,7 +74,7 @@ Master    ⚪️⚪️     🟠🟡     🟡🟢
 
 만약 Pod가 ReplicaSet에 의해 관리된다면, 해당 Pod는 다른 노드에 재생성됨
 
-Pod가 복구되길 기다리는 시간은 pod-evition-timeout로 설정할 수 있음 
+Pod가 복구되길 기다리는 시간은 `pod-eviction-timeout` 옵션으로 설정할 수 있음 
 
 <br>
 
