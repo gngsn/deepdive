@@ -29,3 +29,8 @@
 4. [How DNS works?](./how_dns_works.md)
 5. [Amazon VPC DNS Server Route53 Resolver](./amazon_vpc_dns_server_route53_resolver.md)
 6. [VPC DHCP Option Sets](./vpc_dhcp_option_sets.md)
+7. [Hands on exercises scenarios](./hands_on_exercises_scenarios.md)
+
+
+
+
