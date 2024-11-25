@@ -2,27 +2,64 @@
 
 ## Scenario 1: VPC DNS with Route53 Private Hosted zone
 
-<small><i>Using Amazon Route53 DNS resolver and Amazon Route53 Private hosted zone</i></small>
+<i>Using Amazon Route53 DNS resolver and Amazon Route53 Private hosted zone</i>
+
+VPC 가 있고 그 내에 몇 가지 EC2 인스턴스 존재.
+
+`.corp.internal` 이라는 커스텀 도메인 이름을 붙이려고 함.
+
+두 인스턴스의 이름은 각각 앱서버 - `app.corp.internal` 와 DB 서버 - `db.corp.internal` 이고,
+앱 서버에서 DB 서버를 도메인으로 호출하고자 함
 
 <br><img src="./img/hands_on_exercises_scenarios_img1.png" width="80%" /><br>
 
-### Steps
+위 상황에서는 Default DNS Server 를 사용할 것이기 때문에 따로 DHCP OptionSet 을 변경할 필요가 없음
+
+하지만, 기본 형식인 `ip-<private-ipv4-address>.region.compute.internal` 를 
+DHCP 옵션의 `Domain-name` 을 사용자가 원하는 이름인 `.corp.internal` 으로 설정하여 변경할 수 있음
+
+
+### Hands-on
 
 <br><img src="./img/hands_on_exercises_scenarios_img2.png" width="60%" /><br>
 
-1. Create a VPC with Public & Private subnet
-2. (Optional) Create DHCP Option set with domain as corp.internal and associate with your VPC
-3. Launch one EC2 instance in Public subnet (say app) and one instance in Private subnet (say db).
-4. Allow SSH and ICMP IPv4 in the security group
-5. Create Route 53 Private hosted zone and associate with the VPC
-6. Create A records for ec2 instances pointing to their Private IPs
-7. SSH into Public EC2 instance and ping to other instance using it’s DNS name
+기본 DNS Server 인 `AmazonProvidedDNS` Server 를 사용
+
+때문에 기본적으로 DHCP Options Set 의 name server 영역은 수정하지 않지만,
+커스텀 도메인 이름을 원하기 때문에 커스텀 해봄
+
+#### Steps
+
+1. VPC 생성 후, Public & Private subnet 생성
+2. (선택) DHCP Option sets 의 도메인을 `corp.internal`으로 설정한 후 생성한 VPC에 연결
+   - Amazon Console 에서 아래와 같이 설정
+   - **Domain name**: `corp.internal`
+   - **Domain name servers**: `AmazonProvidedDNS`   
+3. 퍼블릭 서브넷에 앱 서버를 위한 EC2 인스턴스 하나를 생성하고, 프라이빗 서브넷에 DB 서버를 생성
+4. Security Group 생성해서 SSH 와 ICMP IPv4 를 Allow 하도록 설정
+5. Route 53 Private hosted zone 을 생성해 만들어둔 VPC에 연결
+6. EC2 인스턴스의 프라이빗 IPs를 가리키는 A records 생성
+7. 퍼블릭 EC2 인스턴스에 SSH 로 접근해보고, 다른 인스턴스에 해당 DNS 이름으로 접근 해보기
+   - **SSH 접속 확인**: 
+   - ```
+     $ cat /etc/resolv.conf
+     ...
+     nameserver: 10.10.0.2
+     search corp.internal
+     ```
+   - **이후 DB 접속 확인**: `$ ping db`
+     - `db.corp.internal` 로 찾아보기 때문에 조회 성공 
 
 <br>
 
 ## Scenario 2: Using custom DNS server
 
-<small><i>VPC DNS with custom DNS server</i></small>
+<i>VPC DNS with custom DNS server</i>
+
+두 번째 시나리오는 AWS Default DNS Server 가 아닌 사용자 커스텀 DNS 서버를 사용하는 방식.
+
+여기서 중요한 부분은, DHCP 옵션의 `name-servers` 를 커스텀 DNS Server의 IP 로 설정하여 변경할 수 있음
+
 
 <br><img src="./img/hands_on_exercises_scenarios_img3.png" width="80%" /><br>
 
