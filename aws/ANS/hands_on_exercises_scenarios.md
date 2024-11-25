@@ -4,11 +4,11 @@
 
 <small><i>Using Amazon Route53 DNS resolver and Amazon Route53 Private hosted zone</i></small>
 
-<br/><img src="./img/hands_on_exercises_scenarios_img1.png" width="80%" /><br/>
+<br><img src="./img/hands_on_exercises_scenarios_img1.png" width="80%" /><br>
 
 ### Steps
 
-<br/><img src="./img/hands_on_exercises_scenarios_img2.png" width="60%" /><br/>
+<br><img src="./img/hands_on_exercises_scenarios_img2.png" width="60%" /><br>
 
 1. Create a VPC with Public & Private subnet
 2. (Optional) Create DHCP Option set with domain as corp.internal and associate with your VPC
@@ -24,11 +24,11 @@
 
 <small><i>VPC DNS with custom DNS server</i></small>
 
-<br/><img src="./img/hands_on_exercises_scenarios_img3.png" width="80%" /><br/>
+<br><img src="./img/hands_on_exercises_scenarios_img3.png" width="80%" /><br>
 
 ### Step 1 – Setup a VPC and launch instances
 
-<br/><img src="./img/hands_on_exercises_scenarios_img4.png" width="60%" /><br/>
+<br><img src="./img/hands_on_exercises_scenarios_img4.png" width="60%" /><br>
 
 **1.1.** Create a VPC with public and private subnets
 
@@ -112,7 +112,7 @@ zone "corp.internal" IN {
 };
 </pre>
 
-#### Step 2d – Configure DNS server
+### Step 2d – Configure DNS server
 
 Restart **named** service
 
@@ -121,25 +121,23 @@ $ service named restart
 $ chkconfig named on
 ```
 
-<br>
+### STEP 3 – Create DHCP Option set
 
-## Scenario 3: VPC DNS with Route 53 Private hosted zone
+<br><img src="./img/hands_on_exercises_scenarios_img4.png" width="60%" /><br>
 
-Introduction to Route53 DNS Resolver Endpoints (Hybrid DNS)
+- Create new DHCP Option set
+  1. Set **Domain name** = `corp.internal`
+  2. Set name server = <code>10.10.0.<b>X</b></code> (DNS server IP)
+- Reboot DNS server and App server (to update DHCP)
 
+### STEP 4 – Verify custom domain names
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+1. Login to App server
+2. Check `/etc/resolv.conf`
+3. Resolve DNS for db server
+   
+```
+$ nslooup db.corp.internal
+$ nslookup db
+$ ping db
+```
