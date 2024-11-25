@@ -52,14 +52,13 @@ DHCP 옵션의 `Domain-name` 을 사용자가 원하는 이름인 `.corp.interna
 
 <br>
 
-## Scenario 2: Using custom DNS server
+## Scenario 2: VPC DNS with custom DNS server
 
-<i>VPC DNS with custom DNS server</i>
+<i>Using custom DNS server</i>
 
 두 번째 시나리오는 AWS Default DNS Server 가 아닌 사용자 커스텀 DNS 서버를 사용하는 방식.
 
 여기서 중요한 부분은, DHCP 옵션의 `name-servers` 를 커스텀 DNS Server의 IP 로 설정하여 변경할 수 있음
-
 
 <br><img src="./img/hands_on_exercises_scenarios_img3.png" width="80%" /><br>
 
@@ -91,31 +90,42 @@ $yum install bind bind-utils –y
 
 ### Step 2b – Configure DNS server
 
+몇 가지 파일을 생성해야 함
+
 **2a.3.** Create file /var/named/corp.internal.zone
 
 <pre lang="bash">
 $TTL 86400
-@ IN SOA ns1.corp.internal. root.corp.internal. (
-  2013042201 ;Serial
-  3600  ;Refresh
-  1800   ;Retry
-  604800  ;Expire
-  86400 ;Minimum  TTL
+@   IN  SOA     ns1.corp.internal.  root.corp.internal. (
+        2013042201    ;Serial
+        3600          ;Refresh
+        1800          ;Retry
+        604800        ;Expire
+        86400         ;Minimum  TTL
 )
 ; Specify our two nameservers
-  IN NS dnsA. corp.internal.
-  IN NS dnsB. corp.internal.
+    IN    NS  dnsA.corp.internal.
+    IN    NS  dnsB.corp.internal.
 ; Resolve nameserver hostnames to IP, replace with your two droplet IP addresses. 
 dnsA IN A 1.1.1.1
 dnsB IN A 8.8.8.8
 
 ; Define hostname -> IP pairs which you wish to resolve 
-@ IN A 10.10.0.<b>x</b>
-app IN A 10.10.0.<b>x</b>
-db IN A 10.10.1.<b>x</b>
+@   IN  A   10.10.0.<b>x</b>
+app IN  A   10.10.0.<b>x</b>
+db  IN  A   10.10.1.<b>x</b>
 </pre>
 
 `x` → IP 에 맞게 수정
+
+**TOBE:**
+
+```
+...
+@   IN  A   10.10.0.180
+app IN  A   10.10.0.180
+db  IN  A   10.10.1.214
+```
 
 ### Step 2c – Configure DNS server
 
@@ -130,8 +140,9 @@ options {
   statistics-file "/var/named/data/named_stats.txt"; 
   memstatistics-file "/var/named/data/named_mem_stats.txt"; 
   allow-query { any; };
-  <b>allow-transfer { localhost; 10.10.0.X; };</b>
-  recursion yes; forward first; 
+  allow-transfer { localhost; 10.10.0.<b>X</b>; };
+  recursion yes; 
+  forward first; 
   forwarders {
     10.10.0.2; 
   };
@@ -149,6 +160,15 @@ zone "corp.internal" IN {
 };
 </pre>
 
+
+**TOBE:**
+
+```
+...
+  allow-transfer { localhost; 10.10.0.179; };
+...
+```
+
 ### Step 2d – Configure DNS server
 
 Restart **named** service
@@ -157,6 +177,8 @@ Restart **named** service
 $ service named restart
 $ chkconfig named on
 ```
+
+변경된 설정 적용하기
 
 ### STEP 3 – Create DHCP Option set
 
