@@ -161,7 +161,7 @@ ip -n <namespace> link set ……
 하지만 아직 다른 노드에 위치한 Pod에는 닿을 수 없음
 
 ```
-🟩$ ping 10.244.2.2
+$ ping 10.244.2.2
 Connect: Network is unreadchable
 ```
 
@@ -234,18 +234,18 @@ Container가 생성될 때 Container Runtime 은 옵션으로 CNI 설정이 포�
 
 **Container Runtime**
 
-\1. CNI 플러그인 확인
+1\. CNI 플러그인 확인
 
 `--cni-conf-dir=/etc/cni/net.d`을 전달 받아, `/etc/cni/net.d/net-script.conflist` 디렉터리를 확인
 
-\2. `cni-bin-dir` 옵션으로 스크립트 파일 찾아감
+2\. `cni-bin-dir` 옵션으로 스크립트 파일 찾아감
 
 `--cni-bin-dir=/etc/cni/bin` 
 
 `/opt/cni/bin/net-script.sh` 파일을 찾음
 
 
-\3. 발견한 스크립트 실행 
+3\. 발견한 스크립트 실행 
 
 `./net-script.sh add <container> <namespace>`
 
