@@ -15,11 +15,32 @@ Control Plane의 다양한 컴포넌트 들에 의해 사용될 아래 포트들
 
 <br>
 
+### Control plane Ports
+
 [🔗 Kubernetes Check Required Port](https://kubernetes.io/docs/reference/networking/ports-and-protocols/)
 
-<br/><img src="./img/cluster_networking_img5.png" width="50%" /><br/>
+| Protocol	   | Direction | Port Range  | Purpose                   | Used By               |
+|-------------|-----------|-------------|---------------------------|-----------------------|
+| TCP         | Inbound   | 6443        | Kubernetes API server     | All                   |
+| TCP         | Inbound   | 2379-2380   | etcd server client API    | kube-apiserver, etcd  |
+| TCP         | Inbound   | 10250       | Kubelet API	              | Self, Control plane   |
+| TCP         | Inbound   | 10259       | kube-scheduler	           | Self                  |
+| TCP         | Inbound   | 10257       | kube-controller-manager	  | Self                  |
 
-- `kube-api-server`는 `6443`로 열려있는데, Worker Node, kube kubelet, 외부 users 들 모두가 해당 포트로 접근할 수 있음
+
+ETCD 포트가 control plane 에 포함되어 있긴 하지만,
+ETCD 클러스터를 외부로 혹은 사용자가 지정한 포트(들)로 호스팅할 수 있음
+
+`kube-api-server`는 `6443`로 열려있어서 Worker Node, kube kubelet, 외부 users 들 모두가 해당 포트로 접근할 수 있음
+
+### Worker node(s) Ports
+
+| Protocol	 | Direction | Port Range  | Purpose           | Used By              |
+|-----------|-----------|-------------|-------------------|----------------------|
+| TCP       | Inbound   | 10250       | Kubelet API       | Self, Control plane  |
+| TCP       | Inbound   | 10256       | kube-proxy	       | Self, Load balancers |
+| TCP       | Inbound   | 30000-32767 | NodePort Services | All                  |
+
 
 <br/><img src="./img/cluster_networking_img2.png" width="50%" /><br/>
 
@@ -60,12 +81,4 @@ CKA 시험에서 네트워크 Addon을 배포해야 하는 문제에 대해서,
 (Kubernetes documentation vendor-neutral에 있는 콘텐츠를 유지하기 위함)
 
 참고: 공식 시험에서는 필수 CNI 배치 세부 정보가 모두 제공됨
-
-
-
-
-
-
-
-
 
