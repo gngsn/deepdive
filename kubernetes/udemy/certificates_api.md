@@ -1,5 +1,11 @@
 # Certificates API
 
+```
+📜: Public Key / .csr
+🔑: Private Key / .key
+🔏: Certification / .crt
+```
+
 이미 인증된 구성을 가진 클러스터 내, 클러스터의 유일한 관리자이자 사용자인 **관리자 A** 생성
 
 ```
@@ -8,7 +14,7 @@
     +----------------------------+
         ↑
       관리자 A   --→  CA
-       📜 🔑        🏛️
+       📜 🔑         🏛️
 ```
 
 이 때, 새 **관리자 B**를 추가한다면 클러스터에 접속하기 위해 인증서와 키 한 쌍이 필요
@@ -18,13 +24,13 @@
     |     Kubernetes Cluster     |
     +----------------------------+
                    ↑
-   🆕관리자 B     관리자 A   --→  CA
-                  🔏✅        🏛️
+  🆕 관리자 B     관리자 A   --→  CA
+                  🔏✅         🏛️
 ```
 
 <br>
 
-**목표**: 관리자 B에게 클러스터에 접근할 수 있도록 설정
+**목표**: 관리자 B가 클러스터에 접근할 수 있도록 권한 설정
 
 그럼, **관리자 B**는 개인 키를 생성해 인증서 서명 요청(Certificate Singing Request)을 생성해 기존 **관리자 A**에게 전송
 
@@ -35,7 +41,7 @@
     +----------------------------+
                    ↑
     관리자 B  -→  관리자 A   --→  CA
-     📜 🔑       🔏✅        🏛️
+      📜🔑        🔏✅          🏛️
   (csr, key)
 ```
 
@@ -50,7 +56,7 @@
     +----------------------------+    (private key, 
                    ↑                    root crt)
     관리자 B  -→  관리자 A  -- [ B's 📜 🔑 + CA's 🔏] -→  CA
-                 🔏✅       (csr, key)                 🏛️ (A's CA)
+                 🔏✅       (csr, key)               🏛️ (A's CA)
 ```
 
 이 때, CA 서버로 요청 시, CA 서버의 private key와 root 인증서 사용
@@ -74,7 +80,7 @@
     +----------------------------+
       ↑           ↑
     관리자 B      관리자 A       CA
-     🔏✅        🔏✅        🏛️
+     🔏✅        🔏✅          🏛️
 ```
 
 단, 증명서에는 유효 기간이 있기 때문에 만료 시마다 위 과정을 동일하게 진행해야 함
@@ -104,7 +110,9 @@ CA는 사실 그저 생성된 키와 인증서 파일 한 쌍임
 
 해당 서버에만 인증서 키 파일을 저장
 
-쿠버네티스의 마스터 노드는 이러한 인증서들을 가지는데, 따라서 마스터 노드는 **CA 서버**임
+쿠버네티스의 마스터 노드는 이러한 인증서들을 가짐
+
+→ 따라서 마스터 노드는 **CA 서버**
 
 마스터 노드는 CA 인증서와 키 쌍을 생성하며 저장함
 
@@ -112,7 +120,7 @@ CA는 사실 그저 생성된 키와 인증서 파일 한 쌍임
 
 사용자가 많아질 수록 계속되는 인증 과정이 끊임 없이 반복됨
 
-그래서 쿠버네티스는 Built-in 인증서 API를 가짐
+그래서 쿠버네티스는 **Built-in 인증서 API**를 가짐
 
 인증서 API 호출을 통해 쿠버네티스로 인증 요청을 바로 전달
 
@@ -176,7 +184,7 @@ CSR 서명 요청을 생성 후, 관리자한테 요청 전송
 
 CertificateSigningRequest 객체는 다른 쿠버네티스 객체와 동일하게 manifest 파일로 생성
 
-`.spec` 섹션 하위의 `.req.request` 에는 전송 받은 인증 요청 파일의 데이터를 Base64 명령을 이용해 인코딩해 기입
+`.spec` 섹션 하위의 `.spec.request` 에는 전송 받은 인증 요청 파일의 데이터를 Base64 명령을 이용해 **인코딩** 후 기입
 
 ```Bash
 $ cat jane.csr | base64 -w 0
@@ -199,7 +207,7 @@ spec:
 
 <br><img src="./img/certificates_api_img1.png" width="60%" /><br>
 
-인코딩된 텍스트를 `.req.request` 필드로 옮겨서 요청
+인코딩된 텍스트를 `.spec.request` 필드로 옮겨서 요청
 
 객체가 생성되면 모든 인증서 서명 요청은 관리자 한해, `kubectl get csr` 명령으로 확인 가능
 
@@ -209,7 +217,9 @@ NAME        AGE   SIGNERNAME                                    REQUESTOR       
 akshay      21s   kubernetes.io/kube-apiserver-client           kubernetes-admin           <none>              Approved,Issued
 ```
 
-`kubectl certificate approve` 명령을 통해 새로운 요청을 식별하고 승인할 수도 있음
+### CSR 승인
+
+`kubectl certificate approve` 명령을 통해 새로운 요청을 식별하고 **승인**할 수도 있음
 
 ```Bash
 $ kubectl certificate approve jane
@@ -257,7 +267,7 @@ status:
 
 디코드 하려면 `base64 --decode` 명령어로 확인 가능
 
-플레인 텍스트으로 인증서를 얻을 수 있음 
+플레인 텍스트로 인증서를 얻을 수 있음 
 
 ---
 
@@ -315,7 +325,7 @@ spec:
 
 ---
 
-CSR 거절 
+### CSR 거절 
 
 ```Bash
 $ kubectl certificate deny agent-smith
