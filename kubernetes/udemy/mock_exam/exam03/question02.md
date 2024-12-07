@@ -1,10 +1,10 @@
-#### Q2. List the `InternalIP` of all nodes of the cluster. Save the result to a file `/root/CKA/node_ips`.
+## Question 2.
 
-Solution should be in the format: `InternalIP of controlplane<space>InternalIP of node01` (in a single line)
+> ### List the `InternalIP` of all nodes of the cluster. Save the result to a file `/root/CKA/node_ips`. Solution should be in the format: `InternalIP of controlplane<space>InternalIP of node01` (in a single line)
 
 <br>
 
-#### Solution
+### Solution
 
 [🔗 JSONPath Support](https://kubernetes.io/docs/reference/kubectl/jsonpath/) 참고
 
@@ -19,13 +19,15 @@ controlplane ~ ➜  kubectl get nodes -o jsonpath='{.items[*].status.addresses[?
 
 ### Tips.
 
-#### More 페이지로 보여주는 옵션
+#### Tip 1. More 페이지로 보여주는 옵션
 
 ```
 ➜ kubectl get nodes -o json | jq | more
 ```
 
-#### `jq` 에서 `paths` 만을 보여주는 옵션
+<br>
+
+#### Tip 2. `jq` 에서 `paths` 만을 보여주는 옵션
 
 ```
 controlplane ~ ➜  kubectl get nodes -o json | jq -c 'paths'
