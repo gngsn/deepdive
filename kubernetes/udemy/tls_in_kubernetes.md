@@ -157,9 +157,9 @@ kube-apiserver는 kebelet server에도 통신을 하기 때문에 동일하게
 
 <br><img src="./img/tls_in_kubernetes_img4.png" width="70%" ><br>
 
-하나는 클러스터의 모든 구성 요소에 대한 것이고 다른 하나는 특히 etcd에 대한 것입니다.
+하나는 클러스터의 모든 구성 요소에 대한 것이고 다른 하나는 특히 etcd에 대한 것임.
 
-그 경우, API 서버 클라이언트 인증서인 etcd 서버 인증서 및 etcd 서버 클라이언트 인증서는 모두 etcd 서버 CA에 의해 서명될 것이다.
+그 경우, API 서버 클라이언트 인증서인 etcd 서버 인증서 및 etcd 서버 클라이언트 인증서는 모두 etcd 서버 CA에 의해 서명될 것.
 
 쿠버네티스 인증 시 하나 이상의 CA를 통한 인증서 발급 필수이며,
 

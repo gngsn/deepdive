@@ -85,7 +85,7 @@ apiservice.apiregistration.k8s.io/v1beta1.metrics.k8s.io created
 
 각 노드의 CPU와 메모리 소비량을 보여줌
 
-보다시피 마스터 노드의 CPU 8%가 사용됐습니다 약 166 millicores
+보다시피 마스터 노드의 CPU 8%가 사용됐음 약 166 millicores
 
 `kubectl top pod` 명령어를 통해 Pod의 성능 지표를 확인할 수도 있음
 

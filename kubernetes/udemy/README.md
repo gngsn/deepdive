@@ -161,7 +161,15 @@
 
 1. [Lightning](./mock_exam/lightning)
 2. [Exam 02](./mock_exam/exam02)
-3. Exam 03
+   - [Question 1](./mock_exam/exam02/question01.md)
+   - [Question 2](./mock_exam/exam02/question02.md)
+   - [Question 3](./mock_exam/exam02/question03.md)
+   - [Question 4](./mock_exam/exam02/question04.md)
+   - [Question 5](./mock_exam/exam02/question05.md)
+   - [Question 6](./mock_exam/exam02/question06.md)
+   - [Question 7](./mock_exam/exam02/question07.md)
+   - [Question 8](./mock_exam/exam02/question08.md)
+3. [Exam 03](./mock_exam/exam03)
    - [Question 1](./mock_exam/exam03/question01.md)
    - [Question 2](./mock_exam/exam03/question02.md)
    - [Question 3](./mock_exam/exam03/question03.md)
@@ -177,5 +185,33 @@
 ## Section 14: Course Conclusion
 
 1. [Course Conclusion](./course_conclusion.md)
+
+
+
+Test Links
+
+#### Section 9: Networking
+
+
+#### Section 11: Install "Kubernetes the kubeadm way"
+
+- Deploy a Kubernetes Cluster using Kubeadm
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-cluster-installation-using-kubeadm/
+
+#### Section 13: Troubleshooting
+
+- Application Failure
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-application-failure-2/
+- Control Plane Failure
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-control-plane-failure-2/
+- Worker Node Failure 
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-worker-node-failure-2/
+- Troubleshoot Network
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-troubleshoot-network-2/
+
+
+
+
+
 
 
