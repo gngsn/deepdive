@@ -160,6 +160,13 @@
 ## Section 13: Mock Exam
 
 1. [Lightning](./mock_exam/lightning)
+   - [Question 01](./mock_exam/lightning/question01.md)
+   - [Question 02](./mock_exam/lightning/question02.md)
+   - [Question 03](./mock_exam/lightning/question03.md)
+   - [Question 04](./mock_exam/lightning/question04.md)
+   - [Question 05](./mock_exam/lightning/question05.md)
+   - [Question 06](./mock_exam/lightning/question06.md)
+   - [Question 07](./mock_exam/lightning/question07.md)
 2. [Exam 02](./mock_exam/exam02)
    - [Question 1](./mock_exam/exam02/question01.md)
    - [Question 2](./mock_exam/exam02/question02.md)
