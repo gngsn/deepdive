@@ -194,3 +194,31 @@
 1. [Course Conclusion](./course_conclusion.md)
 
 
+
+Test Links
+
+#### Section 9: Networking
+
+
+#### Section 11: Install "Kubernetes the kubeadm way"
+
+- Deploy a Kubernetes Cluster using Kubeadm
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-cluster-installation-using-kubeadm/
+
+#### Section 13: Troubleshooting
+
+- Application Failure
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-application-failure-2/
+- Control Plane Failure
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-control-plane-failure-2/
+- Worker Node Failure 
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-worker-node-failure-2/
+- Troubleshoot Network
+  - Link: https://uklabs.kodekloud.com/topic/practice-test-troubleshoot-network-2/
+
+
+
+
+
+
+
