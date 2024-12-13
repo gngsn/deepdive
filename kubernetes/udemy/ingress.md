@@ -1,26 +1,47 @@
 # Ingress
 
+### Set Up to Access Application
+
 웹 서비스를 운영한다고 할 때, Cluster에 웹 서비스 Pod와 데이터베이스 Pod가 있다고 가정해보자
 
 <br><img src="./img/ingress_img1.png" width="60%"><br>
 
-데이터베이스와 웹 Pod 는 ClusterIP 타입의 Service 를 통해 서로 통신할 수 있도록 설정해야 함
+- **`web` Pod**: `8080` 포트
+- **`web-service` Service**: NodePort 연결 - 외부에서 `http://node-ip:38080` 로 접근할 수 있게 됨. 
+  - 웹 Pod는 외부와 연결되어야 하기 때문에 NodePort 타입의 Service 를 설정해야 함
+- **`mysql` Pod**: `3306` 포트
+- **`mysql-service` Service**: ClusterIp 연결 - web Pod와 양방향 통신할 수 있게 됨. 
+  - 데이터베이스와 웹 Pod 는 ClusterIP 타입의 Service 를 통해 서로 통신할 수 있도록 설정해야 함
 
-또, 웹 Pod는 외부와 연결되어야 하기 때문에 NodePort 타입의 Service 를 설정해야 함
+이제 `http://node-ip:node-port`를 통해 접근이 가능한 앱에 접근할 수 있음
 
-그럼, node의 IP와 Port를 통해 정상 작동하는 앱에 접근할 수 있음 
+---
+
+### Accessing with Domain
+
+사용자들이 IP와 Port로 접근하진 않음.
 
 <br><img src="./img/ingress_img2.png" width="60%"><br>
 
-DNS 서버에 Domain Name을 등록하고, 중간에 Proxy Server를 배치해서 Port Forwarding 을 설정
+- DNS 서버에 Domain Name을 등록
+- 중간에 Proxy Server를 배치해서 Port Forwarding 을 설정
 
-Could 환경에서는 NodePort를 설정하는 대신, LoadBalancer 를 설정
+---
+
+### Cluster on Cloud
+
+Could 환경에서는 Service type 을 `NodePort`를 설정하는 대신, `LoadBalancer` 로 설정
+
+NodePort 타입이 지원하는 모든 역할을 동일하게 하면서, 
+추가로 클라우드 플랫폼에 해당 서비스를 위한 **Network Load Balancer** 를 프로비저닝 하도록 요청함 
+
+GCP 는 해당 요청을 받은 후,
+클라우드 서비스에서 배포하는 Load Balancer는 자동으로 모든 노드 서비스 포트로 트래픽을 라우팅하는 로드 밸런서를 배포
 
 <br><img src="./img/ingress_img3.png" width="60%"><br>
 
-클라우드 서비스에서 배포하는 LoadBalancer는 트래픽을 자동으로 모든 노드 서비스 포트로 라우팅하고, 해당 정보를 쿠버네티스에 전달하도록 구성됨
+클라우드 플랫폼의 로드 밸런서 도메인으로 사용자가 애플리케이션에 액세스할 수 있게 함
 
-로드 밸런서는 외부 IP를 갖고 있어서 사용자가 애플리케이션에 액세스할 수 있게 함
 
 <br>
 
