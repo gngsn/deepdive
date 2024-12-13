@@ -61,3 +61,32 @@ kube-system   weave-net-jf6t6                        2/2     Running   0        
 triton        mysql                                  1/1     Running   0          5m7s
 triton        webapp-mysql-d89894b4b-sxhjx           1/1     Running   0          5m7s
 ```
+
+---
+
+> **Troubleshooting Test 2:** 
+The same 2 tier application is having issues again. It must display a green web page on success. Click on the app tab at the top of your terminal to view your application. It is currently failed. Troubleshoot and fix the issue.
+
+
+Stick to the given architecture. Use the same names and port numbers as given in the below architecture diagram. Feel free to edit, delete or recreate objects as necessary.
+
+
+```agsl
+
+
+root@controlplane ~ ➜  kubectl -n kube-system edit ds kube-proxy
+daemonset.apps/kube-proxy edited
+
+root@controlplane ~ ➜  k get pods -A
+NAMESPACE     NAME                                   READY   STATUS    RESTARTS        AGE
+kube-system   coredns-6f6b679f8f-qnpfk               1/1     Running   0               13m
+kube-system   coredns-6f6b679f8f-xwdz2               1/1     Running   0               13m
+kube-system   etcd-controlplane                      1/1     Running   0               13m
+kube-system   kube-apiserver-controlplane            1/1     Running   0               13m
+kube-system   kube-controller-manager-controlplane   1/1     Running   0               13m
+kube-system   kube-proxy-n7p84                       1/1     Running   0               47s
+kube-system   kube-scheduler-controlplane            1/1     Running   0               13m
+kube-system   weave-net-jf6t6                        2/2     Running   0               6m45s
+triton        mysql                                  1/1     Running   2 (3m39s ago)   5m29s
+triton        webapp-mysql-d89894b4b-4fvjj           1/1     Running   0               5m29s
+```
