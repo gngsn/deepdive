@@ -34,7 +34,7 @@
 8. [Daemon Sets](./daemonset.md)
 9. [Static Pods](./staticpods.md)
 10. [Multiple Schedulers](./multiple_schedulers.md)
-10. [Scheduler Profile](./scheduler-profile.md)
+11. [Scheduler Profile](./scheduler-profile.md)
 
 <br/>
 
