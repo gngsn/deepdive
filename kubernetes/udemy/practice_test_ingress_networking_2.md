@@ -160,6 +160,10 @@ spec:
 </tr>
 </table>
 
+<br><br>
 
+### Annotation - Rewrite
+
+https://github.com/kubernetes/ingress-nginx/blob/main/docs/examples/rewrite/README.md
 
 
