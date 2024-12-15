@@ -1,5 +1,31 @@
 # Application Failure
 
+> ### TL;DR
+> 
+> **Question 1.** Service Name 매칭 X
+>   - Mysql Service Name: mysql
+>   - Webapp Pod - DB_Host: mysql
+> 
+> **Question 2.** Port 매칭 X
+>   - Mysql Service - TargetPort: 8080/TCP
+>   - Mysql Pod - containerPort: 3306/TCP
+> 
+> **Question 3.** Labels 매칭 X
+>   - Mysql Service Selector: name=sql00001  
+>   - Mysql Pod Labels: name=mysql  
+> 
+> **Question 4.** MySQL username 오기
+>   - Webapp Deploy - DB_User: sql-user → root
+> 
+> **Question 5.** MySQL username / MYSQL_ROOT_PASSWORD 오기
+>   - Webapp Deploy - DB_User: sql-user → root
+>   - Mysql Deploy - MYSQL_ROOT_PASSWORD: passwooooorrddd → paswrd
+> 
+> **Question 6.** nodePort 오기
+>   - Webapp Deploy - nodePort: 30088 → 30081
+> 
+
+
 Web Application 테스트를 한다고 가정
 
 Database 부터 Web Application 까지 접근 가능
