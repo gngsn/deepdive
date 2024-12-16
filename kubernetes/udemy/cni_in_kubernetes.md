@@ -33,6 +33,7 @@ config=/var/lib/kubelet/config.yaml --cgroup-driver=cgroupfs <b>--cni-bin-dir=/o
 </code></pre>
 
 - `cni-bin-dir` 는 실행 가능한 CNI 플러그인을 지원하는 모든 것을 포함
+  - 위 파라미터는 Kubernetes 1.24 부터 제거됨, with management of the CNI no longer in scope for kubelet [[🔗 link](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#installation)]
 - `cni-conf-dir` 는 어떤 플러그인이 필요한지 찾을 때 kubelet이 훑어보는 위치   
 
 ```
