@@ -14,8 +14,7 @@ cat /etc/systemd/system/kibe-apiserver.service
 
 먼저, kube-apiserver 정의 파일을 먼저 확인
 
-```Bash
-$ cat /etc/kubernetes/manifests/kube-apiserver.yaml
+<pre><code lang="bash">$ cat /etc/kubernetes/manifests/kube-apiserver.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -55,10 +54,10 @@ spec:
     - --service-account-key-file=/etc/kubernetes/pki/sa.pub
     - --service-account-signing-key-file=/etc/kubernetes/pki/sa.key
     - --service-cluster-ip-range=10.96.0.0/12
-    - **--tls-cert-file=/etc/kubernetes/pki/apiserver.crt**
+    - <b>--tls-cert-file=/etc/kubernetes/pki/apiserver.crt</b>
     - --tls-private-key-file=/etc/kubernetes/pki/apiserver.key
 ...
-```
+</code></pre>
 
 #### openssl x509 -in /path/to/file -text -noout 
 
@@ -73,8 +72,7 @@ kube-apiserver 를 시작하는 데 사용된 명령은 사용하는 모든 인�
 가령, `/etc/kubernetes/pki/apiserver.crt` 인증서 파일을 먼저 확인하려면,
 `openssl x509` 명령에 인증서 파일을 입력해 인증서를 디코딩하고 세부 사항을 확인할 수 있음
 
-```Bash
-$ openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
+<pre><code lang="bash">$ openssl x509 -in /etc/kubernetes/pki/apiserver.crt -text -noout
 Certificate:
     Data:
         Version: 3 (0x2)
@@ -83,8 +81,8 @@ Certificate:
         **Issuer: CN = kubernetes** 
         Validity
             Not Before: Apr 11 16:22:33 2024 GMT
-            **Not After : Apr 11 16:27:33 2025 GMT**    # 3. Expiry Date 
-        **Subject: CN = kube-apiserver**                # 1.
+            <b>Not After : Apr 11 16:27:33 2025 GMT</b>    # 3. Expiry Date 
+        <b>Subject: CN = kube-apiserver</b>                # 1. 
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 RSA Public-Key: (2048 bit)
@@ -102,12 +100,12 @@ Certificate:
             X509v3 Authority Key Identifier: 
                 keyid:F3:A9:C2:A5:25:95:53:D7:6B:85:D2:E5:EF:B9:38:12:26:14:CC:46
 
-            **X509v3 Subject Alternative Name:**        # 2.
+            <b>X509v3 Subject Alternative Name:</b>        # 2
                 **DNS:controlplane, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.cluster.local, IP Address:10.96.0.1, IP Address:172.30.1.2**
     Signature Algorithm: sha256WithRSAEncryption
          68:93:d4:d6:9d:a5:25:b1:3f:4b:10:7b:15:98:57:53:d7:38:
          ...
-```
+</code></pre>
 
 **디버깅 가이드**
 
@@ -119,8 +117,31 @@ Certificate:
 
 `kubeadm`은 `Kubernetes CA` 자체로 불림
 
-<br><img src="./img/view_certificate_details_img1.png" width="70%" ><br>
-<br><img src="./img/view_certificate_details_img2.png" width="70%" ><br>
+<br>
+
+### All certificates
+
+| Default CN	                    | 	Parent CA	                 | 	O (in Subject)	 | 	kind	           | 	hosts (SAN)                                     |
+|--------------------------------|-----------------------------|------------------|------------------|--------------------------------------------------|
+| kube-etcd	                     | 	etcd-ca	                   | 		               | 	server, client	 | 	\<hostname\>, \<Host_IP\>, localhost, 127.0.0.1 |
+| kube-etcd-peer	                | 	etcd-ca	                   | 		               | 	server, client	 | 	\<hostname\>, \<Host_IP\>, localhost, 127.0.0.1 |
+| kube-etcd-healthcheck-client	  | 	etcd-ca	                   | 		               | 	client          |
+| kube-apiserver-etcd-client	    | 	etcd-ca	                   | 		               | 	client          |
+| kube-apiserver	                | 	kubernetes-ca	             | 		               | 	server	         | 	\<hostname\>, \<Host_IP\>, \<advertise_IP\>     |
+| kube-apiserver-kubelet-client	 | 	kubernetes-ca	             | 	system:masters	 | 	client          |
+| front-proxy-client	            | 	kubernetes-front-proxy-ca	 | 		               | 	client          |
+
+🔗 https://kubernetes.io/docs/setup/best-practices/certificates/#all-certificates
+
+<br>
+
+### Certificate paths
+
+<br><img src="./img/view_certificate_details_img2.png" width="70%" >
+
+🔗 https://kubernetes.io/docs/setup/best-practices/certificates/#certificate-paths
+
+<br>
 
 **📌 살펴볼 것**
 
@@ -133,6 +154,7 @@ Certificate:
 만약 위 필드 중 문제가 발생했다면, 로그를 확인
 
 <br><img src="./img/view_certificate_details_img3.png" width="70%" ><br>
+
 
 **CASE 1. 인증서를 각자 수동 설치**
 
