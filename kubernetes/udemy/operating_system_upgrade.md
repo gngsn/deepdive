@@ -21,7 +21,7 @@ The given node will be marked unschedulable to prevent new pods from arriving.
 
 When you are ready to put the node back into service, use kubectl uncordon, which will make the node schedulable again.
 
-![How "kubectl drain" internally work](https://kubernetes.io/images/docs/kubectl_drain.svg)
+<br><img src="./img/operating_system_upgrade_img1.png" width="80%" /><br>
 
 </details>
 

@@ -267,3 +267,67 @@ ip link set dev v-net-0 up
 ip link set veth-red-br up
 ip link set veth-blue-br up
 ```
+
+---
+
+- `ip netns`:
+  컨테이너가 생성될 때마다 Docker는 이를 위한 **네트워크 네임스페이스**를 생성
+
+✅ Hack: `ip netns` 명령어로 도커에 의해 생성된 namespace 목록 확인
+
+```Bash
+❯ ip netns
+b3165c10a92b
+```
+
+`ip a`/`ip link`
+```Bash
+controlplane ~ ➜  ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+3: eth0@if57307: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1410 qdisc noqueue state UP group default 
+    link/ether 22:07:02:19:5a:e4 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    inet 192.168.231.150/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::2007:2ff:fe19:5ae4/64 scope link 
+       valid_lft forever preferred_lft forever
+4: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue state UNKNOWN group default 
+    link/ether 26:21:c8:d9:55:c4 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::2421:c8ff:fed9:55c4/64 scope link 
+       valid_lft forever preferred_lft forever
+5: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue state UP group default qlen 1000
+    link/ether 0e:00:99:68:61:35 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/24 brd 172.17.0.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::c00:99ff:fe68:6135/64 scope link 
+       valid_lft forever preferred_lft forever
+6: veth8acf00d2@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue master cni0 state UP group default 
+    link/ether 82:9f:50:3a:fe:83 brd ff:ff:ff:ff:ff:ff link-netns cni-683f409b-bb5e-208d-9d68-9e06959a7a68
+    inet6 fe80::809f:50ff:fe3a:fe83/64 scope link 
+       valid_lft forever preferred_lft forever
+7: veth5f3aa289@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue master cni0 state UP group default 
+    link/ether 6a:87:54:d4:91:4d brd ff:ff:ff:ff:ff:ff link-netns cni-39d61b6f-eb5d-1e5c-94dc-adcdb3767631
+    inet6 fe80::6887:54ff:fed4:914d/64 scope link 
+       valid_lft forever preferred_lft forever
+
+controlplane ~ ➜  ip link
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+3: eth0@if57307: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1410 qdisc noqueue state UP mode DEFAULT group default 
+    link/ether 22:07:02:19:5a:e4 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+4: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue state UNKNOWN mode DEFAULT group default 
+    link/ether 26:21:c8:d9:55:c4 brd ff:ff:ff:ff:ff:ff
+5: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+    link/ether 0e:00:99:68:61:35 brd ff:ff:ff:ff:ff:ff
+6: veth8acf00d2@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue master cni0 state UP mode DEFAULT group default 
+    link/ether 82:9f:50:3a:fe:83 brd ff:ff:ff:ff:ff:ff link-netns cni-683f409b-bb5e-208d-9d68-9e06959a7a68
+7: veth5f3aa289@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1360 qdisc noqueue master cni0 state UP mode DEFAULT group default 
+    link/ether 6a:87:54:d4:91:4d brd ff:ff:ff:ff:ff:ff link-netns cni-39d61b6f-eb5d-1e5c-94dc-adcdb3767631
+```
+
