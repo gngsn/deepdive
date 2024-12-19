@@ -302,5 +302,9 @@
 <br/>
 </details>
 
+- [CHAPTER 13. Emergency Response](./chapter13)
+- [CHAPTER 14. Managing Incidents](./chapter14)
+- [CHAPTER 15. Postmortem Culture: Learning from Failure](./chapter15)
+
 <br/><br/>
 
