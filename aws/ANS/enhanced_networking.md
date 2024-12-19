@@ -84,6 +84,29 @@ _driver: ena_
 </tr>
 </table>
 
+<br>
+
+### EC2 Networking - default
+
+일반적인 네트워크 흐름은 아래와 같음
+
+
+```
+   System 1                                                            System 2
+  +--------+                                                          +--------+
+  |        |  Xen PV                                          Xen PV  |        |    
+  |        | ←--------+                                    +--------→ |        |    
+  |        |          ↓                                    |          |        |       
+  |        | [ Virtualization Layer ]        [ Virtualization Layer ] |        |    
+  |        | [ H/W NIC ]    <========= 5Gbps =========>   [ H/W NIC ] |        |    
+  +--------+                                                          +--------+
+```
+
+시스템 내에 EC2가 있고, 가상화된 레이어를 거쳐 물리 NIC를 통해 네트워크를 통하게 됨
+
+이후 2개의 물리 NIC가 데이터를 교환 
+
+EC2는 기본적으로 5Gbps 대역폭을 지원
 
 
 
