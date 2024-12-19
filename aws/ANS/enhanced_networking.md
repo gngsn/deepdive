@@ -86,45 +86,50 @@ _driver: ena_
 
 <br>
 
-### EC2 Networking - default
+### EC2 Networking 
+
+#### ✔️ default
 
 일반적인 네트워크 흐름은 아래와 같음
 
+<br><img src="./img/enhanced_networking_img1.png" width="80%" ><br>
 
-```
-   System 1                                                            System 2
-  +--------+                                                          +--------+
-  |        |  Xen PV                                          Xen PV  |        |    
-  |        | ←--------+                                    +--------→ |        |    
-  |        |          ↓                                    |          |        |       
-  |        | [ Virtualization Layer ]        [ Virtualization Layer ] |        |    
-  |        | [ H/W NIC ]    <========= 5Gbps =========>   [ H/W NIC ] |        |    
-  +--------+                                                          +--------+
-```
-
-시스템 내에 EC2가 있고, 가상화된 레이어를 거쳐 물리 NIC를 통해 네트워크를 통하게 됨
+시스템 내에 EC2가 있고, 가상화 레이어(Virtualization Layer)를 거쳐 물리 NIC를 통해 네트워크를 통하게 됨
 
 이후 2개의 물리 NIC가 데이터를 교환 
 
 EC2는 기본적으로 5Gbps 대역폭을 지원
 
+<br>
 
+#### ✔️ Intel VF
 
+기본적으로 가상화 레이어(Virtualization Layer)는 무시되어 플로우에서 제외됨
 
+<br><img src="./img/enhanced_networking_img2.png" width="80%" ><br>
 
+위 그림과 같이 Intel Virtual Function 같은 드라이버를 사용하면 하드웨어 네트워크 인터페이스 카드와 직접 통신하는 것을 볼 수 있음
 
+10Gbps 대역폭까지 지원
 
+<br>
 
+#### ✔️ ENA
 
+ENA도 동일하게, 가상화 레이어(Virtualization Layer)는 무시되어 플로우에서 제외됨
 
+대신 ENA를 사용 
 
+<br><img src="./img/enhanced_networking_img3.png" width="80%" ><br>
 
+ENA는 최대 100Gbps 대역폭을 지원
 
+이 때, Flow 는 두 머신 사이의 point-to-point 연결을 의미하는데, 일반적으로 5-tuple 형식을 띔
 
+**5-tuple**: (Source IP, Destination IP, Protocol No, Source Port, Destination Port)
 
+그래서, 100Gbps에 도달할 만큼 사용하고 싶다면 multiple search flow를 사용해야 함
 
-
-
-
-
+- multi-flow: 두 EC2 서버 사이의 multiple parallel connection을 의미 
+- single-flow 는 10Gbps 까지만 사용할 수 있음
 
