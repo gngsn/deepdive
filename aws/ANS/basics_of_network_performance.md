@@ -144,10 +144,9 @@ Host A ——— 🔀 ——— 🔀 ———> Host B
 <small><i>이미지 참조</i></small>
 <img src="./img/basics_of_network_performance_img1.png" width="100%" /><br>
 
+<br>
 
-—
-
-## Jumbo Frames in AWS
+### Jumbo Frames in AWS
 
 - 9001 MTU 지원 
     - AWS는 9001 MTU를 지원하는데, 상당히 큰 수치
@@ -156,18 +155,87 @@ Host A ——— 🔀 ——— 🔀 ———> Host B
     - ⭐️IGW 로 인터넷이 연결되어 있거나 혹은 Peering VPC으로 트래픽이 나가는 경우엔 지원되지 않음 (1,500 bytes 제한)
 - AWS Direct Connect 를 사용한 VPC와 on-premises 네트워크 사이에서 지원됨
 - EC2 Cluster placement groups 내의 Jumbo Frame을 사용하는 것은 최대 네트워크 throughput 을 제공
-    - EC2 Cluster placement groups: 특정 EC2들을 최대한 가까이 배치하겠다. 사실상 하나의 AZ에 물리적으로 하나의 랙에 배치하겠다.why 네트워크 최적화와 EC2 HPC 워크로드 (가장 높은 bandwidth를 위해)
+    - **EC2 Cluster placement groups**: 특정 EC2들을 최대한 가까이 배치. 사실상 하나의 AZ에 물리적으로 하나의 랙에 배치. 
+      - 목적: 네트워크 최적화와 EC2 HPC(High Performance Computing) 워크로드 - 즉, 높은 대역폭 (bandwidth) - 을 위해.
+- Jumbo Frames 가 VPC에서 나갈 때 트래픽은 조심:
+  - 만약 패킷이 1,500 bytes 를 넘는데 Header에 DF(Don't Fragment) Flag가 설정되어 있지 않으면, 파편화되거나 drop 될 수 있음
 
+<br>
 
+### Defining MTU on EC2 instances
 
+- **MTU는 인스턴스 타입에 따라 달라짐**
+  - 타입에 따라 Jumbo Frames 지원 하고 안하고가 다름 (현재 지원되는 EC2 인스턴스는 지원)
+- **ENI 레벨에 정의됨**
+  - Jumbo Frames을 지원할 수 있을지, Packet의 사이즈는 얼마나 되어야 하는지, ...
+- 서버 엔드포인트와 타겟 엔드포인트 사이의 path MTU를 확인할 수 있음
+  - `tracepath amazon.com`
+- 인터스페이스에서 MTU 확인 가능
+  - `ip link show eth0`
+- **리눅스에서 MTU 설정 가능**
+  - `sudo ip link set dev eth0 mtu 9001`
 
+[🔗 Setting MTU on Amazon EC2 Instances](https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/ec2-instance-mtu.html)
 
+### Demo - MTU for EC2
 
+#### Check MTU using EC2 **Public ip** - `tracepath <public_ip>`
 
+```
+[ec2-user ~]$ tracepath  13.234.18.36
+1?: [LOCALHOST]     pmtu 9001
+1:  no reply
+2:  no reply
+3:  no reply
+...
+31:  no reply
+Too many hops: pmtu 1500
+Resume: pmtu 1500
+```
 
+#### Check MTU using EC2 **Private ip** - `tracepath <private_ip>`
 
+```
+[ec2-user ~]$ tracepath  10.0.0.18
+1?: [LOCALHOST]     pmtu 9001
+1:  no reply
+2:  no reply
+3:  no reply
+...
+31:  no reply
+Too many hops: pmtu 9001
+Resume: pmtu 9001
+```
 
+#### Check MTU on EC2 interface - `ip link show eth0`
 
+<pre><code lang="bash">
+[ec2-user ~]$ ip link show eth0
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> <b>mtu 9001</b> qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
+    link/ether 02:90:c0:b7:9e:d1 brd ff:ff:ff:ff:ff:ff
+</code></pre>
 
+<br>
 
+### MTU
 
+- **Within AWS:**
+  - Within VPC : Supports Jumbo frames (9001 bytes)
+  - Over the VPC Endpoint : MTU 8500 bytes
+    - e.g., 다른 AWS 서비스: S3, DynamoDB, SQS, Kinesis 같은 VPC Endpoint.
+  - Internet Gateway 외부: MTU 1500 bytes
+  - **Intra** region VPC Peering: MTU 9001 bytes
+    - VPC 내부 피어링이면 Jumbo Frames 지원
+  - **Inter** region VPC Peering : MTU 1500 bytes
+    - VPC 외부 피어링이면 Jumbo Frames 지원 안함
+- **On-premise network:**
+  - Over the VPN using **VGW**(Virtual Private Gateway) : MTU 1500 bytes
+  - Over the VPN via **Transit Gateway** : MTU 1500 for traffic for Site to Site VPN
+  - Over the **DirectConnect (DX)** : Supports Jumbo frames (9001 bytes)
+  - Over the DX via **Transit Gateway** : MTU 8500 for VPC attachments connected over the Direct Connect
+
+**Things to remember**
+- Jumbo Frames On-premise:
+  - Site-to-Site VPN 지원 X
+  - DX 지원 O
+- Within AWS 에선 Internet Gateway 타지 않으면 지원

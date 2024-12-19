@@ -37,7 +37,7 @@
 ## Section 5: Network Performance and Optimization
 
 1. [Basics of Network performance - Bandwidth, Latency, Jitter, Throughput, PPS, MTU](./basics_of_network_performance.md)
-2. Placement Groups and EBS Optimized EC2 instances
-3. Enhanced Networking
+2. [Placement Groups and EBS Optimized EC2 instances](./placement_groups_and_ebs_optimized_ec2.md)
+3. [Enhanced Networking](./enhanced_networking.md)
 
 
