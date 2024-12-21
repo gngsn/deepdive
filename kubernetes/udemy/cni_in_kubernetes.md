@@ -3,6 +3,14 @@ _Container Networking Interface_
 
 쿠버네테스는 컨테이너 Network Namespace 생성을 책임짐
 
+### Pod network creation sequence
+
+<br><img src="./img/cni_in_kubernetes_img1.png" width="80%" alt="Pod network creation sequence">Ref. https://tetrate.io/blog/kubernetes-networking/<br>
+
+### CNI workflow
+
+<br><img src="./img/cni_in_kubernetes_img2.png" width="80%" alt="CNI workflow">Ref. https://tetrate.io/blog/kubernetes-networking/<br>
+
 네임스페이스들을 식별하고 적절한 네트워크 플러그인을 불러서 알맞은 네트워크에 붙임
 
 쿠버네티스에서 컨테이너의 생성을 책임지는 컴포넌트는 컨테이너가 생성된 이후 바로 CNI 플러그인을 불러야 함
@@ -36,6 +44,16 @@ config=/var/lib/kubelet/config.yaml --cgroup-driver=cgroupfs <b>--cni-bin-dir=/o
   - 위 파라미터는 Kubernetes 1.24 부터 제거됨, with management of the CNI no longer in scope for kubelet [[🔗 link](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/#installation)]
 - `cni-conf-dir` 는 어떤 플러그인이 필요한지 찾을 때 kubelet이 훑어보는 위치   
 
+<br>
+
+|                | `/opt/cni/bin`                                                                                        | `/etc/cni/net.d`                                                                                                                                                                                 | `/var/lib/cni`                                                                                                                                                                                                                                                      |
+|----------------|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Purpose**    | Contains CNI plugin binaries                                                                          | Contains CNI configuration files.                                                                                                                                                                | Stores runtime network state and parameters.                                                                                                                                                                                                                        |
+| **Role**       | Represents the available CNI plugins that can be used for pod networking.                             | Specifies the currently active CNI plugin and its configurations for the Kubernetes cluster.                                                                                                     | Maintains actual network configuration state, such as: <br>- Allocated IP addresses (if the plugin uses host-local IPAM). <br>- Persistent data related to pod network setup.                                                                                       |
+| **Key Point**  | The container runtime (e.g., `containerd`, `cri-o`) calls these binaries to configure pod networking. | The container runtime **reads this directory to determine which CNI plugin to use** for setting up pod networks. The configuration also includes options like IPAM settings and plugin chaining. | This directory ensures state persistence (e.g., IP reuse) across pod or node restarts for some CNI plugins. However, not all plugins heavily use this directory—some store state elsewhere (e.g., in etcd for Calico or in Kubernetes resources for AWS VPC CNI).   |
+
+<br>
+
 ```
 $ ls /opt/cni/bin
 bridge dhcp flannel host-local ipvlan loopback macvlan portmap ptp sample tuning
@@ -64,6 +82,8 @@ $ cat /etc/cni/net.d/10-bridge.conf
 ```
 
 [CNI Configuration format](https://github.com/containernetworking/cni/blob/main/SPEC.md)
+
+<br>
 
 A network configuration consists of a JSON object with the following keys:
 
