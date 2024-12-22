@@ -40,3 +40,25 @@ deploy5      nginx:latest      1                admin2406
 controlplane ~ ➜ kubectl -n admin2406 get deployment -o custom-columns=DEPLOYMENT:.metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[].image,READY_REPLICAS:.status.readyReplicas,NAMESPACE:.metadata.namespace --sort-by=.metadata.name > /opt/admin2406_data
 ```
 
+
+```
+controlplane ~ ➜  k get deploy -ojson | jq -c 'paths' | grep 'image\|replica\|namespace' -i
+["items",0,"metadata","namespace"]
+["items",0,"spec","replicas"]
+["items",0,"spec","template","spec","containers",0,"image"]
+["items",0,"spec","template","spec","containers",0,"imagePullPolicy"]
+["items",0,"status","availableReplicas"]
+["items",0,"status","readyReplicas"]
+["items",0,"status","replicas"]
+["items",0,"status","updatedReplicas"]
+
+controlplane ~ ➜  cat template.txt 
+DEPLOYMENT   CONTAINER_IMAGE   READY_REPLICAS   NAMESPACE
+metadata.name spec.template.spec.containers[*].image  spec.readyReplicas metadata.namespace 
+
+controlplane ~ ➜  k get deploy --sort-by=.metadata.name -o custom-columns-file=template.txt > /opt/admin2406_data
+
+controlplane ~ ➜  cat /opt/admin2406_data
+DEPLOYMENT   CONTAINER_IMAGE   READY_REPLICAS   NAMESPACE
+gold-nginx   nginx:latest      1                default
+```
