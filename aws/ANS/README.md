@@ -44,3 +44,5 @@
 6. [Network I/O credits](./network_io_credits.md)
 7. [Network performance Summary + Exam Essentials](./network_performance_summary.md)
 
+[Quiz 5: Network Performance](quiz_5_network_performance.md)
+
