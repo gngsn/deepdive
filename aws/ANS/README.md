@@ -41,7 +41,6 @@
 3. [Enhanced Networking](./enhanced_networking.md)
 4. [DPDK and Elastic Fabric Adapter (EFA)](./dpdk_and_elastic_fabric_adapter_efa.md)
 5. [Bandwidth Limits inside and outside of VPC](./bandwidth_limits_inside_and_outside_of_vpc.md)
-6. Network I/O credits
-7. Network performance Summary
-8. Exam Essentials
+6. [Network I/O credits](./network_io_credits.md)
+7. [Network performance Summary + Exam Essentials](./network_performance_summary.md)
 
