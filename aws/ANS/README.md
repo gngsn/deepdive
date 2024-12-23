@@ -39,5 +39,9 @@
 1. [Basics of Network performance - Bandwidth, Latency, Jitter, Throughput, PPS, MTU](./basics_of_network_performance.md)
 2. [Placement Groups and EBS Optimized EC2 instances](./placement_groups_and_ebs_optimized_ec2.md)
 3. [Enhanced Networking](./enhanced_networking.md)
-
+4. [DPDK and Elastic Fabric Adapter (EFA)](./dpdk_and_elastic_fabric_adapter_efa.md)
+5. [Bandwidth Limits inside and outside of VPC](./bandwidth_limits_inside_and_outside_of_vpc.md)
+6. Network I/O credits
+7. Network performance Summary
+8. Exam Essentials
 
