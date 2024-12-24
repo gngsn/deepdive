@@ -54,11 +54,11 @@ Single Flow: 만약 두 대의 EC2 머신이 있고, 두 EC2 인스턴스 간에
 
 - Instance Family, vCPU, Traffic destination 등 요소에 따라 달라짐
     - 특히, 네트워크 최적화된 인스턴스 타입인 Nitro System에 구축된 인스턴스는 더 높은 대역폭을 제공
-    - [🔗 AWS Website: Amazon EC2 Instance types](https://aws.amazon.com/ec2/instance-types/?nc1=h_ls) 에서 각 EC2 인스턴스의 대역폭을 확인할 수 있음
+    - [🔗 AWS Docs: Instances built on the AWS Nitro System](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html)
 - 동일한 리전: 인스턴스에 Full network bandwidth 로 사용할 수 있음
 - 다른 리전에 위치한다면, Internet Gateway나 Direct Connect 는 
     - 32 vCPUs의 최저 사양의 현세대 인스턴스 기준, **50%의 네트워크 대역폭까지만** 제한되어 활용할 수 있음
-    - [🔗 AWS Docs: Instances built on the AWS Nitro System](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html)
+    - [🔗 AWS Website: Amazon EC2 Instance types](https://aws.amazon.com/ec2/instance-types/?nc1=h_ls) 에서 각 EC2 인스턴스의 대역폭을 확인할 수 있음
     - 보다 작은 사양이라면 5Gbps로 제한됨
 
 <br>

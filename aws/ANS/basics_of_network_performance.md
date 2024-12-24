@@ -158,7 +158,7 @@ Host A ——— 🔀 ——— 🔀 ———> Host B
     - **EC2 Cluster placement groups**: 특정 EC2들을 최대한 가까이 배치. 사실상 하나의 AZ에 물리적으로 하나의 랙에 배치. 
       - 목적: 네트워크 최적화와 EC2 HPC(High Performance Computing) 워크로드 - 즉, 높은 대역폭 (bandwidth) - 을 위해.
 - Jumbo Frames 가 VPC에서 나갈 때 트래픽은 조심:
-  - 만약 패킷이 1,500 bytes 를 넘는데 Header에 DF(Don't Fragment) Flag가 설정되어 있지 않으면, 파편화되거나 drop 될 수 있음
+  - 만약 패킷이 1,500 bytes 를 넘는데 Header에 DF(Don't Fragment) Flag가 설정되어 있으면, 파편화되거나 drop 될 수 있음
 
 <br>
 

@@ -49,9 +49,9 @@ VM과 Network Card가 직접 연결되게, 즉 VM과 물리 NIC가 통신할 수
 ### Supported Instance types
 
 - Instances supporting **Elastic Network Adapter (ENA) for speed upto 100 Gbps**
-- A1, C5, C5a, C5d, C5n, C6g, F1, G3, G4, H1, I3, I3en etc
+  - A1, C5, C5a, C5d, C5n, C6g, F1, G3, G4, H1, I3, I3en etc
 - Instances supporting **Intel 82599 Virtual Function (VF) interface for speed upto 10 Gbps**.
-- C3, C4, D2, I2, M4 (excluding m4.16xlarge), and R3 etc
+  - C3, C4, D2, I2, M4 (excluding m4.16xlarge), and R3 etc
 
 <br>
 
