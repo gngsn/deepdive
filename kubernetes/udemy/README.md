@@ -1,5 +1,7 @@
 # Certified Kubernetes Administrator (CKA) with Practice Tests
 
+<br><img src="./img/readme_cka_certificate.png" width="60%" /><br>
+
 <br/>
 
 ## Section1. Core Concept
