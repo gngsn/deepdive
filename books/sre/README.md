@@ -389,5 +389,19 @@
 <br/>
 </details>
 
+<details>
+<summary><b>CHAPTER 16. Tracking Outages</b></summary>
+
+[🔗 link](./chapter16)
+
+<br/>
+
+**TL;DR**
+
+_TODO_
+
+<br/>
+</details>
+
 <br/><br/>
 
