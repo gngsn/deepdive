@@ -34,7 +34,7 @@
 3. [VPC DHCP Option Sets](./vpc_dhcp_option_sets.md)
 4. [Hands on exercises scenarios](./hands_on_exercises_scenarios.md)
 
-## Section 5: Network Performance and Optimization
+## Section 5. Network Performance and Optimization
 
 1. [Basics of Network performance - Bandwidth, Latency, Jitter, Throughput, PPS, MTU](./basics_of_network_performance.md)
 2. [Placement Groups and EBS Optimized EC2 instances](./placement_groups_and_ebs_optimized_ec2.md)
@@ -46,3 +46,7 @@
 
 [Quiz 5: Network Performance](quiz_5_network_performance.md)
 
+
+## Section 6. VPC traffic Monitoring, Troubleshooting & Analysis
+
+1. [VPC Traffic Monitoring with VPC Flow logs](./vpc_traffic_monitoring_with_vpc_flow_logs.md) 
