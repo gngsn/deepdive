@@ -398,10 +398,25 @@
 
 **TL;DR**
 
-_TODO_
+- **Outalator**
+  - 서비스 중단 현상 추적 도구.
+  - 모니터링 시스템이 발송하는 모든 알림을 수동으로 수신, 또 데이터를 해석, 그룹화 및 분석하기 위한 시스템
+  - ✔️ **Queue**
+    - 여러 큐에 보관된 알림을 시간별로 한 번에 확인할 수 있음
+  - ✔️ **Tagging**
+    - 모든 알림이 하나의 장애를 의미하지 않기 때문에, 알림 메타데이터 관리를 위해 태깅(tagging) 지원.
+  - ✔️ **Analysis**
+    - 기본적인 분석 계층은 보고서를 위한 산술, 통계, 집계 기능 포함.
+- **Escalator**
+  - 비상 대기 엔지니어에게 전달된 이메일 복사본 수신 도구로 기획된 시스템.
+  - 구글에서는 SRE를 위한 모든 알림을 사람이 수신했는지 여부를 추적하는 중앙 응답 시스템을 공유하는데,
+  - 설정된 시간이 지나도 아무도 수신을 확인하지 않으면 시스템은 다음 단계로 알림을 격상함.
 
 <br/>
 </details>
+
+- [Appendix A. Availability Table](./appendixA)
+- [Appendix B. A Collection of Best Practices for Production Services](./appendixB)
 
 <br/><br/>
 
