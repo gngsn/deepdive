@@ -1,4 +1,6 @@
-# Appendix A. 가용성표
+# Appendix A. Availability Table
+
+<i><small>가용성표</small></i>
 
 가용성: 보통 서비스가 특정기간 내에 얼마나 오래 사용 불가능한 상태로 존재하는지를 계산
 

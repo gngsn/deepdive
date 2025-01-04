@@ -415,8 +415,21 @@
 <br/>
 </details>
 
-- [Appendix A. Availability Table](./appendixA)
-- [Appendix B. A Collection of Best Practices for Production Services](./appendixB)
+---
+
+<details>
+<summary><b>APPENDIX A. Availability Table</b></summary>
+
+[🔗 link](./appendixA)
+
+</details>
+
+<details>
+<summary><b>APPENDIX B. A Collection of Best Practices for Production Services</b></summary>
+
+[🔗 link](./appendixB)
+
+</details>
 
 <br/><br/>
 
