@@ -52,3 +52,4 @@
 1. [VPC Traffic Monitoring with VPC Flow logs](./vpc_traffic_monitoring_with_vpc_flow_logs.md) 
 2. [VPC Traffic Mirroring](./vpc_traffic_mirroring.md)
 3. [VPC Reachability Analyzer](./vpc_reachability_analyzer.md)
+4. [Walkthrough: VPC Reachability Analyzer](./walkthrough_vpc_reachability_analyzer.md)
