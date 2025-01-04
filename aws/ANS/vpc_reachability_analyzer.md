@@ -8,7 +8,7 @@
 
 ### VPC Reachability Analyzer
 
-reachability analyzer는 트래픽의 시작점(source)과 목적지(destination)를 제공하면, 
+reachability analyzer는 트래픽의 시작점(source)과 목적지(destination)를 제공하면,
 해당 시작점에서 목적지까지 연결이 되는지를 구분해줌
 
 중간에 여러 홉(Hop)이 있을 수 있는데, (가령, internet Gateway, transit gateway 등)
@@ -33,7 +33,7 @@ Compliant network 를 가지는 지 분석 가능
 
 **✔️ 1. Source resource 와 Destination resource 사이의 연결성(Connectivity) 테스트**
 
-가령, Internet Gateway를 Source 로 지정하고, 특정 EC2를 Destination 으로 지정하고 VPC Reachability Analyzer 를 실행할 수 있음 
+가령, Internet Gateway를 Source 로 지정하고, 특정 EC2를 Destination 으로 지정하고 VPC Reachability Analyzer 를 실행할 수 있음
 
 <br><img src="./img/vpc_reachability_analyzer_img2.png" width="40%" /><br>
 
@@ -48,7 +48,7 @@ Compliant network 를 가지는 지 분석 가능
 Source는 어떤 것이든 될 수 있음:
 
 - Internet Gateway → Dest
-- Internet Gateway 으로 향하는 NAT Gateway → Dest 
+- Internet Gateway 으로 향하는 NAT Gateway → Dest
 - 동일 VPC에 위치한 다른 EC2 인스턴스 → Dest
 - 다른 VPC에 위치한 다른 EC2 인스턴스 → Dest
 - 등등
@@ -63,7 +63,7 @@ Source는 어떤 것이든 될 수 있음:
 
 **✔️ 4. 테스트 시 실제 패킷을 전송하지 않음**
 
-온전히 네트워크 설정을 사용해서 네트워크가 닿는지를 확인함 
+온전히 네트워크 설정을 사용해서 네트워크가 닿는지를 확인함
 
 ### Use cases
 
@@ -121,8 +121,84 @@ Source는 어떤 것이든 될 수 있음:
 <br><img src="./img/vpc_reachability_analyzer_img6.png" width="80%" /><br>
 
 
+---
+
+## Exercise
+
+1️⃣ Launch an EC2 instance in a **Private** subnet and access over SSH (`22`)
+2️⃣ Modify the subnet route to make the subnet **Public**
+3️⃣ Remove NACL inbound rule for inbound traffic
+4️⃣ Add NACL inbound rule and remove Security group inbound rule to allow SSH (`22`) access
+
+<br><img src="./img/vpc_reachability_analyzer_img7.png" width="80%" /><br>
+
+#### Prerequisites
+
+1. VPC 생성 (`vpc-0e8db6..`)
+2. Internet Gateway
+    - Name: demo 생성 (`igw-03386..`)
+    - VPC 연결 (`igw-033860..` - attach - `vpc-0e8db6..`)
+3. Subnet 생성 (`subnet-00fb2a..`)
+    - in VPC (`vpc-0e8db6..`); VPC CIDR: `10.0.0.0/16`
+    - Name: demo-subnet 생성
+    - AZ: `ap-south-1a`
+    - Subnet CIDR: `10.0.0.0/24`
+4. Route Table (`rtb-0ab9c7..`)
+    - Name: demo-rt
+    - in VPC (`vpc-0e8db6..`)
+    - 생성 후, Subnet Associations 에서 생성한 Subnet (`subnet-00fb2a..`) 연결
+
+<br>
+
+### Exercise 1️⃣.
+
+**EC2 인스턴스 생성** (`i-0ad0f2..`)
+
+- Key pair 사용
+- 생성한 VPC (`vpc-0e8db6..`)와 Subnet (`subnet-00fb2a..`) 설정
+- Public IP Enable 설정
+- 자체 Security Group 생성 (Name: demo-sg, Open Anywhere)
+
+생성한 EC2 의 Public IP 를 통해 SSH 연결을 시도
+
+→ 연결되지 않음
+
+아무리 Public IP를 Enable 설정했다고 해도, Private Subnet에 위치했기 때문
+
+#### Reachability Analyzer 확인
+
+**1. Reachability Analyzer 생성 - `demo-ec2`**
+
+- Source Type: Internet Gateway
+- Source: `igw-033860..`
+- Destination Type: EC2 Instance
+- Destination: `i-0ad0f2..`
+
+생성 후 10 ~ 15초 정도 분석 시간이 걸림
+
+**2. Reachability 실패 확인**
+
+이후 Reachability status 에 Not reachability 표시가 되는 것을 확인할 수 있음
+
+상세 내용을 확인하면, Route Table `demo-rt`에 `NO_ROUTE_TO_DESTINATION` 오류 
+
+**3. Reachability 성공하도록 변경**
+
+Route table에 Internet Gateway 로 들어오는 트래픽을 허용
+
+| Destination | Target                            | Status | Propagated |
+|-------------|-----------------------------------|--------|------------|
+| 0.0.0.0/0   | Internet Gateway; `igw-033860...` | -      | No         |
+
+**4. Reachability 재검사 후 성공 확인**
+
+이후, `Analogize Path` 버튼을 눌러 다시 분석.
+
+Reachability status가 Reachable 로 변경된 것을 알 수 있음 
+
+<br>
 
 
-
+#### Exercise 2️⃣.
 
 
