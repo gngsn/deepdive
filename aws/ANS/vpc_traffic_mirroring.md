@@ -24,17 +24,21 @@ AWS VPC 에는 Traffic Mirroring 기능이 있는데,
 
 EC2에 부착된 ENI에 도착하는 모든 트래픽을 복사하여, 다른 타겟으로 전송하는 방법
 
-<img src="">
+<br><img src="./img/vpc_traffic_mirroring_img1.png" width="80%" /><br>
 
 Subnet A 내에 위치하는 EC2 Traffic Monitoring 에서 
 Subnet B 내에 위치한 ENI (Traffic Destination)로 트래픽을 복사할 때,
 두 ENI 사이에 Session을 정의할 수 있음
 
+<br>
+
 ### VPC Traffic Mirroring – NLB as Target
 
 타겟은 EC2 뿐만 아니라 NLB로도 설정 가능함.
 
-<img src="">
+<br><img src="./img/vpc_traffic_mirroring_img2.png" width="80%" /><br>
+
+<br>
 
 ### VPC Traffic Mirroring Filters
 
@@ -44,7 +48,7 @@ Subnet B 내에 위치한 ENI (Traffic Destination)로 트래픽을 복사할 �
 
 가령, Instance A 와 Instance B 를 통해 타겟 ENI 혹은 NLB로 트래픽을 복사.  
 
-<img src="">
+<br><img src="./img/vpc_traffic_mirroring_img3.png" width="80%" /><br>
 
 Traffic Filter Parameters
 - Traffic Direction: Inbound or Outbound
@@ -52,6 +56,8 @@ Traffic Filter Parameters
 - Protocol: L4
 - Source Port Range/ Destination Port range
 - Source CIDR block/ Destination CIDR block
+
+<br>
 
 ### VPC Traffic Mirroring – Good to know
 
