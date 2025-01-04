@@ -192,8 +192,6 @@ fields @timestamp, @message
 - Inbound REJECT → `NACL` or `SG`
 - Inbound ACCEPT, Outbound REJECT → `NACL`
 
-Security Group 은 Stateless 하지만 NACL은 Stateful 하기 때문
-
 </td>
 <td>
 
@@ -203,6 +201,8 @@ Security Group 은 Stateless 하지만 NACL은 Stateful 하기 때문
 </td>
 </tr>
 </table>
+
+**Security Group 은 Stateful 하지만 NACL은 Stateless 하기 때문** - [VPC Firewall - Security Group - security-groups-are-stateful](https://github.com/gngsn/deepdive/blob/main/aws/ANS/vpc_firewall_security_group.md#%ED%8A%B9%EC%A7%952-security-groups-are-stateful-%EC%83%81%ED%83%9C%EB%A5%BC-%EA%B0%80%EC%A7%90-%EF%B8%8F%EF%B8%8F%EF%B8%8F) 참고
 
 <br>
 
