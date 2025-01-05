@@ -53,3 +53,4 @@
 2. [VPC Traffic Mirroring](./vpc_traffic_mirroring.md)
 3. [VPC Reachability Analyzer](./vpc_reachability_analyzer.md)
 4. [Walkthrough: VPC Reachability Analyzer](./walkthrough_vpc_reachability_analyzer.md)
+5. [Walkthrough: VPC Network Access Analyzer](./walkthrough_vpc_network_access_analyzer.md)
