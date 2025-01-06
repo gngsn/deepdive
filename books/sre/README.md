@@ -415,6 +415,14 @@
 <br/>
 </details>
 
+<details>
+<summary><b>CHAPTER 17. Testing for Reliability</b></summary>
+
+[🔗 link](./chapter17)
+
+<br/>
+</details>
+
 ---
 
 <details>
