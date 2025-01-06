@@ -27,12 +27,16 @@
 2. [Elastic Network Interface (ENI) deep dive](./elastic_network_interface.md)
 3. [Bring Your Own IP](./bring_your_own_ip.md)
 
+<br/>
+
 ## Section 4. VPC DNS and DHCP
 
 1. [How DNS works?](./how_dns_works.md)
 2. [Amazon VPC DNS Server Route53 Resolver](./amazon_vpc_dns_server_route53_resolver.md)
 3. [VPC DHCP Option Sets](./vpc_dhcp_option_sets.md)
 4. [Hands on exercises scenarios](./hands_on_exercises_scenarios.md)
+
+<br/>
 
 ## Section 5. Network Performance and Optimization
 
@@ -46,6 +50,7 @@
 
 [Quiz 5: Network Performance](quiz_5_network_performance.md)
 
+<br/>
 
 ## Section 6. VPC traffic Monitoring, Troubleshooting & Analysis
 
@@ -54,3 +59,8 @@
 3. [VPC Reachability Analyzer](./vpc_reachability_analyzer.md)
 4. [Walkthrough: VPC Reachability Analyzer](./walkthrough_vpc_reachability_analyzer.md)
 5. [Walkthrough: VPC Network Access Analyzer](./walkthrough_vpc_network_access_analyzer.md)
+
+[Quiz 6: VPC Monitoring & Troubleshooting](./quiz_6_vpc_monitoring_troubleshooting.md)
+
+<br/>
+
