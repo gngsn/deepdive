@@ -64,3 +64,11 @@
 
 <br/>
 
+## Section 7: VPC Private Connectivity: VPC Peering
+
+1. [Introduction to VPC private connectivity options](introduction_to_vpc_private_connectivity_options.md)
+2. [VPC Peering](./vpc_peering.md)
+3. Hands On: VPC Peering across AWS regions
+4. VPC Peering invalid scenarios
+    
+Quiz 7: VPC Peering
