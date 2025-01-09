@@ -68,7 +68,7 @@
 
 1. [Introduction to VPC private connectivity options](introduction_to_vpc_private_connectivity_options.md)
 2. [VPC Peering](./vpc_peering.md)
-3. Hands On: VPC Peering across AWS regions
+3. [Hands On: VPC Peering across AWS regions](./hands_on_vpc_peering_across_aws_regions.md)
 4. VPC Peering invalid scenarios
     
 Quiz 7: VPC Peering
