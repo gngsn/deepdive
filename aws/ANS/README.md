@@ -72,3 +72,12 @@
 4. [VPC Peering invalid scenarios](./vpc_peering_invalid_scenarios.md)
     
 [Quiz 7: VPC Peering](./quiz_7_vpc_peering.md)
+
+<br/>
+
+## Section 8: VPC Private Connectivity:  VPC Gateway Endpoints
+
+1. [Introduction to VPC endpoints](introduction_to_vpc_endpoints.md)
+2. [VPC Gateway Endpoint](./vpc_gateway_endpoint.md)
+3. [Hands On: VPC gateway endpoint to access S3 bucket](hands_on_vpc_gateway_endpoint_to_access_s3_bucket.md)
+
