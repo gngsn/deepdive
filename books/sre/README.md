@@ -423,6 +423,14 @@
 <br/>
 </details>
 
+<details>
+<summary><b>CHAPTER 18. Software Engineering in SRE</b></summary>
+
+[🔗 link](./chapter18)
+
+<br/>
+</details>
+
 ---
 
 <details>
