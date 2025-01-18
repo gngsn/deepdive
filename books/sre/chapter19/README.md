@@ -206,7 +206,7 @@ id(packet) mod N
 - 백엔드 풀 변화 시 기존 연결의 문제를 최소화
 - 시스템 부하 증가 시 Consistent Hashing 기법 대체
 
-<br><hr><br>
+<br>
 
 #### 💥 문제 2: Consistent Hashing - 추적 테이블 관리의 어려움
 

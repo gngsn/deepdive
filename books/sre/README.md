@@ -9,6 +9,7 @@
 
 <details>
 <summary><b>CHAPTER 02. The Production Environment at Google, from the Viewpoint of an SRE</b></summary>
+<br>
 
 [🔗 link](./chapter02)
 
@@ -30,6 +31,7 @@
 
 <details>
 <summary><b>CHAPTER 03. Embracing RiskEmbracing Risk</b></summary>
+<br>
 
 [🔗 link](./chapter03)
 
@@ -50,6 +52,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 04. Service Level Objectives</b></summary>
+<br>
 
 [🔗 link](./chapter04)
 
@@ -74,6 +77,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 05. Eliminating Toil</b></summary>
+<br>
 
 [🔗 link](./chapter05)
 
@@ -96,6 +100,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 06. Monitoring Distributed Systems</b></summary>
+<br>
 
 [🔗 link](./chapter06)
 
@@ -122,6 +127,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 07. The Evolution of Automation at Google</b></summary>
+<br>
 
 [🔗 link](./chapter07)
 
@@ -148,6 +154,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 08. Release Engineering</b></summary>
+<br>
 
 [🔗 link](./chapter08)
 
@@ -178,6 +185,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 09. Simplicity</b></summary>
+<br>
 
 [🔗 link](./chapter09)
 
@@ -198,6 +206,7 @@
 
 <details>
 <summary><b>CHAPTER 10. Practical Alerting from Time-Series Data</b></summary>
+<br>
 
 [🔗 link](./chapter10)
 
@@ -227,6 +236,7 @@
 
 <details>
 <summary><b>CHAPTER 11. Being On-Call</b></summary>
+<br>
 
 [🔗 link](./chapter11)
 
@@ -258,6 +268,7 @@
 
 <details>
 <summary><b>CHAPTER 12. Effective Troubleshooting</b></summary>
+<br>
 
 [🔗 link](./chapter12)
 
@@ -304,6 +315,7 @@
 
 <details>
 <summary><b>CHAPTER 13. Emergency Response</b></summary>
+<br>
 
 [🔗 link](./chapter13)
 
@@ -338,6 +350,7 @@
 </details>
 <details>
 <summary><b>CHAPTER 14. Managing Incidents</b></summary>
+<br>
 
 [🔗 link](./chapter14)
 
@@ -367,6 +380,7 @@
 
 <details>
 <summary><b>CHAPTER 15. Postmortem Culture: Learning from Failure</b></summary>
+<br>
 
 [🔗 link](./chapter15)
 
@@ -391,6 +405,7 @@
 
 <details>
 <summary><b>CHAPTER 16. Tracking Outages</b></summary>
+<br>
 
 [🔗 link](./chapter16)
 
@@ -417,6 +432,7 @@
 
 <details>
 <summary><b>CHAPTER 17. Testing for Reliability</b></summary>
+<br>
 
 [🔗 link](./chapter17)
 
@@ -470,6 +486,7 @@
 
 <details>
 <summary><b>CHAPTER 18. Software Engineering in SRE</b></summary>
+<br>
 
 [🔗 link](./chapter18)
 
@@ -522,6 +539,7 @@
 
 <details>
 <summary><b>CHAPTER 19. Load Balancing at the Frontend</b></summary>
+<br>
 
 [🔗 link](./chapter19)
 
@@ -533,6 +551,7 @@
 
 <details>
 <summary><b>APPENDIX A. Availability Table</b></summary>
+<br>
 
 [🔗 link](./appendixA)
 
@@ -540,6 +559,7 @@
 
 <details>
 <summary><b>APPENDIX B. A Collection of Best Practices for Production Services</b></summary>
+<br>
 
 [🔗 link](./appendixB)
 
