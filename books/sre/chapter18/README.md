@@ -8,6 +8,9 @@ SRE는 복잡한 프로덕션 환경을 직접 경험하고 이를 활용하여 
 - 업타임 관리 및 지연 응답 최소화 목적.
 - 바이너리 배포 메커니즘, 모니터링 시스템, 동적 서버 조합(dynamic server composition) 기반 개발 환경 구축 등 기능 수행.
 
+<br>
+
+---
 
 ## Why Is Software Engineering Within SRE Important?
 
@@ -46,6 +49,8 @@ SRE 입장에서 소프트웨어 개발은:
 - 소프트웨어 엔지니어링과 시스템 엔지니어링 간의 균형을 원하는 엔지니어에게 높은 직업 만족도 제공.
 
 <br>
+
+---
 
 ## Auxon Case Study: Project Background and Problem Space
 
@@ -106,6 +111,8 @@ _구현이 아닌 '요구사항'을 명확히 하자_
 
 <br>
 
+---
+
 ## Intent-Based Capacity Planning
 
 **의도 (Intent)**: 서비스 담당자가 해당 서비스를 운영하고자 하는 목적과 요구사항을 의미.
@@ -143,6 +150,8 @@ _구현이 아닌 '요구사항'을 명확히 하자_
 
 <br>
 
+---
+
 ## Fostering Software Engineering in SRE
 
 의도 기반 수용량 계획을 위한 필수 정보? **의존성, 성능 지표, 우선순위 결정.**
@@ -179,6 +188,8 @@ _성능 지표_
 
 <br>
 
+---
+
 ## 3. Prioritization 
 
 _우선순위 결정_
@@ -189,9 +200,9 @@ _우선순위 결정_
 
 의도 기반 수용량 계획을 통해, 우선순위 결정을 세밀하게 또는 굵직하게 조정할 수 있음.
 
-----
-----
-----
+<br>
+
+---
 
 ## Introduction to Auxon
 
@@ -200,6 +211,8 @@ Auxon은 구글이 보유한 수백만 달러 규모의 머신들을 효과적�
 Auxon은 사용자의 설정 언어 또는 프로그래밍 API를 통해 수집한 후, 사람의 의도를 기계가 이해할 수 있는 제약 조건으로 변환함.
 
 <br>
+
+---
 
 ## Auxon의 주요 컴포넌트
 
@@ -239,8 +252,6 @@ Auxon은 사용자의 설정 언어 또는 프로그래밍 API를 통해 수집�
 ✔️ **할당 계획(allocation plan)**
 : Auxon 해법 엔진의 출력 결과. 어떤 자원을 어떤 서비스에 어느 지역에 위치시킬지를 표현. 수용량 계획 문제의 요구사항을 구체화함.
 
-
----
 
 ### Requirements and Implementation: Successes and Lessons Learned
 
@@ -339,6 +350,8 @@ SRE 조직 내 소프트웨어 제품 개발을 위한 엔지니어 선정 시,
 - 즉, 기존 팀의 스킬이 추가 투입된 전문가와 함께 성장할 수 있는 시점.
 
 <br>
+
+---
 
 ## Fostering Software Engineering in SRE
 
@@ -441,6 +454,8 @@ _자신의 표준을 낮추지마라_
 해당 제품이 널리 활용될 경우, 이는 SRE들이 자신들의 업무를 성공적으로 수행하기 위한 중요한 도구가 될 수 있음.
 
 <br>
+
+---
 
 ## Conclusions
 

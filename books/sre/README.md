@@ -520,6 +520,15 @@
 
 </details>
 
+<details>
+<summary><b>CHAPTER 19. Load Balancing at the Frontend</b></summary>
+
+[🔗 link](./chapter19)
+
+<br/>
+
+</details>
+
 ---
 
 <details>
@@ -537,4 +546,3 @@
 </details>
 
 <br/><br/>
-
