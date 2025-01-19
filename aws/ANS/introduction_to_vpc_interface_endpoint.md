@@ -2,10 +2,10 @@
 
 ## VPC Interface endpoint - Accessing AWS or Customer Services
 
-만약, SAS 앱을 갖고 있는데, 퍼블릭 접근을 막고 싶은 경우.
+만약, SaaS 앱을 갖고 있는데, 퍼블릭 접근을 막고 싶은 경우.
 
 고객의 VPC의 private subnet에 그들의 워크로드가 존재하기 때문에,
-SAS 앱을 고객의 private VPC에 접근하도록 만들고 싶음
+SaaS 앱을 고객의 private VPC에 접근하도록 만들고 싶음
 
 이 경우 PrivateLink로 생성한 VPC Interface Endpoint를 사용할 수 있음
 
