@@ -80,4 +80,32 @@
 1. [Introduction to VPC endpoints](introduction_to_vpc_endpoints.md)
 2. [VPC Gateway Endpoint](./vpc_gateway_endpoint.md)
 3. [Hands On: VPC gateway endpoint to access S3 bucket](./hands_on_vpc_gateway_endpoint_to_access_s3_bucket.md)
+4. [VPC endpoints and S3 bucket policy](./vpc_endpoints_and_s3_bucket_policy.md)
+5. [Accessing VPC gateway endpoint from remote network](./accessing_vpc_gateway_endpoint_from_remote_network.md)
+
+[Quiz 8: VPC Endpoints](./quiz_8_vpc_endpoints.md)
+
+## Section 9: VPC Private Connectivity:  VPC interface endpoint and PrivateLink
+
+1. [Introduction to VPC Interface endpoint](./introduction_to_vpc_interface_endpoint.md)
+2. [Hands On: Create VPC interface endpoint and access SQS](./hands_on_create_vpc_interface_endpoint_and_access_sqs.md)
+3. [VPC interface endpoint features](./vpc_interface_endpoint_features.md)
+4. [VPC Interface endpoint for Customer service (PrivateLink)](./vpc_privateLink.md#vpc-interface-endpoint--accessing-customer-service)
+5. [VPC PrivateLink architecture](./vpc_privateLink.md#vpc-privateLink-architecture)
+6. [Hands On: VPC PrivateLink to access customer or 3rd party services](./vpc_privateLink.md#hands-on-vpc-privatelink-to-access-customer-or-3rd-party-services)
+7. [VPC interface endpoint DNS](./vpc_interface_endpoint_dns.md)
+8. [Accessing VPC interface endpoint from remote network](./accessing_vpc_interface_endpoint_from_remote_network.md)
+9. [VPC PrivateLink vs VPC Peering](./vpc_privateLink_vs_vpc_peering.md)
+10. [VPC PrivateLink Summary](./vpc_privateLink_summary.md)
+11. [Exam Essentials](./exam_essentials.md)
+
+[Quiz 9: VPC PrivateLink and Interface endpoints](./quiz_9_vpc_privateLink_and_interface_endpoints.md)
+
+
+
+VPC Interface endpoint – Accessing Customer service
+
+
+
+
 
