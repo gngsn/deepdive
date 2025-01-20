@@ -101,3 +101,4 @@ An Interface endpoint can be accessed through
 - On-premise DNS resolution을 위해 DNS queries를 custom Route53 Resolver로 전달해야 함
 - Reference: https://d1.awsstatic.com/whitepapers/building-a-scalable-and-secure-multi-vpc-aws-networkinfrastructure.pdf
 
+<br><br>

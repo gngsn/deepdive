@@ -94,10 +94,10 @@
 5. [VPC PrivateLink architecture](./vpc_privateLink.md#vpc-privateLink-architecture)
 6. [Hands On: VPC PrivateLink to access customer or 3rd party services](./vpc_privateLink.md#hands-on-vpc-privatelink-to-access-customer-or-3rd-party-services)
 7. [VPC interface endpoint DNS](./vpc_interface_endpoint_dns.md)
-8. [Accessing VPC interface endpoint from remote network](./accessing_vpc_interface_endpoint_from_remote_network.md)
+8. [Accessing VPC interface endpoint from remote network](./vpc_interface_endpoint_dns.md#accessing-vpc-interface-endpoint-from-remote-network)
 9. [VPC PrivateLink vs VPC Peering](./vpc_privateLink_vs_vpc_peering.md)
-10. [VPC PrivateLink Summary](./vpc_privateLink_summary.md)
-11. [Exam Essentials](./exam_essentials.md)
+10. [VPC PrivateLink Summary](./vpc_privateLink_vs_vpc_peering.md#vpc-privatelink-summary)
+11. [Exam Essentials](./vpc_privateLink_vs_vpc_peering.md#exam-essentials)
 
 [Quiz 9: VPC PrivateLink and Interface endpoints](./quiz_9_vpc_privateLink_and_interface_endpoints.md)
 
