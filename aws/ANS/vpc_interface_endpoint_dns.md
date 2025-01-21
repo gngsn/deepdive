@@ -42,7 +42,7 @@ Address:     10.10.1.26
 
 ### How Private DNS works?
 
-<img src="...">
+<br><img src="./img/vpc_interface_endpoint_dns_img1.png" width="60%" /><br>
 
 AWS 는 Kinesis service endpoint에 대한 private hosted zone 을 생성.
 
@@ -57,7 +57,7 @@ private hosted zone에서 **ENI의 private IP**로 resolve 됨.
 
 ### VPC Interface Endpoint - Private DNS disabled
 
-<img src="...">
+<br><img src="./img/vpc_interface_endpoint_dns_img2.png" width="60%" /><br>
 
 - **Subnet 1** → `kinesis.us-east-1.amazon.com` -> Via **internet**
 - **Subnet 1** → `vpce-123-ab.kinesis.us-east-1.vpce.amazonaws.com` -> Via **Interface endpoint**
@@ -65,7 +65,7 @@ private hosted zone에서 **ENI의 private IP**로 resolve 됨.
 
 ### VPC Interface Endpoint - Private DNS disabled
 
-<img src="...">
+<br><img src="./img/vpc_interface_endpoint_dns_img3.png" width="60%" /><br>
 
 - **Subnet 1, 2** → `kinesis.us-east-1.amazon.com` -> Via **Interface endpoint**
 - **Subnet 1, 2** → `vpce-123-ab.kinesis.us-east-1.vpce.amazonaws.com` -> Via **Interface** endpoint
