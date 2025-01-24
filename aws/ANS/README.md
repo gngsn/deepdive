@@ -73,7 +73,7 @@
     
 [Quiz 7: VPC Peering](./quiz_7_vpc_peering.md)
 
-<br/>
+<br>
 
 ## Section 8: VPC Private Connectivity:  VPC Gateway Endpoints
 
@@ -84,6 +84,8 @@
 5. [Accessing VPC gateway endpoint from remote network](./accessing_vpc_gateway_endpoint_from_remote_network.md)
 
 [Quiz 8: VPC Endpoints](./quiz_8_vpc_endpoints.md)
+
+<br>
 
 ## Section 9: VPC Private Connectivity:  VPC interface endpoint and PrivateLink
 
@@ -99,11 +101,16 @@
 10. [VPC PrivateLink Summary](./vpc_privateLink_vs_vpc_peering.md#vpc-privatelink-summary)
 11. [Exam Essentials](./vpc_privateLink_vs_vpc_peering.md#exam-essentials)
 
-[Quiz 9: VPC PrivateLink and Interface endpoints](./quiz_9_vpc_privateLink_and_interface_endpoints.md)
+<br>
 
-
-
-VPC Interface endpoint – Accessing Customer service
+## Section 10: VPC Interface endpoint – Accessing Customer service
+1. [Introduction to Transit Gateway](./introduction_to_transit_gateway.md)
+2. [Transit Gateway VPC attachments and Routing](./transit_gateway_vpc_attachments_and_routing.md)
+3. [Hands On: Transit Gateway & VPCs with full routing](./hands_on_transit_gateway_and_vpcs_with_full_routing.md)
+4. [Hands On: Transit Gateway & VPCs with restricted routing](./hands_on_transit_gateway_and_vpcs_with_restricted_routing.md)
+5. Transit Gateway VPC Network Patterns
+6. Transit Gateway AZ considerations
+7. Transit Gateway AZ affinity & Appliance mode
 
 
 
