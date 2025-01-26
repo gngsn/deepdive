@@ -52,29 +52,19 @@ VPC Peering은 연결은 1대 1로 이루어지며, 전파되지 않음.
 <tr>
 <th>Transit Gateway Peering across AWS regions</th>
 <th>Transit Gateway with AWS site-to-site VPN</th>
-<th>Transit gateway with Direct Connect</th>
-<th>Transit Gateway with 3rd party appliances for traffic inspection</th>
 </tr>
 <tr>
 <td><img src="./img/introduction_to_transit_gateway_img3.png"></td>
 <td><img src="./img/introduction_to_transit_gateway_img4.png"></td>
+</tr>
+<tr>
+<th>Transit gateway with Direct Connect</th>
+<th>Transit Gateway with 3rd party appliances for traffic inspection</th>
+</tr>
+<tr>
 <td><img src="./img/introduction_to_transit_gateway_img5.png"></td>
 <td><img src="./img/introduction_to_transit_gateway_img6.png"></td>
 </tr>
 </table>
 
----
-
-# Transit Gateway VPC attachments and Routing
-
-## Transit Gateway attachments
-
-<br><img src=""><br>
-
-- 주의 사항: CIDRs 범위가 겹치면 안됨
-
-Routing 은 어떻게 될까?
-1. VPC A, B, C가 있다고 할 때
-
-
-# Hands On: Transit Gateway & VPCs with full routing
+<br>
