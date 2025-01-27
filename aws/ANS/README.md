@@ -104,15 +104,13 @@
 <br>
 
 ## Section 10: VPC Interface endpoint – Accessing Customer service
+
 1. [Introduction to Transit Gateway](./introduction_to_transit_gateway.md)
 2. [Transit Gateway VPC attachments and Routing](./transit_gateway_vpc_attachments_and_routing.md)
-3. [Hands On: Transit Gateway & VPCs with full routing](./hands_on_transit_gateway_and_vpcs_with_full_routing.md)
-4. [Hands On: Transit Gateway & VPCs with restricted routing](./hands_on_transit_gateway_and_vpcs_with_restricted_routing.md)
+3. [Hands On: Transit Gateway & VPCs with full routing](./hands_on_transit_gateway.md#hands-on-transit-gateway--vpcs-with-full-routing)
+4. [Hands On: Transit Gateway & VPCs with restricted routing](./hands_on_transit_gateway.md#hands-on-transit-gateway--vpcs-with-restricted-routing)
 5. Transit Gateway VPC Network Patterns
 6. Transit Gateway AZ considerations
 7. Transit Gateway AZ affinity & Appliance mode
-
-
-
 
 
