@@ -121,3 +121,110 @@ Static Route 설정이 끝났다면, 이제 Traffic이 외부 VPC로 흘러감
 2️⃣ <code>tgw-xxxxxx</code> 로 도착하면 Transit gateway 의 Route Table에서 해당 트래픽이 향해야할 VPC B로 라우팅함
 3️⃣ VPC B가 해당 트래픽을 받음
 </pre>
+
+---
+
+# Hands On: Transit Gateway & VPCs with full routing
+
+## Transit Gateway Lab – Three VPCs with full connectivity
+
+<br><img src="./img/hands_on_transit_gateway_and_vpcs_with_full_routing_img1.png"><br>
+
+### Lab setup
+
+#### 1. Private Subnets 생성
+
+3개의 VPCs 생성 후 각각 Private Subnets 생성. 
+
+<br><img src="./img/hands_on_transit_gateway_and_vpcs_with_full_routing_img2.png"><br>
+
+VPC A에는 Public Subnet 추가로 생성 (Host 넘기기 위함 - to jump host)
+
+**VPC-A-Public Subnet - Route Table**
+
+| Destination   | Target           |
+|---------------|------------------|
+| `10.0.0.0/16` | `local`          |
+| `0.0.0.0/0`   | `igw-05412cd...` |
+
+<br>
+
+#### 2. Transit Gateway 생성
+
+<br><img src="./img/hands_on_transit_gateway_and_vpcs_with_full_routing_img3.png"><br>
+
+**Transit Gateway**
+- Name: VPC-A-B-C-TGW
+- Configure:
+  - [x] DNS support: 인입되는 트래픽이 연결된 VPC connection에 대해 동일한 DNS로 Resolve 됨
+  - [x] VPC ECMP support: 연결된 VPN를 사용하면서 중요한 워크로드를 수행중이라면 (dominating) 최대 50GB까지 대역폭을 차지(leverage)할 수 있음.
+    - <pre>❗ECMP 없을 때 VPN 제한은 각 터널 당 1.25gbps 임</pre>
+  - [x] Default route table association: Attachment 생성 시 Transit gateway의 Default Rotue Table에 연결됨
+  - [x] Default route table propagation: Attachment 생성 시, Transit gateway의 Default Rotue Table에 전파
+    - <pre><b>❗Association vs. Propagation</b>
+      Transit Gateway(TGW) Association은 TGW가 별도의 라우트 테이블을 운영하는 것을 의미하고, Propagation은 라우트 테이블을 전파하는 것을 의미
+      - Attachment: 단순한 연결(connection)일 뿐
+      - Association: 각 Attachment는 하나의 TGW 라우트 테이블에 연결되어야 함. 하나의 TGW 라우트 테이블은 하나 또는 다수의 Attachment를 가질 수 있음
+      - Propagation: 온프레미스는 BGP 및 Static Routing을 사용하고, VPC의 CIDR은 API를 통해 동적으로 전파. Propagation을 활성화하면 routes에 Propagation에 지정한 VPC의 CIDR이 자동으로 등록됨.
+    </pre>
+  - [x] Multicast support: 어떤 머신이든 트래픽을 multicast 그룹에 속한 다른 머신으로 보낼 수 있음
+
+<br>
+
+#### 3. VPC attachments 생성
+
+_Transit Gateway을 위한 VPC attachments 생성_
+
+<br><img src="./img/hands_on_transit_gateway_and_vpcs_with_full_routing_img4.png"><br>
+
+**Attachment Type**:
+- [x] VPC
+- [ ] VPN
+- [ ] Peering Connection
+- [ ] Connect
+
+VPC-A를 선택 후 Transit gateway 와 연결할 서브넷을 선택
+
+(선택한 AZ에 대해서, 해당 서브넷 하위 모든 자원이 연결됨)
+
+VPC-B, VPC-C에 대한 Attachment도 생성
+
+그럼, Transit Gateway Route table에 각 Attachment의 Route Entry가 추가된 것을 확인할 수 있음
+
+**Transit Gateway Route Table - Propagations**
+
+| Attachment ID      | Resource type | Resource ID  | State      |
+|--------------------|---------------|--------------|------------|
+| tgw-attach-0a033.. | VPC           | vpc-0e0e1... | associated | 
+| tgw-attach-0817b.. | VPC           | vpc-05064... | associated | 
+| tgw-attach-0f964.. | VPC           | vpc-09033... | associated | 
+
+**Transit Gateway Route Table - Routes**
+
+| CIDR        | Attachment                          | Resource Type | Route Type | Route State |
+|-------------|-------------------------------------|---------------|------------|-------------|
+| 10.0.0.0/16 | tgw-attach-0a033.. \| vpc-0e0e1...  | VPC           | propagated | active      |
+| 10.1.0.0/16 | tgw-attach-0817b.. \|  vpc-05064... | VPC           | propagated | active      |
+| 10.2.0.0/16 | tgw-attach-0f964.. \| vpc-09033...  | VPC           | propagated | active      |
+
+
+But, 하지만 아직 연결이 되지 않음 → Subnet의 route table 설정이 안되어 있음
+
+<br>
+
+#### 4. Subnet의 route table 수정
+
+<br><img src="./img/hands_on_transit_gateway_and_vpcs_with_full_routing_img5.png"><br>
+
+모든 Private subnet의 route table 수정
+
+Transit gateway attachment 으로 향할 `10.0.0.0/8` 추가
+
+<br>
+
+#### 5. VPC A → VPC B,C using Private IP
+
+VPC A에 연결 -> EC2-A에 SSH 접속 -> EC2-B나 EC2-C의 Private IP로 ping 시도 
+
+EC2 생성 시, Security Group 설정 필요 
+
