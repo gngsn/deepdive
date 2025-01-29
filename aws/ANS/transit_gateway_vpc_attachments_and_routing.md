@@ -105,7 +105,15 @@ For example, VPC A have to be set ...
 </table>
 
 <br>
-<pre>❗VPN / BGP를 연결하고자 한다면, VPN으로 부터 VPC Route table로 설정해야하는 Route가 전파됨(자동 설정됨)</pre>
+<pre><b>❗VPN / BGP를 연결하고자 한다면, VPN으로 부터 VPC Route table로 설정해야하는 Route가 전파됨(자동 설정됨)</b>
+
+<b>Border Gateway Protocol?</b>
+Border Gateway Protocol(BGP)은 인터넷에서 데이터를 전송하는 데 가장 적합한 네트워크 경로를 결정하는 일련의 규칙.
+인터넷은 표준화된 프로토콜, 디바이스 및 통신 기술을 통해 서로 연결된 수천 개의 프라이빗, 퍼블릭, 기업 및 정부 네트워크로 구성됨.
+인터넷을 검색하면 데이터는 목적지에 도달하기 전에 여러 네트워크를 통해 이동.
+BGP의 역할은 데이터가 이동할 수 있는 모든 경로를 살펴보고 최적의 경로를 선택하는 것.
+예를 들어, 미국의 사용자가 유럽의 오리진 서버로 애플리케이션을 로드하면 BGP가 해당 통신을 빠르고 효율적으로 만듦.
+</pre>
 
 모든 VPC 마다 위와 같은 Static Route 를 설정해야함
 
