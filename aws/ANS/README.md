@@ -109,8 +109,8 @@
 2. [Transit Gateway VPC attachments and Routing](./transit_gateway_vpc_attachments_and_routing.md)
 3. [Hands On: Transit Gateway & VPCs with full routing](./hands_on_transit_gateway.md#hands-on-transit-gateway--vpcs-with-full-routing)
 4. [Hands On: Transit Gateway & VPCs with restricted routing](./hands_on_transit_gateway.md#hands-on-transit-gateway--vpcs-with-restricted-routing)
-5. Transit Gateway VPC Network Patterns
-6. Transit Gateway AZ considerations
-7. Transit Gateway AZ affinity & Appliance mode
+5. [Transit Gateway VPC Network Patterns](./transit_gateway_vpc_network_patterns.md)
+6. [Transit Gateway AZ considerations](./transit_gateway_vpc_network_patterns.md#transit-gateway-az-considerations)
+7. [Transit Gateway AZ affinity & Appliance mode](./transit_gateway_vpc_network_patterns.md#transit-gateway-az-affinity--appliance-mode)
 
 
