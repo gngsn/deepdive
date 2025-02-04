@@ -112,5 +112,6 @@
 5. [Transit Gateway VPC Network Patterns](./transit_gateway_vpc_network_patterns.md)
 6. [Transit Gateway AZ considerations](./transit_gateway_vpc_network_patterns.md#transit-gateway-az-considerations)
 7. [Transit Gateway AZ affinity & Appliance mode](./transit_gateway_vpc_network_patterns.md#transit-gateway-az-affinity--appliance-mode)
+8. [Transit Gateway Peering](./transit_gateway_peering.md)
 
 

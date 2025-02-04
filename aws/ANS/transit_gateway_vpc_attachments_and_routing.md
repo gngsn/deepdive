@@ -3,7 +3,6 @@
 ## Transit Gateway attachments
 
 - 주의 사항: CIDRs 범위가 겹치면 안됨
-- Across region 지원
 
 <br><img src="./img/transit_gateway_vpc_attachments_and_routing_img1.png"><br>
 
