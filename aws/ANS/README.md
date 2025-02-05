@@ -113,5 +113,10 @@
 6. [Transit Gateway AZ considerations](./transit_gateway_vpc_network_patterns.md#transit-gateway-az-considerations)
 7. [Transit Gateway AZ affinity & Appliance mode](./transit_gateway_vpc_network_patterns.md#transit-gateway-az-affinity--appliance-mode)
 8. [Transit Gateway Peering](./transit_gateway_peering.md)
+9. [Transit Gateway Connect Attachment](./transit_gateway_connect_attachment.md)
+10. Transit Gateway VPN Attachment
+11. Transit Gateway & Direct Connect
+12. Transit Gateway Multicast
+13. TGW Architecture: Centralized egress internet
 
 
