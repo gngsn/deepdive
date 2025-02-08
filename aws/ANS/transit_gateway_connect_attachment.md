@@ -24,7 +24,7 @@ VPC Attachment 뿐만 아니라, Direct Connect Gateway를 사용한 'Direct Con
 
 가령, 크게 둘러보면, 아래처럼 VPC 내에 가상의 어플라이언스를 가질 수 있음
 
-<br><img src="./img/transit_gateway_vpn_attachment_img1.png" width="80%" /><br>
+<br><img src="./img/transit_gateway_connect_attachment_img1.png" width="80%" /><br>
 
 왼쪽에 있는 Transit Gateway와 연결하고자 할 때, 둘 사이에 **GRE tunnel**을 생성해야 함
 
@@ -39,7 +39,7 @@ VPC Attachment 뿐만 아니라, Direct Connect Gateway를 사용한 'Direct Con
 
 궁극적으로, Transit Gateway와 Network Appliances 사이에 BGP 세션이 설정될 것.
 
-<br><img src="./img/transit_gateway_vpn_attachment_img2.png" width="80%" /><br>
+<br><img src="./img/transit_gateway_connect_attachment_img2.png" width="80%" /><br>
 
 → Transit Gateway는 내부 IP 주소와 외부 IP 주소를 갖게 됨 (BGP Configuration)
 
@@ -65,7 +65,7 @@ Transit Gateway는 고유한 IP 주소를 가지는데, IP 주소는 생성 시 
 
 ## Transit Gateway Connect attachment over the VPC transport attachment
 
-<br><img src="./img/transit_gateway_vpn_attachment_img3.png" width="80%" /><br>
+<br><img src="./img/transit_gateway_connect_attachment_img3.png" width="80%" /><br>
 
 **구성 컴포넌트**
 1. 세 개의 VPC 내 각각 실행되는 인스턴스: VPC A, VPC B, VPC C
@@ -80,7 +80,7 @@ Transit Gateway는 고유한 IP 주소를 가지는데, IP 주소는 생성 시 
 만약 온프레미스 네트워크에서 실행되는 가상 어플라이언스가 있다면, 
 Transit Gateway를 온프레미스 데이터 센터에 연결할 수 있음
 
-<br><img src="./img/transit_gateway_vpn_attachment_img4.jpg" width="80%" /><br>
+<br><img src="./img/transit_gateway_connect_attachment_img4.jpg" width="80%" /><br>
 
 Transit Gateway Connect는 온프레미스에서 실행되어 AWS Direct Connect로 연결된 써드파티 브랜치나 사용자 게이트웨이 어플라이언스로 사용할 수 있음
 
@@ -93,8 +93,10 @@ Transit Gateway Connect는 온프레미스에서 실행되어 AWS Direct Connect
 - 5 Gbps 이상은 대역폭은 동일한 Connect attachment의 다중 Connect peer (GRE tunnel) 중 동일한 프리픽스를 노출해서 사용 가능. 
 - 네 개의 Connect peer는 최대 총 20 Gbps 대역폭을 제공해서 서로의 커넥션을 보충
 
+<br>
 
 > **ECMP**: Equal-cost multi-path. 등가 다중 경로 라우팅
 > - 여러 최적 경로를 통해 패킷을 전달하는 라우팅 전략
 > - Site-to-Site VPN 연결을 많이 생성해서 AWS로의 연결 대역폭을 늘릴 때 사용
 
+<br>
