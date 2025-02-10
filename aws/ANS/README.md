@@ -117,7 +117,7 @@
 10. [Transit Gateway VPN Attachment](./transit_gateway_vpn_attachment.md)
 11. [Transit Gateway & Direct Connect](./transit_gateway_with_direct_connect.md)
 12. [Transit Gateway Multicast](./transit_gateway_multicast.md)
-13. TGW Architecture: Centralized egress internet
+13. [TGW Architecture: Centralized egress internet](./tgw_architecture_centralized_egress_internet.md)
 
 
 [Network Word Dictionary](./network_word_dictionary.md)

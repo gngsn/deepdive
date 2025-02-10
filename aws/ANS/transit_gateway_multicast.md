@@ -35,7 +35,7 @@
 
 ## Multicast traffic in a VPC
 
-<br><img src="./img/transit_gateway_multicast_img3.png" width="80%" /><br>
+<br><img src="./img/transit_gateway_multicast_img3.png" width="60%" /><br>
 
 - 멀티케스트 도메인과 Participating subnets 추가
 - 멀티케스트 그룹 생성 후 그룹 멤버십 IP 연결(e.g. `224.0.0.100`)
@@ -113,6 +113,10 @@ Transit gateway, Direct Connect, Connect Attachment는 멀티케스팅을 지원
   - 프로토콜: `IGMP(2)`
 - **보안 그룹(Security Group) 및 ACL에 IGMP 설정 필요**
   - IGMP 프로토콜 메시지가 허용되도록 모든 IGMP 호스트 인스턴스의 Security Group 및 ACL 정책을 설정해야 함
+- 멀티캐스트 도메인 공유:
+  - AWS 계정이나 그룹(Organization) (또는 크로스 그룹) 내부의 OU(Organization Unit)에 공유할 수 있음. (옵션 설정 필요)
+  - AWS Resource Access Manager에 통합되어 공유할 수 있음
+  - [🔗 AWS Multicast Share Domain](https://docs.aws.amazon.com/ko_kr/vpc/latest/tgw/multicast-share-domain.html)
 
 <br>
 
