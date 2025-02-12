@@ -59,10 +59,10 @@ Transit gateway, Direct Connect, Connect Attachment는 멀티케스팅을 지원
 
 <br><img src="./img/transit_gateway_multicast_img4.png" width="80%" /><br>
 
-- 1️⃣ 먼저 둘 사이에 DX(혹은 VPN/인터넷)와 같은 전송 매커니즘이 존재
-- 2️⃣ **온프레미스**에 **멀티캐스팅을 위한 라우터**를 가질 수 있음
-- 3️⃣ **VPC**에 **가상 라우터**를 가질 수 있고
-- 4️⃣ VPC 내의 가상 라우터가 온프레미스 라우터를 위한 GRE tunnel 생성
+- **배경**: 먼저 둘 사이에 DX(혹은 VPN/인터넷)와 같은 전송 매커니즘이 존재
+- 1️⃣ **온프레미스**에 **멀티캐스팅을 위한 라우터**를 가질 수 있음
+- 2️⃣ **VPC**에 **가상 라우터**를 가질 수 있고
+- 3️⃣ VPC 내의 가상 라우터가 온프레미스 라우터를 위한 GRE tunnel 생성
 
 <br><img src="./img/transit_gateway_multicast_img5.png" width="80%" /><br>
 
@@ -81,7 +81,7 @@ Transit gateway, Direct Connect, Connect Attachment는 멀티케스팅을 지원
 - VPC 내 여러 서브넷 간 멀티캐스트 지원
 - **서브넷 제한**: 한 서브넷은 단 하나의 멀티캐스트 도메인에만 속할 수 있음
 - ENI(Elastic Network Interface)의 멀티캐스트 그룹 가입:
-- 서브넷 내 ENI는 하나 이상의 멀티캐스트 그룹에 속할 수 있음
+  - 서브넷 내 ENI는 하나 이상의 멀티캐스트 그룹에 속할 수 있음
 - 멀티캐스트 그룹 멤버십 관리 방법:
   - Static: VPC 콘솔, AWS CLI. (IGMP를 지원하지 않는 멤버)
   - Dynamic: IGMP(Internet Group Management Protocol) (`JOIN`/`LEAVE` 메시지를 통해 자동 관리)
@@ -89,19 +89,19 @@ Transit gateway, Direct Connect, Connect Attachment는 멀티케스팅을 지원
   - IGMPv2를 사용하면 호스트가 멀티캐스트 그룹에 동적으로 가입(JOIN)하거나 탈퇴(LEAVE) 가능
 - Transit Gateway의 IGMPv2 쿼리 동작:
   - TGW는 2분마다 모든 멤버에게 IGMPv2 QUERY 메시지를 발송
-  - 멤버들은 IGMPv2 JOIN 메시지로 응답하며, 이를 통해 멤버십을 갱신
+  - 멤버들은 IGMPv2 `JOIN` 메시지로 응답하며, 이를 통해 멤버십을 갱신
 - 동적 등록: IGMPv2 지원
 - **멀티캐스트 관련 속성**
   - **`Igmpv2Support`**:
-  - 그룹 멤버가 멀티캐스트 그룹에 추가/제거되는 방식 결정
-  - 활성화 시 멤버들은 `JOIN` 및 `LEAVE` 메시지를 전송 가능
+    - 그룹 멤버가 멀티캐스트 그룹에 추가/제거되는 방식 결정
+    - 활성화 시 멤버들은 `JOIN` 및 `LEAVE` 메시지를 전송 가능
   - **`StaticSourcesSupport`**:
-  - 정적 멀티캐스트 소스 여부를 결정하는 멀티캐스트 도메인 속성
-  - 비활성화(`"StaticSourcesSupport": "disable"`) 시 모든 멤버가 메시지 전송 가능
-  - 특정 송신자만 허용하려면 해당 옵션을 적용하고 원하는 대상을 지정해야 함
+    - 정적 멀티캐스트 소스 여부를 결정하는 멀티캐스트 도메인 속성
+    - 비활성화(`"StaticSourcesSupport": "disable"`) 시 모든 멤버가 메시지 전송 가능
+    - 특정 송신자만 허용하려면 해당 옵션을 적용하고 원하는 대상을 지정해야 함
 - **멀티캐스트 제한**:
-- **전송 가능 인스턴스**: Nitro 기반 인스턴스에서만 멀티캐스트 전송 가능
-- Non-Nitro 인스턴스는 수신자로는 사용할 수 있으며, 이 경우 Source/Destination을 비활성화해야 함
+  - **전송 가능 인스턴스**: Nitro 기반 인스턴스에서만 멀티캐스트 전송 가능
+  - Non-Nitro 인스턴스는 수신자로는 사용할 수 있으며, 이 경우 Source/Destination을 비활성화해야 함
 - **멀티캐스트 라우팅 미지원 서비스**:
   - AWS Direct Connect
   - Site-to-Site VPN

@@ -2,39 +2,64 @@
 
 <table>
 <tr>
-<th>Single Site-to-Site VPN Connection over Virtual Private Gateway (VGW)</th>
-<th>Connecting multiple branch offices over Site-to-Site VPN</th>
-<th>Connecting multiple VPCs over Site-to-Site VPN connections</th>
+  <td rowspan="2" width=>#1</td>
+  <th>Single Site-to-Site VPN Connection over Virtual Private Gateway (VGW)</th>
 </tr>
 <tr>
-<th>Simplify Site-to-Site VPN network with Transit Gateway 1</th>
-<th>Simplify Site-to-Site VPN network with Transit Gateway 2</th>
-<th>Accelerated Site-to-Site VPN network with Transit Gateway</th>
+  <td><img src="./img/transit_gateway_vpn_attachment_img1.png" /></td>
 </tr>
 <tr>
-<td colspan="3">모든 지점마다 연결을 따로 하지 않고 Transit Gateway를 통해 단순화할 수 있음</td>
+  <td rowspan="2" width=>2</td>
+  <th>Connecting multiple branch offices over Site-to-Site VPN</th>
 </tr>
 <tr>
-<td><img src="./img/transit_gateway_vpn_attachment_img1.png" width="80%" /></td>
-<td><img src="./img/transit_gateway_vpn_attachment_img2.png" width="80%" /></td>
-<td><img src="./img/transit_gateway_vpn_attachment_img3.png" width="80%" /></td>
+  <td><img src="./img/transit_gateway_vpn_attachment_img2.png" /></td>
 </tr>
 <tr>
-<td><img src="./img/transit_gateway_vpn_attachment_img4.png" width="80%" /></td>
-<td>
-<img src="./img/transit_gateway_vpn_attachment_img5.png" width="80%" />
+  <td rowspan="2" width=>3</td>
+  <th>Connecting multiple VPCs over Site-to-Site VPN connections</th>
+</tr>
+<tr>
+  <td><img src="./img/transit_gateway_vpn_attachment_img3.png" /></td>
+</tr>
+<tr>
+  <td colspan="3">
+    <br>
+    ⬇️ ⬇️ ⬇️ 모든 지점마다 연결을 따로 하지 않고 Transit Gateway를 통해 단순화할 수 있음
+    <br>
+  </td>
+</tr>
+<tr>
+  <td rowspan="2" width=>4</td>
+  <th>Simplify Site-to-Site VPN network with Transit Gateway 1</th>
+</tr>
+<tr>
+  <td><img src="./img/transit_gateway_vpn_attachment_img4.png" /></td>
+</tr>
+<tr>
+  <td rowspan="2" width=>5</td>
+  <th>Simplify Site-to-Site VPN network with Transit Gateway 2</th>
+</tr>
+<tr>
+  <td><img src="./img/transit_gateway_vpn_attachment_img5.png" /></td>
+</tr>
+<tr>
+  <td rowspan="2" width=>5</td>
+  <th>Accelerated Site-to-Site VPN network with Transit Gateway</th>
+</tr>
+<tr>
+  <td>
+    <img src="./img/transit_gateway_vpn_attachment_img6.png" />
+    
+    **AWS global accelerator**
+    
+    : AWS의 엣지 로케이션과 가장 가까운 사용자 게이트웨이로 부터 트래픽을 라우팅하기 위해 사용
+    
+    Transit Gateway VPN Attachment와 함께 사용해야함. VGW 지원 안함
 
-더 많은 데이터 센터가 있어도, 하나의 Transit Gateway에 연결해서 여러 연결을 만들 수도 있음
-</td>
-<td><img src="./img/transit_gateway_vpn_attachment_img6.png" width="80%" /></td>
+  </td>
 </tr>
 </table>
-
-> **AWS global accelerator**
->
-> : AWS의 엣지 로케이션과 가장 가까운 사용자 게이트웨이로 부터 트래픽을 라우팅하기 위해 사용
->
-> Transit Gateway VPN Attachment와 함께 사용해야함. VGW 지원 안함
 
 <br>
 
