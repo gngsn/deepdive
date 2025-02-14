@@ -118,6 +118,7 @@
 11. [Transit Gateway & Direct Connect](./transit_gateway_with_direct_connect.md)
 12. [Transit Gateway Multicast](./transit_gateway_multicast.md)
 13. [TGW Architecture: Centralized egress internet](./tgw_architecture_centralized_egress_internet.md)
+14. [TGW Architecture: Centralized traffic inspection with Gateway Load Balancer](./tgw_architecture_centralized_egress_traffic_inspection.md)
 
 
 [Network Word Dictionary](./network_word_dictionary.md)
