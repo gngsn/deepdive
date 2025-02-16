@@ -32,12 +32,12 @@ VPC B, VPC C, VPC D에 각자 서비스에 연결 시켜줘야 함 → 관리 X
 
 #### 해결법
 
-: **Transit Gateway**
+\: **Transit Gateway**
 
 - 모든 Spoke VPC에 프라이빗하게 연결됨
 - 모든 접근을 중앙 관리
 
-<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img3.png" width="100%" /><br>
+<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img3.png" width="80%" /><br>
 
 <br />
 
@@ -71,13 +71,13 @@ VPC Endpoint에 **Private DNS 설정 활성화**
 - 여전히 Spoke VPC들에서는 SQS API Endpoint 를 해석(resolve)하지 못함
   - 오직 Egress VPC (VPC Endpoint가 포함된)에서만 해석할 수 있음
 
-<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img4.png" width="100%" /><br>
+<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img4.png" width="80%" /><br>
 
 <br />
 
 #### 해결책
 
-<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img5.png" width="100%" /><br>
+<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img5.png" width="80%" /><br>
 
 1. VPC endpoints의 private DNS를 비활성화
 2. AWS Service API Endpoint 와 동일한 이름의 Private Hosted Zone(PHZ) 생성 (e.g. `sqs.ap-south-1.amazonaws.com`)
@@ -98,22 +98,40 @@ VPC Endpoint에 **Private DNS 설정 활성화**
 
 > Q. Regional DNS Resolution 인 걸 어떻게 알지???
 
-## 요금: 개별 연결
+<br />
 
-<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img7.png" width="100%" /><br>
+### 개별 VPC ENI 연결 시 요금
 
-1. VPC interface endpoint의 시간 당 요금: `$0.01/hr`
-2. VPC interface endpoint의 용량 당 요금: `$0.01/GB`
+<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img7.png" width="80%" /><br>
 
-=> 많은 요금이 부과됨
+VPC interface endpoint의 **시간 별 요금** + **데이터 전송 요금**: `$0.01/hr` + `$0.01/GB`
+
+→ 많은 요금이 부과됨
 
 여기서 Transit Gateway 를 사용한다고 해서 많은 요금이 절감된다는 것은 아님
 
-## 요금: Transit Gateway
+<br />
 
-<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img8.png" width="100%" /><br>
+### Transit Gateway 사용 시 요금
 
-Attachment 요금
+<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img8.png" width="80%" /><br>
+
+VPC 별 Attachment 요금 + 데이터 전송 요금: `$0.05/hr` + `$0.02/GB` + etc...
+
+→ VPC interface endpoint 요금보다 훨씬 더 비쌈
+
+<br />
+
+### VPC peering 사용 시 요금
+
+<br><img src="./img/tgw_architecture_centralized_vpc_interface_endpoints_img9.png" width="80%" /><br>
+
+또 하나의 아키텍처를 보면, Transit gateway를 사용하는 대신, VPC peering connection을 사용해서 Spoke VPC 들과 중앙 VPC 사이를 연결할 수도 있음 
+
+이 때, VPC peering는 요금이 따로 없음
+
+
+
 
 <br />
 
