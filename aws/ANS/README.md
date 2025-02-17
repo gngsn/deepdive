@@ -119,6 +119,9 @@
 12. [Transit Gateway Multicast](./transit_gateway_multicast.md)
 13. [TGW Architecture: Centralized egress internet](./tgw_architecture_centralized_egress_internet.md)
 14. [TGW Architecture: Centralized traffic inspection with Gateway Load Balancer](./tgw_architecture_centralized_egress_traffic_inspection.md)
+15. [TGW Architecture: Centralized VPC interface endpoints](./tgw_architecture_centralized_vpc_interface_endpoints.md)
+16. [Transit Gateway vs VPC Peering](./transit_gateway_vs_vpc_peering.md)
+17. [Transit Gateway Sharing](./transit_gateway_sharing.md)
 
 
 [Network Word Dictionary](./network_word_dictionary.md)
