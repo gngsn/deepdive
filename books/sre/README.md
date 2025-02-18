@@ -667,6 +667,62 @@
 
 <br/>
 
+**TLDR**
+
+**📌  Cascading Failure**
+- 연쇄적 장애: 시간이 지나면서 장애가 계속해서 가중되는 현상
+- '서버 과부하'는 연속적 장애의 일반적인 원인
+
+**📌  Resource Exhaustion**
+- 자원의 부족으로 인해 지연 응답과 오류율 증가
+- **서버 자원**
+  - **CPU**: 인플라이트 요청 증가, 긴 큐 길이, 스레드 기아, CPU 기아, RPC 시간 초과 등
+  - **Memory**: 메모리 기아는 태스크 종료, 가비지 컬렉션 증가, 캐시 히트율 감소 유발
+  - **Threads**: 스레드 기아는 오류 발생, 헬스 체크 실패를 초래
+  - **File descriptors**: 파일 서술자가 부족해 네트워크 연결 초기화 불가능
+  - **Dependencies among resources**: 자원 부족이 다른 자원에 영향을 미침
+
+**📌 Preventing Server Overload**
+1. 서버 수용량 한계 부하 테스트 및 과부하 상태 실패 테스트
+2. 품질이 낮은 결과 제공
+3. 과부하 상태에서 요청 거부 구현
+4. 고수준 시스템에서 요청 거부
+5. 수용량 계획 실행
+
+**📌 Queue Management**
+- : 큐 관리 통해 특정 조건에서 요청 거부
+- **Load Shedding and Graceful Degradation**
+  - 부하 감소 및 선택적 요청 처리
+- **Retries**
+  - 재시도 로 인해 시스템 불안정 가능성
+- **Latency and Deadlines**
+  - : 데드라인 설정 및 전파가 중요함.
+  - Picking a deadline
+  - Missing deadlines
+  - Deadline propagation
+  - Cancellation propagation
+  - Bimodal latency
+
+**📌 Slow Startup and Cold Caching**
+- 초기 프로세스 성능 저하, 콜드 캐시 문제 해결 필요
+
+**📌 Always Go Downward in the Stack**
+- 백엔드 상호 통신 및 분산 데드락 주의
+
+**📌 Testing for Cascading Failures**
+1. 부하 증가 테스트
+2. 대용량 클라이언트 테스트
+3. 덜 중요한 백엔드 테스트
+
+**📌 연속적 장애를 처리하기 위한 즉각적인 대처**
+1. 자원 추가 투입
+2. 건강 상태 점검 중지
+3. 서버 재시작
+4. 트래픽 경감
+5. 퇴보 모드 적용
+6. 일괄 작업 부하 배제
+7. 문제가 있는 트래픽 배제
+
 
 </details>
 
