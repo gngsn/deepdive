@@ -37,3 +37,28 @@ class CustomQueue(BaseModel):
             (('checksum', 'created_at'), True),
         )
         table_settings = 'PARTITION BY RANGE (created_at)'
+
+    @classmethod
+    def enqueue(cls, key: str, message: dict):
+        cls.insert(key=key, payload=json.dumps(message)).execute()
+
+    @classmethod
+    def dequeue(cls, offset: int, limit: int):
+        return cls.select().where(cls.status == 0).offset(offset).limit(limit).for_update("FOR UPDATE SKIP LOCKED")
+
+    @classmethod
+    def update_success_done(cls, id):
+        return cls.update(
+            try_account=cls.try_count + 1,
+            status=1,
+            updated_at=now()
+        ).where(cls.id == id).execute()
+
+    @classmethod
+    def update_failure_done(cls, id):
+        where = cls.update(
+            try_account=cls.try_count + 1,
+            status=-1,
+            updated_at=now()
+        ).where(cls.id == id)
+        return where.execute()
