@@ -62,3 +62,22 @@ class CustomQueue(BaseModel):
             updated_at=now()
         ).where(cls.id == id)
         return where.execute()
+
+if __name__ == "__main__":
+    now = datetime(year=2024, month=5, day=23, hour=13, minute=13)
+    CustomQueue.enqueue(
+        "UMSV10001:12",
+        {"message": "hello world", "user_id": 12},
+    )
+
+    chunk_size = 100
+    offset = 0
+    limit = chunk_size
+    dequeue = CustomQueue.dequeue(offset, limit)
+
+    print(dequeue)
+    for message in dequeue:
+        print(message)
+
+if __name__ == "__main__":
+    CustomQueue.create_partition_if_not_exists(date(year=2024, month=5, day=23))
