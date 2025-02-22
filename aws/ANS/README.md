@@ -123,5 +123,15 @@
 16. [Transit Gateway vs VPC Peering](./transit_gateway_vs_vpc_peering.md)
 17. [Transit Gateway Sharing](./transit_gateway_sharing.md)
 
+<br>
+
+## Section 11: Hybrid Network Basics
+
+1. [Introduction to Hybrid networking](./static_routing_vs_dynamic_routing.md#introduction-to-hybrid-networking)
+2. [Static Routing vs Dynamic Routing](./static_routing_vs_dynamic_routing.md#vpc-routing---static-vs-dynamic)
+3. [How Border Gateway Protocol (BGP) works?](./how_border_gateway_protocol_works.md)
+4. [BGP Route selection - ASPATH, LOCAL_PREF, MED](./how_border_gateway_protocol_works.md#bgp-route-selection---aspath-local_pref-med)
+
+<br>
 
 [Network Word Dictionary](./network_word_dictionary.md)
