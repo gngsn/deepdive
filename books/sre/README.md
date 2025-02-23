@@ -723,6 +723,17 @@
 6. 일괄 작업 부하 배제
 7. 문제가 있는 트래픽 배제
 
+</details>
+
+<details>
+<summary><b>Chapter 23. Managing Critical State: Distributed Consensus for Reliability</b></summary>
+<br>
+
+[🔗 link](./chapter23)
+
+<br/>
+
+**TLDR**
 
 </details>
 
