@@ -224,7 +224,7 @@ Shoot The Other Node in the Head.
     - e.g. MapReduce: Map 단계가 완료되기 전까지 Reduce 연산을 막음
   - Zookeeper의 구현 원리임.
 
-<br/><img src="./img/figure23-4.png" width="100%">
+<br/><img src="./img/figure23-4.png" width="70%">
 맵리듀스 계산을 위한 프로세스 조율이 장벽
 <br/>
 
@@ -253,8 +253,8 @@ Shoot The Other Node in the Head.
   - **메시지의 안정적이면서 동일한 순서 전달** 보장.
   - Publish-Subscribe (발행-구독 시스템)을 활용할 수 있음
 
-<br/><img src="./img/figure23-5.png" width="100%" />
-신뢰할 수 있는 합의 기반 큐 컴포넌트를 사용하는 큐 지향 작업 분산 시스템<br/>
+<br/><br/><img src="./img/figure23-5.png" width="70%" />
+신뢰할 수 있는 합의 기반 큐 컴포넌트를 사용하는 큐 지향 작업 분산 시스템<br/><br/>
 
 **Queuing-as-work-distribution pattern**
 - 로드밸런싱 장치에서 큐를 사용하는 기법.
@@ -290,7 +290,7 @@ Shoot The Other Node in the Head.
 <br/><img src="./img/figure23-6.png" width="100%" />
 서버 프로세스로 부터의 거리에 따른 클라이언트의 지연 응답의 변화
 <br/>
-
+<br/>
 
 ### Multi-Paxos: Detailed Message Flow
 
@@ -299,7 +299,7 @@ Shoot The Other Node in the Head.
 - Multi-Paxos 프로토콜은 Strong Leader Process (강한 리더 프로세스) 사용
   - : 단 한 번의 라운드 트립만 허용.
 
-<br/><img src="./img/figure23-7.png" width="100%" />
+<br/><br/><img src="./img/figure23-7.png" width="70%" />
 Multi-Paxos 프로토콜의 기본적인 메시지 흐름
 <br/>
 
@@ -325,14 +325,14 @@ Multi-Paxos 프로토콜의 기본적인 메시지 흐름
 - **충돌 방지:**
   - 충돌 방지를 위해 프로세서 할당 또는 회전하는 제안자 시스템 사용.
 
-**라이브록(ivelock)**
+**라이브록(livelock)**
 - 제안이 계속 서로 방해해서 어떤 제안도 수락될 수 없다면 제안자가 둘이 되는 상황이 만들어질 수 있음
 
-<br/><img src="./img/figure23-8.png" width="100%" />
+<br/><br/><img src="./img/figure23-8.png" width="70%" />
 Multi-Paxos 프로토콜의 이중 제안자 현상
 <br/>
 
-해결법  
+**해결법**  
 - 모든 합의 시스템 아래 방법 중 하나 선택
   - 제안 프로세스를 선출: 시스템 내의 모든 제안을 담당하는 제안 프로세스를 선출
   - 제안자 회전 방식: 각 프로세스들이 제안을 할 수 있는 특정 슬롯을 할당하는 제안자 회전(rotating) 방식.
@@ -384,9 +384,9 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
 - 지역 네트워크 내 합의 시스템 성능은 데이터베이스의 비동기 리더-팔로워 복제 시스템만큼 우수.
   - 하지만, 가용성을 위한 분산 합의 시스템은 장애 격리를 위해 '멀리 떨어진' 복제 서버를 필요로 함.
 
-<br/><img src="./img/figure23-9.png" width="100%" />
+<br/><br/><img src="./img/figure23-9.png" width="60%" />
 클라이언트의 지역 간 TCP/IP 연결에 대한 수요를 줄이기 위해 프록시를 사용하는 방법
-<br/>
+<br/><br/>
 
 - 영속적 TCP/IP 연결을 가지고 있는 지역 별 프록시 풀 사용
   - 프록시를 사용해 클라이언트가 원거리 TCP/IP 연결 오버헤드를 줄일 수 있음
@@ -483,6 +483,7 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
 
 - **복제 서버의 수 결정**: 신뢰성를 위한 수요, 시스템을 위한 유지 계획 빈도, 리스크, 성능, 비용
 
+<br/>
 <table>
 <tr>
   <th></th>
@@ -567,6 +568,8 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
 - 클라이언트가 밀집된 지역에 레플리카 배포 권장
 - 리더 프로세스가 네트워크 대역폭을 많이 사용하므로 데이터센터 간 균형 중요
 
+<br/>
+
 과반수 시스템에 복제 서버를 추가하는 것은 잠재적으로 시스템의 가용성을 감소시킬 수 있음
 
 - 다섯 개의 복제 서버 
@@ -576,15 +579,15 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
   - 과반수: 네 개의 복제 서버
   - 장애 허용 비율 33%
 
-<br/><img src="./img/figure23-10.png" width="100%" />
+<br/><img src="./img/figure23-10.png" width="70%" />
 
 지역에 추가 복제 서버를 투입하면 시스템의 가용성이 오히려 떨어질 수 있음<br/>
 
-<br/><img src="./img/figure23-11.png" width="100%" />
+<br/><br/><img src="./img/figure23-11.png" width="80%" />
 
 리더 프로세스의 위치에 따라 대역폭을 골고루 활용하지 못하게 될 수도 있음<br/>
 
-<br/><img src="./img/figure23-12.png" width="100%" /><br/>
+<br/><br/><img src="./img/figure23-12.png" width="80%" /><br/>
 
 - 리더가 있는 데이터센터에 장애가 발생하면 큰 변화가 생김.
   - 데이터센터 간 트래픽 급증 가능. 네트워크 성능 야기.
@@ -600,25 +603,23 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
 
 <small><i>과반수 조합</i></small>
 
-### **합의 그룹(replica group)에서 복제본 위치 선정 고려 사항**
-
 - 합의 그룹 내 복제본 배치 시 **지리적 위치(네트워크 지연 시간, RTT)** 가 성능에 영향을 줌.
   - 복제 서버 간 **RTT가 최대한 균일하게 배치**.
 
-<br/><img src="./img/figure23-13.png" width="100%" /><br/>
+<br/><img src="./img/figure23-13.png" width="60%" /><br/>
 
 - **트래픽 균등 분배를 위한 복제본 배치 예시**
   - 가령, 미국 중앙 2개, 동부 1개, 유럽 2개 복제본 배치.
   - 동부 복제본이 두 개의 합의 그룹을 연결하는 핵심 역할을 수행.
 
-<br/><img src="./img/figure23-14.png" width="100%" /><br/>
+<br/><img src="./img/figure23-14.png" width="60%" /><br/>
 
 - 동부 복제본이 손실되면 네트워크 지연 시간이 급격히 증가.
   - 기존: **미국 중앙 ↔ 동부, 유럽 ↔ 동부 간 RTT**
   - 장애: **미국 중앙 ↔ 유럽 간 RTT(기존보다 50% 증가)** 가 전체 합의에 영향을 줌.
 - 이처럼 중요한 복제본이 손실되면 **최소 합의 그룹(quorum) 간 거리 증가**로 성능 저하 발생.
 
-<br/><img src="./img/figure23-15.png" width="100%" /><br/>
+<br/><img src="./img/figure23-15.png" width="60%" /><br/>
 
 - **대응 방안: 계층적 합의(quorum) 구조**
   - 가령, 9개의 복제본을 3개 그룹(각 3개 복제본)으로 나눔.
@@ -656,7 +657,7 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
 
 <small><i>결론</i></small>
 
-- 분산 합의 시스템과 관련된 기술은 빠르게 변화**하므로, 기본 원칙을 이해하는 것이 중요.
+- 분산 합의 시스템과 관련된 기술은 빠르게 변화하므로, 기본 원칙을 이해하는 것이 중요.
 - 분산 합의는 리더 선출, 공유 상태 관리, 분산 락 등을 해결하기 위한 핵심 기법
 - 리더 선출, 공유 상태 관리, 분산 락을 봤다면 반드시 분산 합의를 고려해야 함
 
