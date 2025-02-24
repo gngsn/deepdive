@@ -4,7 +4,7 @@
 
 분산 시스템의 여러 프로세스들은 중요한 설정을 일관되게 확인할 수 있어야 함
 
-<br><img src="./img/figure23-1.png" width="80%" /><br>
+<br><img src="./img/figure23-1.png" width="60%" /><br>
 
 분산 환경에서 합의 시스템은 충분히 테스트되고 증명된 시스템을 권장
 
@@ -174,7 +174,8 @@ Shoot The Other Node in the Head.
   - 상태 동기화를 위해 **슬라이딩 윈도우 프로토콜(sliding-window protocol)** 사용 가능.
 
 <br/>
-<img src="./img/figure23-2.png" width="100%">
+<img src="./img/figure23-2.png" width="60%">
+
 합의 알고리즘과 복제된 상태 머신 사이의 관계
 <br/>
 
@@ -204,7 +205,7 @@ Shoot The Other Node in the Head.
 - 단일 리더를 사용하여 특정 작업 수행.
 
 <br/>
-<img src="./img/figure23-3.png" width="70%">
+<img src="./img/figure23-3.png" width="60%">
 
 마스터 선출을 위해 복제된 서비스를 사용하는 고가용성 시스템
 <br/>
@@ -224,7 +225,7 @@ Shoot The Other Node in the Head.
     - e.g. MapReduce: Map 단계가 완료되기 전까지 Reduce 연산을 막음
   - Zookeeper의 구현 원리임.
 
-<br/><img src="./img/figure23-4.png" width="70%">
+<br/><img src="./img/figure23-4.png" width="60%">
 
 맵리듀스 계산을 위한 프로세스 조율이 장벽
 <br/>
@@ -254,7 +255,7 @@ Shoot The Other Node in the Head.
   - **메시지의 안정적이면서 동일한 순서 전달** 보장.
   - Publish-Subscribe (발행-구독 시스템)을 활용할 수 있음
 
-<br/><br/><img src="./img/figure23-5.png" width="70%" />
+<br/><br/><img src="./img/figure23-5.png" width="60%" />
 
 신뢰할 수 있는 합의 기반 큐 컴포넌트를 사용하는 큐 지향 작업 분산 시스템<br/><br/>
 
@@ -289,7 +290,7 @@ Shoot The Other Node in the Head.
 - **리더 프로세스 사용:**
     - 모든 요청을 리더 노드로 보내야 하므로, 지리적 위치에 따라 성능 차이 발생.
 
-<br/><img src="./img/figure23-6.png" width="70%" />
+<br/><img src="./img/figure23-6.png" width="60%" />
 
 서버 프로세스로 부터의 거리에 따른 클라이언트의 지연 응답의 변화
 <br/><br/>
@@ -301,7 +302,7 @@ Shoot The Other Node in the Head.
 - Multi-Paxos 프로토콜은 Strong Leader Process (강한 리더 프로세스) 사용
   - : 단 한 번의 라운드 트립만 허용.
 
-<br/><br/><img src="./img/figure23-7.png" width="70%" />
+<br/><br/><img src="./img/figure23-7.png" width="60%" />
 
 Multi-Paxos 프로토콜의 기본적인 메시지 흐름
 <br/><br/>
@@ -584,15 +585,15 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
   - 과반수: 네 개의 복제 서버
   - 장애 허용 비율 33%
 
-<br/><img src="./img/figure23-10.png" width="70%" />
+<br/><img src="./img/figure23-10.png" width="60%" />
 
 지역에 추가 복제 서버를 투입하면 시스템의 가용성이 오히려 떨어질 수 있음<br/>
 
-<br/><br/><img src="./img/figure23-11.png" width="80%" />
+<br/><br/><img src="./img/figure23-11.png" width="60%" />
 
 리더 프로세스의 위치에 따라 대역폭을 골고루 활용하지 못하게 될 수도 있음<br/>
 
-<br/><br/><img src="./img/figure23-12.png" width="80%" /><br/>
+<br/><br/><img src="./img/figure23-12.png" width="60%" /><br/>
 
 - 리더가 있는 데이터센터에 장애가 발생하면 큰 변화가 생김.
   - 데이터센터 간 트래픽 급증 가능. 네트워크 성능 야기.
