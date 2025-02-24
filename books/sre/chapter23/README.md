@@ -225,6 +225,7 @@ Shoot The Other Node in the Head.
   - Zookeeper의 구현 원리임.
 
 <br/><img src="./img/figure23-4.png" width="70%">
+
 맵리듀스 계산을 위한 프로세스 조율이 장벽
 <br/>
 
@@ -254,6 +255,7 @@ Shoot The Other Node in the Head.
   - Publish-Subscribe (발행-구독 시스템)을 활용할 수 있음
 
 <br/><br/><img src="./img/figure23-5.png" width="70%" />
+
 신뢰할 수 있는 합의 기반 큐 컴포넌트를 사용하는 큐 지향 작업 분산 시스템<br/><br/>
 
 **Queuing-as-work-distribution pattern**
@@ -287,10 +289,10 @@ Shoot The Other Node in the Head.
 - **리더 프로세스 사용:**
     - 모든 요청을 리더 노드로 보내야 하므로, 지리적 위치에 따라 성능 차이 발생.
 
-<br/><img src="./img/figure23-6.png" width="100%" />
+<br/><img src="./img/figure23-6.png" width="70%" />
+
 서버 프로세스로 부터의 거리에 따른 클라이언트의 지연 응답의 변화
-<br/>
-<br/>
+<br/><br/>
 
 ### Multi-Paxos: Detailed Message Flow
 
@@ -300,8 +302,9 @@ Shoot The Other Node in the Head.
   - : 단 한 번의 라운드 트립만 허용.
 
 <br/><br/><img src="./img/figure23-7.png" width="70%" />
+
 Multi-Paxos 프로토콜의 기본적인 메시지 흐름
-<br/>
+<br/><br/>
 
 1. **Prepare** 단계:
 - 제안자(Proposer)는 고유 번호를 가진 준비 메시지(Prepare)를 보냄
@@ -329,6 +332,7 @@ Multi-Paxos 프로토콜의 기본적인 메시지 흐름
 - 제안이 계속 서로 방해해서 어떤 제안도 수락될 수 없다면 제안자가 둘이 되는 상황이 만들어질 수 있음
 
 <br/><br/><img src="./img/figure23-8.png" width="70%" />
+
 Multi-Paxos 프로토콜의 이중 제안자 현상
 <br/>
 
@@ -385,6 +389,7 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
   - 하지만, 가용성을 위한 분산 합의 시스템은 장애 격리를 위해 '멀리 떨어진' 복제 서버를 필요로 함.
 
 <br/><br/><img src="./img/figure23-9.png" width="60%" />
+
 클라이언트의 지역 간 TCP/IP 연결에 대한 수요를 줄이기 위해 프록시를 사용하는 방법
 <br/><br/>
 
