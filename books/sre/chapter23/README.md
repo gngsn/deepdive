@@ -404,4 +404,58 @@ Multi-Paxos 프로토콜의 이중 제안자 현상
 
 <br/>
 
-<br />
+### Stable Leaders
+
+<small><i>안정적인 리더</i></small>
+
+- **안정적 리더를 선출하는 프로토콜**: Multi-Paxos, Zab, Raft
+  - 모든 상태 변경 작업이 리더를 통해 전달.
+- **안정적인 리더 적용:**
+  - 리더의 네트워크 대역폭이 병목 현상 유발 가능.
+    - 리더의 수락 메시지는 제안과 관련된 모든 데이터를 갖고 있기 때문.
+  - 리더의 성능 문제는 곧 시스템 전체 처리량 감소.
+
+- **리더 시스템:**
+  - 안정적인 리더 패턴 또는 회전 리더십 시스템 사용.
+    - 회전 리더십 시스템: Mencius, Egalitarian Paxos
+- 넓은 네트워크에서 클라이언트가 가까운 복제본과 통신이 RTT를 줄여 리더 선출에 지연응답을 낮춤.
+
+<br/>
+
+### Batching
+
+<small><i>일괄 처리</i></small>
+
+복제 서버들은 자신들이 보낸 메시지에 대한 응답을 기다리는 동안 아무것도 하지 않는 상태로 남음
+놀고 있는 복제 서버들로 인한 비효율성은 동시에 여러 개의 제안을 처리할 수 있는 파이프라이닝을 통해 해결될
+프로토콜이 슬라이딩 윈도우 (aliding-window) 방식을 이용해서 ' 파이프를 계속 가득 차게 유지하는 ' TCP/IP 의 경우와 매우 유사
+
+- **배칭:**
+  - 복제 서버들은 일괄 배치로 처리량을 향상시키지만, 그만큼 여유 시간이 많아짐
+  - 이런 여유 시간 동안, 레플리카 비효율성을 해결하는 **파이프라이닝과 조합해서 여러 개의 제안 처리**
+    - TCP/IP의 슬라이딩 윈도우 (sliding-window) 방식과 매우 유사.
+  - 파이프라인에서 요청을 순서대로 전송하여 글로벌 순서 보장.
+
+<br/>
+
+### Disk Access
+
+- 디스크 쓰기는 프로세스에서 중요 결정을 내릴 때마다 수행되어야 함
+- 가령, Multi-Paxos 쓰기 지점:
+  1. 수락자가 제안에 대해 Accepted 메시지를 보내기 전
+  2. 제안자가 Accept 메시지를 보내기 전 
+    - Accept 가 암묵적으로 Accepted로 동작하기 때문
+
+- 합의 알고리즘 로그와 RSM 트랜잭션 로그를 하나의 로그로 결합하여 디스크 간 전환 시간을 절감할 수 있음
+  - IO 작업의 오버헤드와 탐색 시간 절약.
+  - 디스크가 초당 더 많은 작업을 수행 가능하므로 전체 시스템 처리량 증가.
+
+- **향상:**
+  - 상태 변경은 메모리 캐시에 저장 처리 후, 나중에 디스크 쓸 수 있음.
+  - 배치 처리: 다중 클라이언트 작업을 하나의 작업으로 묶음.
+    - [Photon: Fault-tolerant and Scalable Joining of Continuous Data Streams](https://research.google/pubs/photon-fault-tolerant-and-scalable-joining-of-continuous-data-streams/)
+    - [Paxos Replicated State Machines as the Basis of a High-Performance Data Store](https://www.usenix.org/legacy/event/nsdi11/tech/full_papers/Bolosky.pdf)
+    - [Paxos Made Live – An Engineering Perspective](https://research.google.com/archive/paxos_made_live.html)
+    - etc
+  - 고정 비용(디스크 로그 및 네트워크 지연)을 분산시켜 처리량 증가.
+
