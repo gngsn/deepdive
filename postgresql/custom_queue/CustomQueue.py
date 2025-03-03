@@ -1,4 +1,5 @@
 import json
+import pprint
 import random
 from uuid import uuid4
 
@@ -18,6 +19,7 @@ class BaseModel(Model):
     class Meta:
         database = database_
 
+MAX_RETRY_COUNT = 3
 
 class CustomQueue(BaseModel):
     """ Notification Queue DB Model """
@@ -47,7 +49,10 @@ class CustomQueue(BaseModel):
 
     @classmethod
     def dequeue(cls, offset: int, limit: int):
-        return cls.select().where(cls.status == 0).offset(offset).limit(limit).for_update("FOR UPDATE SKIP LOCKED")
+        return cls.select().where(
+            cls.status == 0,
+            cls.try_count <= MAX_RETRY_COUNT
+        ).offset(offset).limit(limit).for_update("FOR UPDATE SKIP LOCKED")
 
     @classmethod
     def update_success_done(cls, name, key):
@@ -101,3 +106,31 @@ def create_partition_if_not_exists(now_date=now().date()):
             CREATE TABLE {partition_name}
             PARTITION OF {table_name}
             FOR VALUES FROM ('{now_date}') TO ('{now_date.add(days=1)}')""")
+
+if __name__ == "__main__":
+    database_.create_tables([CustomQueue])
+    create_partition_if_not_exists()
+
+    item_id = random.randint(0, 10_000)
+    user_id = 'sunny'
+    key = "{}:{}:{}".format(uuid4(), item_id, user_id)
+    queue_name = "medium-demo"
+
+    try:
+        message = {"id": "780acc3328eed0d5573d0", "user": "sunny@gmail.com", "device": "iOSmini3",
+                   "channel": ["Tab", "Push"]}
+
+        CustomQueue.enqueue(queue_name, key, message)
+
+        chunk_size = 100
+        offset = 0
+        limit = chunk_size
+        dequeue = CustomQueue.dequeue(offset, limit)
+
+        for message in dequeue.dicts():
+            pprint.pprint(message)
+
+        CustomQueue.update_success_done(queue_name, key)
+    except:
+        CustomQueue.update_failure_done(queue_name, key)
+
