@@ -132,6 +132,12 @@
 3. [How Border Gateway Protocol (BGP) works?](./how_border_gateway_protocol_works.md)
 4. [BGP Route selection - ASPATH, LOCAL_PREF, MED](./how_border_gateway_protocol_works.md#bgp-route-selection---aspath-local_pref-med)
 
+## Section 12: Site-to-Site VPN
+
+1. [Introduction to AWS Site-to-Site VPN](./introduction_to_aws_site_to_site_vpn.md)
+2.  [Hands On: Setup AWS Site-to-Site VPN](./hands_on_setup_aws_site_to_site_vpn.md)
+
+
 <br>
 
 [Network Word Dictionary](./network_word_dictionary.md)
