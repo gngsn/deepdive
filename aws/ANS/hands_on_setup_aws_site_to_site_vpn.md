@@ -92,3 +92,22 @@
       - **Name**: VPC-DC-Public-RT
       - **Route**: (0.0.0.0/0, igw-xxxxxx) 추가
       - **Association**: VPC-DC-Public-1
+
+- VGW 생성
+  - **Name**: VPC-AWS-VGW
+
+1. 두 VPC에 EC2 인스턴스 생성. VPC-DC의 경우 Amazon Linux 2023 AMI를 사용하여 Libreswan을 설치할 수 있도록 함. 두 EC2 인스턴스의 보안 그룹에서 다른 네트워크에서 ICMP 트래픽을 허용. EC2-VPN은 Public IP를 가짐. 또한 MyIP 또는 0.0.0.0/0에서 SSH를 열어야함.
+
+2. Mumbai 리전에 Virtual Private Gateway (VGW)를 생성하고 VPC-AWS에 연결. VPC-AWS의 Private 서브넷 라우팅 테이블에 모든 트래픽 (0.0.0.0/0) 경로를 VGW를 통해 라우팅하는 라우트를 추가. EC2-VPN Public IP를 사용하여 Customer gateway를 생성.
+
+3. Mumbai 리전에 VPN 연결 생성. VPC-DC CIDR을 사용하여 정적 라우팅과 함께 EC2-VPN Public IP를 사용.
+
+4. VPN 연결 콘솔에서 Openswan을 위한 VPN 구성 파일을 다운로드.
+VPN 소프트웨어는 AMI에 따라 다른데, 이 경우 Amazon Linux 2023 AMI를 사용하여 Libreswan을 사용.
+
+1. EC2-VPN에 Libreswan을 설치. Libreswan fedora 저장소를 추가해야함. libreswan을 설치한 후 VPN 구성 파일의 지침을 따름. 환경에 맞게 IP 및 CIDR 범위와 같은 다양한 필드의 값을 바꿔야함. IPSec VPN 서비스를 시작.
+
+2. EC2-VPN에서 AWS 측 EC2-A 인스턴스의 Private IP에 접근 후 성공 확인.
+
+
+EC2-VPN에 할당된 Public IP 확인: `3.93.37.75`
