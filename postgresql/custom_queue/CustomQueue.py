@@ -9,6 +9,8 @@ from pendulum import datetime, now, date
 from peewee import *
 from playhouse.postgres_ext import JSONField
 
+from async_sender import PRODUCER_NAME
+
 NOTIFICATION_QUEUE_TABLE_NAME = 'custom_queue'
 PARTITION_FORMAT = "YYYY_MM_DD"
 
@@ -48,14 +50,15 @@ class CustomQueue(BaseModel):
         cls.insert(name=name, key=key, payload=json.dumps(message)).execute()
 
     @classmethod
-    def dequeue(cls, offset: int, limit: int):
+    def dequeue(cls, name: str, limit: int):
         return cls.select().where(
+            cls.name == name,
             cls.status == 0,
             cls.try_count <= MAX_RETRY_COUNT
-        ).offset(offset).limit(limit).for_update("FOR UPDATE SKIP LOCKED")
+        ).limit(limit).for_update("FOR UPDATE SKIP LOCKED")
 
     @classmethod
-    def update_success_done(cls, name, key):
+    def update_success(cls, name: str, key: str):
         return cls.update(
             try_count=cls.try_count + 1,
             status=1,
@@ -63,7 +66,7 @@ class CustomQueue(BaseModel):
         ).where(cls.name == name, cls.key == key).execute()
 
     @classmethod
-    def update_failure_done(cls, name: str, key: str):
+    def update_failure(cls, name: str, key: str):
         where = cls.update(
             try_count=cls.try_count + 1,
             status=-1,
@@ -107,30 +110,31 @@ def create_partition_if_not_exists(now_date=now().date()):
             PARTITION OF {table_name}
             FOR VALUES FROM ('{now_date}') TO ('{now_date.add(days=1)}')""")
 
-if __name__ == "__main__":
-    database_.create_tables([CustomQueue])
-    create_partition_if_not_exists()
 
+def generator():
+    global key, queue_name, message
     item_id = random.randint(0, 10_000)
     user_id = 'sunny'
     key = "{}:{}:{}".format(uuid4(), item_id, user_id)
     queue_name = "medium-demo"
+    message = {"id": "780acc3328eed0d5573d0", "user": "sunny@gmail.com", "device": "iOSmini3",
+               "channel": ["Tab", "Push"]}
+    CustomQueue.enqueue(queue_name, key, message)
 
+
+if __name__ == "__main__":
+    database_.create_tables([CustomQueue])
+    create_partition_if_not_exists()
+
+    generator()
     try:
-        message = {"id": "780acc3328eed0d5573d0", "user": "sunny@gmail.com", "device": "iOSmini3",
-                   "channel": ["Tab", "Push"]}
-
-        CustomQueue.enqueue(queue_name, key, message)
-
         chunk_size = 100
-        offset = 0
-        limit = chunk_size
-        dequeue = CustomQueue.dequeue(offset, limit)
+        dequeue = CustomQueue.dequeue(PRODUCER_NAME, chunk_size)
 
         for message in dequeue.dicts():
             pprint.pprint(message)
 
-        CustomQueue.update_success_done(queue_name, key)
+        CustomQueue.update_success(dequeue.name, dequeue.key)
     except:
-        CustomQueue.update_failure_done(queue_name, key)
+        CustomQueue.update_failure(dequeue.name, dequeue.key)
 
