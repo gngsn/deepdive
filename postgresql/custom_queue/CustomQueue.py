@@ -3,12 +3,14 @@ import pprint
 import random
 from uuid import uuid4
 
+import keyboard
 from peewee import IntegerField, CharField, DateField, DateTimeField, CompositeKey, BigIntegerField
 from pendulum import datetime, now, date
 
 from peewee import *
 from playhouse.postgres_ext import JSONField
 
+from BaseQueue import Producer
 from async_sender import PRODUCER_NAME
 
 NOTIFICATION_QUEUE_TABLE_NAME = 'custom_queue'
@@ -111,30 +113,19 @@ def create_partition_if_not_exists(now_date=now().date()):
             FOR VALUES FROM ('{now_date}') TO ('{now_date.add(days=1)}')""")
 
 
-def generator():
-    global key, queue_name, message
-    item_id = random.randint(0, 10_000)
-    user_id = 'sunny'
-    key = "{}:{}:{}".format(uuid4(), item_id, user_id)
-    queue_name = "medium-demo"
-    message = {"id": "780acc3328eed0d5573d0", "user": "sunny@gmail.com", "device": "iOSmini3",
-               "channel": ["Tab", "Push"]}
-    CustomQueue.enqueue(queue_name, key, message)
 
-
-if __name__ == "__main__":
-    database_.create_tables([CustomQueue])
-    create_partition_if_not_exists()
-
-    generator()
-    try:
-        chunk_size = 100
-        dequeue = CustomQueue.dequeue(PRODUCER_NAME, chunk_size)
-
-        for message in dequeue.dicts():
-            pprint.pprint(message)
-
-        CustomQueue.update_success(dequeue.name, dequeue.key)
-    except:
-        CustomQueue.update_failure(dequeue.name, dequeue.key)
-
+# if __name__ == "__main__":
+#     database_.create_tables([CustomQueue])
+#     create_partition_if_not_exists()
+#
+#     try:
+#         chunk_size = 100
+#         dequeue = CustomQueue.dequeue(PRODUCER_NAME, chunk_size)
+#
+#         for message in dequeue.dicts():
+#             pprint.pprint(message)
+#
+#         CustomQueue.update_success(dequeue.name, dequeue.key)
+#     except:
+#         CustomQueue.update_failure(dequeue.name, dequeue.key)
+#

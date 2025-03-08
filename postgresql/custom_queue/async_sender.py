@@ -1,12 +1,13 @@
 import asyncio
 import logging
+import time
 from abc import ABC, abstractmethod
-from datetime import time
 from urllib.request import Request
 
 import aiohttp
 
 from CustomQueue import CustomQueue
+from utils import chunks
 
 PRODUCER_NAME = "custom_producer"
 
@@ -73,8 +74,8 @@ async def send(session, sender, noti, loop):
         )
 
 
-class ConsoleSender:
-    name = 'Custom Sender'
+class Consumer:
+    name = 'Consumer'
     timeout: float
 
     active: bool
@@ -83,21 +84,5 @@ class ConsoleSender:
     def __init__(self, timeout_ms=1000, env="DEV") -> None:
         ...
 
-    async def send(self, session, payload):
-        data = {
-            "title": f"[{self.env}] :bell: NEW MESSAGE",
-            "payload": payload
-        }
-
-        async with async_timeout.timeout(self.timeout):
-            # async with session.request(
-            #         method='post',
-            #         url=f"{self.client.host}/send-message/{self.client.event_code}",
-            #         headers=header,
-            #         data=json.dumps(data),
-            # ) as resp:
-            #     if "application/json" in resp.content_type:
-            #         return await resp.json()
-            #     else:
-            #         return await resp.text()
-
+    async def consume(self, session, payload):
+        print(payload)

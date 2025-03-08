@@ -782,6 +782,19 @@
 
 </details>
 
+<details>
+<summary><b>Chapter 24. Managing Critical State: Distributed Consensus for Reliability</b></summary>
+<br>
+
+[🔗 link](./chapter24)
+
+<br/>
+
+**TLDR**
+
+
+</details>
+
 ---
 
 <details>
