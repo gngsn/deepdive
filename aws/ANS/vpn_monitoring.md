@@ -28,5 +28,6 @@ AWS Site-to-Site VPN을 사용할 때 어떤 CloudWatch 메트릭이 있는지 �
 - **단일 터널 운영 알림**: 두 개의 터널 중 하나만 작동 중이고, 하루 동안 하나의 터널이 한 시간 이상 다운되면, 
   AWS는 이를 단일 터널 운영으로 간주하고 알림을 보냄
 
+<br><img src="./img/vpn_monitoring_img2.png" width="100%" /><br>
 
 **가장 중요한 건 CloudWatch 메트릭**: **TunnelState, TunnelDataIn**, **TunnelDataOut**.
