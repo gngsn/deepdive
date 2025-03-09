@@ -135,8 +135,14 @@
 ## Section 12: Site-to-Site VPN
 
 1. [Introduction to AWS Site-to-Site VPN](./introduction_to_aws_site_to_site_vpn.md)
-2.  [Hands On: Setup AWS Site-to-Site VPN](./hands_on_setup_aws_site_to_site_vpn.md)
-
+2. [Hands On: Setup AWS Site-to-Site VPN](./hands_on_setup_aws_site_to_site_vpn.md)
+    
+3. [VPN NAT Traversal (NAT-T)](./vpn_nat_traversal.md)
+4. [VPN Route Propagation (Static vs Dynamic)](./vpn_route_propagation_static_vs_dynamic.md)
+5. [VPN Transitive Routing scenarios](./vpn_transitive_routing_scenarios.md)
+6. [VPN Tunnels - Active/Passive Mode](./vpn_tunnels_active_passive_mode.md)
+7. [VPN Dead Peer Detection (DPD)](./vpn_dead_peer_detection.md)
+8. [VPN Monitoring](./vpn_monitoring.md)
 
 <br>
 
