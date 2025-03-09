@@ -21,57 +21,53 @@
 
 다이어그램에 표시된 것처럼 두 개의 다른 리전에 VPC 생성.
 
-<table>
+<table width="100%">
 <tr>
-<th>1️⃣ AWS Network</th>
-<th>2️⃣ On-premises DC Network</th>
+<th width="10%"></th>
+<th width="45%">1️⃣ AWS Network</th>
+<th width="45%">2️⃣ On-premises DC Network</th>
 </tr>
 <tr>
+<th>VPC</th>
 <td>
-
-**VPC**
 
 - **Name**: VPC-AWS
 - **CIDR**: 10.0.0.0/16
 
+</td>
+<td>
+    
+- **Name**: VPC-DC
+- **CIDR**: 192.168.0.0/16
+    
+</td>
+</tr>
+<tr>
+<th>Subnet</th>
+<td>
+    
 **Private Subnet**
 
 - **Name**: VPC-AWS-Private-1
 - **CIDR**: 10.0.0.0/16
-- **Route Table**
-- **Name**: VPC-AWS-Private-RT
-- **Association**: VPC-AWS-Private-1
-- Main Route Table이 자동 생성되지만, 항상 전용 Route Table을 따로 생성하는게 좋음
 
 </td>
 <td>
-
-**VPC**
-
-- **Name**: VPC-DC
-- **CIDR**: 192.168.0.0/16
 
 **Public Subnet**
 
 - **Name**: VPC-DC-Public-1
 - **CIDR**: 192.168.0.0/24
-- **Route Table**
-    - **Name**: VPC-DC-Public-RT
-    - **Route**: (0.0.0.0/0, igw-xxxxxx) 추가
-    - **Association**: VPC-DC-Public-1
-
-**Internet Gateway**
-
-- **Name**: VPC-DC-IGW
-- Attach to VPC-DC
 
 </td>
 </tr>
-</table>
 
-### Configure VPN Connectivity
+<tr>
+<th>Route Table</th>
+<td>
 
-**1. AWS Network**
+- **Name**: VPC-AWS-Private-RT
+- **Association**: VPC-AWS-Private-1
 
 | Destination    | Target     |
 |----------------|------------|
@@ -80,9 +76,11 @@
 
 ⭐️ **중요**: VGW 로 향하는 라우트 설정
 
-<br/>
+</td>
+<td>
 
-**2. Customer Data Center**
+- **Name**: VPC-DC-Public-RT
+- **Association**: VPC-DC-Public-1
 
 | Destination    | Target     |
 |----------------|------------|
@@ -92,16 +90,34 @@
 사용자의 데이터센터에서 시작하는 트래픽은 인터넷 게이트웨이를 통해 라우팅 되어야 함
 
 이 때, 트래픽은 암호화된 상태
+    
+</td>
+</tr>
+<tr>
+<th>Internet Gateway</th>
+<td>-</td>
+<td>
+    
+**Internet Gateway**
+
+- **Name**: VPC-DC-IGW
+- Attach to VPC-DC
+
+</td>
+</tr>
+</table>
+
+Main Route Table이 자동 생성되지만, 항상 전용 Route Table을 따로 생성하는게 좋음
 
 <br/>
 
 #### ✔️ 2. 두 VPC에 EC2 인스턴스 생성
 
-<table>
+<table width="100%">
 <tr>
-<th></th>
-<th>1️⃣ AWS Network</th>
-<th>2️⃣ On-premises DC Network</th>
+<th width="10%"></th>
+<th width="45%">1️⃣ AWS Network</th>
+<th width="45%">2️⃣ On-premises DC Network</th>
 </tr>
 <tr>
 <th>VPC</th>
@@ -158,11 +174,11 @@ MyIP 또는 0.0.0.0/0에서 SSH를 열어야함</td>
 
 #### ✔️ 3. 각 VPC에 맞게 Virtual/Customer Gateway를 생성
 
-<table>
+<table width="100%">
 <tr>
-<th></th>
-<th>1️⃣ AWS Network</th>
-<th>2️⃣ On-premises DC Network</th>
+<th width="10%"></th>
+<th width="45%">1️⃣ AWS Network</th>
+<th width="45%">2️⃣ On-premises DC Network</th>
 </tr>
 <tr>
 <th>VPC</th>
@@ -204,21 +220,16 @@ EC2-VPN Public IP를 사용하여 Customer gateway를 생성.
 Mumbai 리전에 VPN 연결 생성.
 VPC-DC CIDR을 사용하여 정적 라우팅과 함께 EC2-VPN Public IP를 사용.
 
-<table>
+<table width="100%">
 <tr>
-<th></th>
-<th>1️⃣ AWS Network</th>
-<th>2️⃣ On-premises DC Network</th>
+<th width="45%"></th>
+<th width="45%">1️⃣ AWS Network</th>
+<th width="45%">2️⃣ On-premises DC Network</th>
 </tr>
 <tr>
 <th>VPC</th>
 <td>VPC-AWS</td>
 <td>VPC-DC</td>
-</tr>
-<tr>
-<th>EC2</th>
-<td>EC2-A</td>
-<td>EC2-VPN</td>
 </tr>
 <tr>
 <th>Gateway</th>
@@ -252,6 +263,8 @@ VPC-DC CIDR을 사용하여 정적 라우팅과 함께 EC2-VPN Public IP를 사�
 
 VPN 연결 콘솔에서 Openswan을 위한 VPN 구성 파일을 다운로드.
 VPN 소프트웨어는 AMI에 따라 다른데, 이 경우 Amazon Linux 2023 AMI를 사용하여 Libreswan을 사용.
+
+<br/>
 
 #### ✔️ 6. Libreswan 설치
 
