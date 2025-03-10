@@ -132,11 +132,12 @@
 3. [How Border Gateway Protocol (BGP) works?](./how_border_gateway_protocol_works.md)
 4. [BGP Route selection - ASPATH, LOCAL_PREF, MED](./how_border_gateway_protocol_works.md#bgp-route-selection---aspath-local_pref-med)
 
+<br>
+
 ## Section 12: Site-to-Site VPN
 
 1. [Introduction to AWS Site-to-Site VPN](./introduction_to_aws_site_to_site_vpn.md)
 2. [Hands On: Setup AWS Site-to-Site VPN](./hands_on_setup_aws_site_to_site_vpn.md)
-    
 3. [VPN NAT Traversal (NAT-T)](./vpn_nat_traversal.md)
 4. [VPN Route Propagation (Static vs Dynamic)](./vpn_route_propagation_static_vs_dynamic.md)
 5. [VPN Transitive Routing scenarios](./vpn_transitive_routing_scenarios.md)
