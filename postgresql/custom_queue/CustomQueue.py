@@ -10,7 +10,7 @@ from pendulum import datetime, now, date
 from peewee import *
 from playhouse.postgres_ext import JSONField
 
-from BaseQueue import Producer
+from BaseQueue import Producer, BaseQueue
 from async_sender import PRODUCER_NAME
 
 NOTIFICATION_QUEUE_TABLE_NAME = 'custom_queue'
@@ -24,6 +24,7 @@ class BaseModel(Model):
         database = database_
 
 MAX_RETRY_COUNT = 3
+
 
 class CustomQueue(BaseModel):
     """ Notification Queue DB Model """
@@ -114,18 +115,18 @@ def create_partition_if_not_exists(now_date=now().date()):
 
 
 
-# if __name__ == "__main__":
-#     database_.create_tables([CustomQueue])
-#     create_partition_if_not_exists()
-#
-#     try:
-#         chunk_size = 100
-#         dequeue = CustomQueue.dequeue(PRODUCER_NAME, chunk_size)
-#
-#         for message in dequeue.dicts():
-#             pprint.pprint(message)
-#
-#         CustomQueue.update_success(dequeue.name, dequeue.key)
-#     except:
-#         CustomQueue.update_failure(dequeue.name, dequeue.key)
-#
+if __name__ == "__main__":
+    database_.create_tables([CustomQueue])
+    create_partition_if_not_exists()
+
+    try:
+        chunk_size = 100
+        dequeue = CustomQueue.dequeue(PRODUCER_NAME, chunk_size)
+
+        for message in dequeue.dicts():
+            pprint.pprint(message)
+
+        CustomQueue.update_success(dequeue.name, dequeue.key)
+    except:
+        CustomQueue.update_failure(dequeue.name, dequeue.key)
+
