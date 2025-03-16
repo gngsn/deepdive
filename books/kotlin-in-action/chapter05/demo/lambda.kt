@@ -1,5 +1,5 @@
 /** ===================================
- * To run this file, you can do...
+ * To run this file, you'll do
  *
  *  $ kotlinc lambda.kt
  *  $ kotlin LambdaKt.class

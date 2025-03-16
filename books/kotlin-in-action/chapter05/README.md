@@ -2,9 +2,33 @@
 
 <small><i>람다를 사용한 프로그래밍</i></small>
 
+**TL;DR**
+- **Lambda**: 다른 함수에 넘길 수 있는 작은 코드 조각
+- **코틀린의 람다 문법**
+  - 함수 인자로 전달할 경우, 괄호 밖으로 람다 표현 가능 → 코드 간결화
+  - 인자가 하나일 경우, `it` 사용 가능 → 짧고 간단한 코드 작성 가능
+- **람다와 외부 변수 캡처**
+   - 외부 변수 캡처 가능
+   - 자바와 달리, 바깥 함수의 변수를 읽거나 수정 가능
+- **함수 참조**
+  - `::메서드이름`, `::생성자이름`, `::프로퍼티이름` 사용 → 참조 생성 가능
+  - 참조를 함수 인자로 전달 가능
+- **컬렉션 함수 (`filter`, `map`, `all`, `any`)** 내에서 직접 원소 이터레이션 없이 컬렉션 연산 수행 가능
+- SAM 인터페이스 구현 시, SAM 인터페이스 객체 생성 없이 람다를 전달해서 구현 가능
+- **수신 객체 지정 람다**: 수신 객체의 메서드 직접 호출 가능
+- 기존 코드와 다른 컨텍스트에서 동작 → 코드 구조화할 때 유용
+- **표준 라이브러리 함수 활용**
+  - **`with`** : 객체 참조 반복 없이 메서드 호출 가능
+  - **`apply`** : 빌더 스타일 API로 객체 생성 및 초기화 가능
+  - **`also`** : 객체에 대한 추가 작업 수행 가능
+
+<br/><br/>
+
+---
+
 <br/>
 
-람다식 (lambda expression) 또는 람다: 다른 함수에 넘길 다른 함수에 넘길 수 있는 작은 코드 조각
+**람다** (lambda expression): 람다식. 다른 함수에 넘길 수 있는 작은 코드 조각
 
 ## 5.1 Lambda expressions and member references
 
@@ -401,4 +425,313 @@ fun main() {
 }
 ```
 
+생성한 객체의 속한 값이 반환됨
 
+<br/><img src="./img/figure05-6.png" width="40%" /><br/>
+<br/>
+
+## 5.2 Using Java functional
+
+<small><i>자바의 함수형 인터페이스 사용: 단일 추상 메서드</i></small>
+
+코틀린 람다는 자바 API와 완전히 호환됨
+
+가령, `setOnClickListener` 에  `OnClickListener`를 넘겨줄 때, 
+
+```java
+/* Java */
+public class Button {
+    public void setOnClickListener(OnClickListener l) { ... }
+}
+
+public interface OnClickListener {
+    void onClick(View v);
+}
+```
+
+다음과 같이 구현해서 넘겨줄 수 있음
+
+```Kotlin
+ /* Only since Java 8 */
+button.setOnClickListener(view -> { /* ... */ });
+ 
+ /* Kotlin */
+button.setOnClickListener { view -> /* ... */ }
+```
+
+`onClickListener`을 구현하는 람다는 유일한 함수 onClick의 파라미터 타입 View 값을 받아 처리
+
+<br/><img src="./img/figure05-7.png" width="40%" /><br/>
+
+즉, **함수형 인터페이스** 혹은 **단일 추상 메서드 (SAM, Single Abstract Method) 인터페이스**의 경우 해당됨
+
+→ 단일 추상 메서드를 가진 인터페이스
+
+_(자바 API 에는 Runnable, Callable 등의 함수형 인터페이스이 많이 사용중이며 활용하는 메서드도 많음)_
+
+<br/>
+
+### 5.2.1 Passing a lambda as a parameter to a Java method
+
+<small><i>람다를 자바 메서드의 파라미터로 전달</i></small>
+
+
+<table>
+<tr>
+<th colspan="2">Java</th>
+</tr>
+<tr>
+<td colspan="2">함수형 인터페이스를 파라미터로 받는 자바 메서드
+<pre><code lang="java">/* Java */ 
+void postponeComputation(int delay, Runnable computation);</code></pre></td>
+</tr>
+<tr>
+<th colspan="2">Kotlin</th>
+</tr>
+<tr>
+<th>Lambda</th>
+<th>Anonymous object</th>
+</tr>
+
+<tr>
+<td>
+<pre><code lang="kotlin">postponeComputation(1000) { println(42) }</code></pre>
+
+전체 프로그램에 `Runnable` 인스턴스가 하나만 생성됨.
+</td>
+<td><pre><code lang="kotlin">postponeComputation(1000, object : Runnable {
+    override fun run() {
+        println(42)
+    }
+})
+</code></pre>
+
+`handleComputation` 호출마다 새 `Runnable` 인스턴스가 생성됨.
+</td>
+</tr>
+
+</table>
+
+<br/>
+
+### 5.2.2 SAM constructors: Explicit conversion of lambdas to functional interfaces
+
+<small><i>SAM 변환: 람다를 함수형 인터페이스로 명시적 변환</i></small>
+
+**SAM 생성자**
+- SAM 생성자는 **단일 인자**를 받아 함수형 인터페이스를 구현하는 클래스의 인스턴스를 반환.
+  - 단일 인자 = 람다 = 함수형 인터페이스의 단일 추상 메서드 인자
+- 컴파일러가 생성한 함수
+- 람다를 명시적이게 단일 추상 메서드 인터페이스의 인스턴스로 변환해줌
+
+<br/>
+
+#### 활용 1. 컴파일러가 변환을 자동을 수행하지 못하는 경우 
+
+가령, 함수형 인터페이스의 인스턴스를 반환하는 함수는 람다를 직접 반환할 수 없기 때문에,
+람다를 SAM 생성자로 감싸야 함
+
+<pre><code lang="kotlin">
+fun createAllDoneRunnable(): Runnable {
+    return <b>Runnable {</b> println("All done!") <b>}</b>
+}
+ 
+fun main() {
+    createAllDoneRunnable().run() // All done!
+}
+</code></pre>
+
+<br/>
+
+#### 활용 2. 생성한 함수형 인터페이스 인스턴스를 변수에 저장해야 하는 경우
+
+값을 반환할 때 외에 람다로 생성한 함수형 인터페이스 인스턴스를 변수에 저장해야 하는 경우에도 SAM 생성자를 사용할 수 있음
+
+가령, 여러 버튼에 같은 리스너를 적용하고 싶을 때
+
+→ SAM 생성자를 통해 람다를 함수형 인터페이스 인스턴스로 만들어 변수에 저장해 활용할 수 있음
+
+<pre><code lang="kotlin">val listener = <b>OnClickListener {</b> view ->       // 람다를 사용해 SAM 생성자를 호출
+    val text = when (view.id) {                // 어떤 버튼이 클릭됐는지 판단
+        button1.id -> "First button"
+        button2.id -> "Second button"
+        else -> "Unknown button"
+    }
+    toast(text)
+<b>}</b>
+button1.setOnClickListener(listener)
+button2.setOnClickListener(listener)
+</code></pre>
+<br/>
+
+## 5.3 Defining SAM interfaces in Kotlin: fun interfaces
+
+<small><i>코틀린에서 SAM 인터페이스 정의 : fun interface</i></small>
+
+`fun interface`: 코틀린의 함수형 인터페이스 정의. 정확히 하나의 추상 메서드만 포함하지만 다른 비추상 메서드를 여럿 가질 수 있음
+
+```Kotlin
+fun interface IntCondition {
+    fun check(i: Int): Boolean                        // 단 하나의 추상 메서드
+    fun checkString(s: String) = check(s.toInt())     // 비추상 메서드
+    fun checkChar(c: Char) = check(c.digitToInt())    // 비추상 메서드
+}
+ 
+fun main() {
+    val isOdd = IntCondition { it % 2 != 0 }
+    println(isOdd.check(1))                           // true
+    println(isOdd.checkString("2"))                   // false
+    println(isOdd.checkChar('3'))                     // true
+}
+```
+
+- '람다 구현' 혹은 '람다에 대한 참조'를 직접 넘길 수 있음 
+- 두 경우 모두 동적으로 인터페이스 구현을 인스턴스화해줌
+
+```Kotlin
+fun checkCondition(i: Int, condition: IntCondition): Boolean {
+    return condition.check(i)
+}
+ 
+fun main() {
+    checkCondition(1) { it % 2 != 0 }                 // 람다 직접 사용
+    val isOdd: (Int) -> Boolean =  { it % 2 != 0 }
+    checkCondition(1, isOdd)                          // 시그니처가 일치하는 람다 참조
+}
+```
+
+<br/>
+
+## 5.4 Lambdas with receivers: `with`, `apply`, and `also`
+
+<small><i>수신 객체 지정 람다 : `with`, `apply`, `also`</i></small>
+
+**수신 객체 지정 람다 (lambda with receiver)**:
+- 수신 객체를 명시하지 않고 람다의 본문 안에서 다른 개체의 메서드를 호출할 수 있게 하는 것. 
+- 자바 람다에는 없는 코틀린 람다 기능
+
+<br/>
+
+### 5.4.1 Performing multiple operations on the same object: `with`
+
+<small><i>`with` 함수</i></small>
+
+어떤 객체의 이름을 반복하지 않고도 그 객체에 대해 다양한 연산을 수행하는 기능을 제공
+
+→ 코틀린은 `with` 라이브러리를 통해 제공
+
+```Kotlin
+fun alphabet(): String {
+    val result = StringBuilder()
+    for (letter in 'A'..'Z') {
+         result.append(letter)
+    }
+    result.append("\nNow I know the alphabet!")
+    return result.toString()
+}
+```
+
+`result` 반복 사용
+
+```Kotlin
+fun alphabet(): String {
+    val stringBuilder = StringBuilder()
+    return with(stringBuilder) {                    // 수신 객체 지정 → this: StringBuilder
+        for (letter in 'A'..'Z') {
+            this.append(letter)                     // stringBuilder가 this 됨
+        }
+        this.append("\nNow I know the alphabet!")    
+        this.toString()                             // with 구문의 결과 반환
+    }
+}
+```
+
+- 실제 `with` 문은 파라미터가 2개 있는 함수
+- 첫 번째 파라미터는 `stringBuilder`, 두 번째 파라미터는 람다
+
+`this` 를 생략할 수도 있음
+
+```Kotlin
+fun alphabet(): String {
+    val stringBuilder = StringBuilder()
+    return with(stringBuilder) {                 //  ⎤
+        for (letter in 'A'..'Z') {               //  ⎟
+            append(letter)                       //  ⎬ 이 람다 내에서 this 생략 가능
+        }                                        //  ⎟
+        append("\nNow I know the alphabet!")     //  ⎟
+        toString()                               //  ⎦
+    }
+}
+```
+
+> - 일반 함수 → **확장 함수** 
+> - 일반 람다 → **수신 객체 지정 람다**
+>   - 확장 함수 안에서의 `this` 는 그 함수가 확장하는 타입의 인스턴스를 가리킴
+>   - 람다는 일반 함수와 비슷한 동작을 정의하는 하나의 방법
+>   - 수신 객체 지정 람다는 확장 함수와 비슷한 동작을 정의하는 하나의 방법
+
+마지막으로, 불필요한 변수 제거
+
+```Kotlin
+fun alphabet() = with(StringBuilder()) {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+    toString()
+}
+```
+
+> **메서드 이름 충돌**
+> 
+> `with` 구문 사용 시, 외부 메소드와 인자로 넘긴 객체가 이름이 같은 메서드 있을 때?
+> 
+> `this` 앞에 레이블을 붙여 메서드를 명확하게 정할 수 있음
+> 
+> e.g. `this@OuterClass.toString()`
+
+<br/>
+
+### 5.4.2 Initializing and configuring objects: The apply function
+
+`with`와 거의 동일하며, 유일한 차이는 `apply`는 항상 자신에 전달된 객체(수신 객체)를 반환한다는 점.
+
+
+```Kotlin
+fun alphabet() = StringBuilder().apply {
+    for (letter in 'A'..'Z') {
+        append(letter)
+    }
+    append("\nNow I know the alphabet!")
+}.toString()
+```
+
+인스턴스를 만들면서 즉시 프로퍼티 중 일부를 초기화해야 하는 경우엔 apply가 유용
+
+**참고**: [🔗 buildString 데모 코드](./demo/buildString.kt)
+
+<br/>
+
+### 5.4.3 Performing additional actions with an object: `also`
+
+<small><i>객체에 추가 작업 수행: `also`</i></small>
+
+- `apply`와 마찬가지로 수신 객체를 받이 동작 수행 후 수신 객체를 돌려줌
+- `also`는 **람다 안에서 수신 객체를 인자로 참조**
+  - 그래서, 람다의 파라미터 이름을 부여하거나 디폴트 이름인 `it` 을 사용해야 함
+- 원래의 수신 객체를 인자로 받는 동작을 실행할 때 `also`가 유용
+
+<pre><code lang="Kotlin">fun main() {
+    val fruits = listOf("Apple", "Banana", "Cherry")
+    val uppercaseFruits = mutableListOf<String>()
+    val reversedLongFruits = fruits
+        .map { it.uppercase() }
+        .<b>also { uppercaseFruits.addAll(it) }</b>
+        .filter { it.length > 5 }
+        .<b>also { println(it) }</b>                       // [BANANA, CHERRY]
+        .reversed()
+    println(uppercaseFruits)                        // [APPLE, BANANA, CHERRY]
+    println(reversedLongFruits)                     // [CHERRY, BANANA]
+}</code></pre>
+
+<br/><br/>
