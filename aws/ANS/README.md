@@ -144,6 +144,10 @@
 6. [VPN Tunnels - Active/Passive Mode](./vpn_tunnels_active_passive_mode.md)
 7. [VPN Dead Peer Detection (DPD)](./vpn_dead_peer_detection.md)
 8. [VPN Monitoring](./vpn_monitoring.md)
+9. [AWS Site-to-Site VPN Architectures](aws_site_to_site_vpn_architectures.md)
+10. [AWS VPN CloudHub](aws_vpn_cloudHub.md)
+11. [EC2 based VPN](ec2_based_vpn.md)
+12. [AWS Transit VPC architecture using VPN connections](aws_transit_vpc_architecture_using_vpn_connections.md)
 
 <br>
 
