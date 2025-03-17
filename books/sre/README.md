@@ -795,6 +795,29 @@
 
 </details>
 
+<details>
+<summary><b>Chapter 25. Data Processing Pipelines</b></summary>
+<br>
+
+[🔗 link](./chapter25)
+
+<br/>
+
+**TLDR**
+
+</details>
+<details>
+<summary><b>Chapter 26. Data Integrity: What You Read Is What You Wrote</b></summary>
+<br>
+
+[🔗 link](./chapter26)
+
+<br/>
+
+**TLDR**
+
+</details>
+
 ---
 
 <details>
