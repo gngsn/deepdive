@@ -4,16 +4,41 @@
 
 **TL;DR**
 
-- **표준 라이브러리 함수**와 **람다**를 활용해 컬렉션을 효율적으로 처리할 수 있음.
-- `filter`, `map`으로 원소를 걸러내거나 변환할 수 있음.
-- `reduce`, `fold`를 사용해 컬렉션에서 값을 종합할 수 있음.
-- `associate`, `groupBy`로 리스트를 맵으로 변환해 데이터를 구조화할 수 있음.
-- `chunked`, `windowed`, `zip`을 활용해 인덱스 기반으로 그룹을 만들거나 컬렉션을 합칠 수 있음.
-- `all`, `any`, `none`을 사용해 특정 조건이 컬렉션에 성립하는지 검사할 수 있음.
-- `flatten`, `flatMap`으로 내포된 컬렉션을 펼치고 변환할 수 있음.
+- **표준 라이브러리 함수**와 **람다**를 활용해 컬렉션을 효율적으로 처리할 수 있음
+  - `filter`: Boolean 값이 결과인 함수로 컬렉션의 원소를 걸러내고 싶을 때 사용
+    - `filterIndexed`: `filter`와 인덱스를 함께 필요할 때 사용
+  - `map`: 입력 컬렉션의 원소를 입력한 람다 함수로 처리한 값으로 변환
+    - `mapIndexed`: `map`와 인덱스를 함께 필요할 때 사용
+  - `reduce`: 람다(누적기, accumulator)는 각 원소에 별로 호출되며 새로운 누적 값을 반환  
+    - `runningReduce`: `reduce` 연산의 모든 중간 누적 값을 포함해서 반환
+  - `fold`: 람다에 컬렉션의 각 값과 이전 누적기를 적용하면서 누적기로 점차 결과를 만들어나감
+    - `runningFold`: `fold` 연산의 모든 중간 누적 값을 포함해서 반환
+  - `all`: 컬렉션의 모든 원소가 특정 조건을 만족하는지 판단
+  - `any`: 컬렉션의 원소가 하나라도 있는지 판단 (= `!all`)
+  - `none`: 컬렉션의 조건을 만족하는 원소가 전혀 없는지 판단 (= `!any`)
+  - `count`: 조건을 만족하는 원소의 개수를 반환
+  - `find`: 조건을 만족하는 첫 번째 원소를 반환
+  - `partition`: 술어를 만족하는 그룹과 그렇지 않은 그룹으로 나눌 때 사용 (= `filter` + `filterNot`)
+  - `groupBy`: 컬렉션의 원소를 어떤 특성에 따라 여러 그룹으로 나눌 때 사용
+  - `associate`: **컬렉션으로부터 맵을 만들어내고 싶을 때** 사용
+    - `associateWith`: **컬렉션 원소**를 **키**로 사용하고, **맵의 값**을 **생성하는 람다** 입력
+    - `associateBy`: **컬렉션 원소**를 **맵의 값**으로 하고, **입력한 람다가 만들어내는 값**을 **맵의 키**로 사용
+  - `replaceAll`: `MutableList` 에 적용하면 지정한 람다의 결과로 컬렉션의 모든 원소를 변경
+  - `fill`: 가변 리스트의 모든 원소를 똑같은 값으로 바꾸는 특별한 경우에는 함수를 쓸 수 있음
+  - `ifEmpty`: **컬렉션이 비어있을 때 기본값을 생성하는 람다를 제공**할 수 있음
+    - `ifBlank`: **문자열**에서 **'공백(`" "`)'과 '비어있음(`""`)'일 때, 기본값을 지정**
+  - `windowed`: 데이터를 연속적인 시간의 값들로 처리하고 싶을 경우, 슬라이딩 윈도우를 생성
+  - `chunked`: 컬렉션을 주어진 크기의 서로 겹치지 않는 (서로소) 부분으로 나누고 싶을 때 사용
+  - `zip`: 각 리스트의 값들이 서로의 인덱스에 따라 대응되는 경우, 두 컬렉션에서 같은 인덱스에 있는 원소들의 쌍으로 이뤄진 리스트 생성
+  - `flatMap`: 컬렉션의 각 원소를 파라미터로 주어진 함수를 사용해 매핑 한 후, 변환한 결과를 하나의 리스트로 펼침
+  - `flatten`: 변환할 것이 없고 단지 컬렉션의 컬렉션을 평평한 컬렉션으로 만들 경우 사용
 - **시퀀스**를 활용하면 중간 결과 없이 연산을 지연 계산하여 성능을 최적화할 수 있음.
   - `asSequence()`: 컬렉션에 `asSequence()`를 호출해서 시퀀스로 변경
   - `generateSequence`: 주어진 이전의 원소로, 다음 원소를 계산
+
+
+
+
 
 <br/><br/>
 
@@ -39,6 +64,7 @@
 - `filter`: Boolean 값이 결과인 함수로 조건을 표현하는 특정 술어<sup>predicate</sup>를 기준으로 컬렉션의 원소를 걸러내고 싶을 때
 - `map`: 컬렉션의 각 원소를 다른 형태로 변환하고 싶을 때
 
+<br/>
 
 #### 📌 `filter`
 
@@ -66,7 +92,7 @@ fun main() {
 
 #### 📌 `map`
 
-- 입력 컬렉션의 원소를 변환할 수 있게 해줌.
+- 입력 컬렉션의 원소를 입력한 람다 함수로 처리한 값으로 변환.
 
 map은 주어진 함수를 컬렉션의 각 원소에 적용하고 그 결과들을 새 컬렉션에 모아줌.
 
@@ -129,6 +155,8 @@ people.filter { it.age == maxAge }
 #### 📌 `filterIndexed`
 - `filter`와 인덱스를 함께 필요할 때 사용
 
+<br/>
+
 #### 📌 `mapIndexed`
 - `map`와 인덱스를 함께 필요할 때 사용
 
@@ -155,8 +183,8 @@ val mapped = numbers.mapIndexed { index, element ->
 
 #### 📌 `reduce`
 
-- 누적기 accumulator 를 통해 점진적으로 만들어짐
-- 람다는 각 원소에 별로 호출되며 새로운 누적 값을 반환
+- 람다(누적기, accumulator) 는 각 원소에 별로 호출되며 새로운 누적 값을 반환
+- 누적기(accumulator)를 통해 점진적으로 만들어짐
 
 <br/><img src="./img/figure06-03.png" width="40%" /><br/>
 
@@ -188,6 +216,8 @@ val folded = people.fold("") { acc, person -> acc + person.name } // AlexNatalia
 #### runningReduce 와 runningFold: 중간 누적 값 포함
 
 반환 값이 최종 결과(리스트의 마지막 원소)와 함께 모든 중간 누적 값이 포함
+
+<br/>
 
 #### 📌 `runningReduce`
 
@@ -229,7 +259,7 @@ people.runningFold("") { acc, person ->
 - 컬렉션의 원소가 하나라도 있는지 판단
 
 #### 📌 `none`
-- 컬렉션의조건을 만족하는 원소가 전혀 없는지 판단
+- 컬렉션의 조건을 만족하는 원소가 전혀 없는지 판단
 
 #### 📌 `count`
 - 조건을 만족하는 원소의 개수를 반환
@@ -454,7 +484,8 @@ println(names)                                 // [(redacted), (redacted)]
 
 <small><i>컬렉션의 특별한 경우 처리 : `ifEmpty`</i></small>
 
-컬렉션에 아무 원소도 없을 때 기본값을 생성하는 람다를 제공할 수 있음
+#### 📌 `ifEmpty`
+- 컬렉션에 아무 원소도 없을 때 기본값을 생성하는 람다를 제공할 수 있음
 
 ```
 val empty = emptyList<String>()
@@ -463,9 +494,9 @@ println(empty.ifEmpty { listOf("no", "values", "here") })   // [no, values, here
 println(full.ifEmpty { listOf("no", "values", "here") })    // [apple, orange, banana]
 ```
 
-#### 📌 `iBlank`
+#### 📌 `ifBlank`
 - 문자열에서 '공백(`" "`)'과 '비어있음(`""`)'일 때, 기본값을 지정
-  - `isEmpty` 는 '비어있음(`""`)'을 체크.
+  - `ifEmpty` 는 '비어있음(`""`)'을 체크.
 
 ```kotlin
 println(" ".ifEmpty { "(unnamed)" })    //
@@ -526,6 +557,7 @@ println(names.zip(ages) { name, age -> Person(name, age) })
 `zip` 은 두 입력 컬렉션 모두에 원소가 들어있는 인덱스에 해당하는 원소들만 처리
 </pre>
 
+<br/>
 
 Pair 객체를 생성하는 [`to`](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/to.html) 함수와 마찬가지로 `zip` 함수도 중위 표기법(infix function) 으로 호출할 수 있음
 
