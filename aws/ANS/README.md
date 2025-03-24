@@ -155,6 +155,8 @@
 
 1. [CloudFront Overview](./cloudFront_overview.md)
 2. [CloudFront Origins](./cloudFront_origins.md)
+3. [CloudFront Origin Headers](./cloudFront_origin_headers.md)
+4. [CloudFront Origin Security](./cloudFront_origin_security.md)
 
 <br>
 
