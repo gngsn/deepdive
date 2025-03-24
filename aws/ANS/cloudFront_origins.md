@@ -20,7 +20,7 @@
 
 CloudFront는 콘텐츠 전송 네트워크(CDN)으로 여러 종류의 기원을 제공.
 
-<img src=""/>
+<br><img src="./img/cloudFront_origins_img1.png" width="80%" /><br>
 
 - 첫 번째는 S3 버킷으로, 다양한 파일 배포에 사용됨.
 - **S3 버킷과 CloudFront 간의 보안**: S3 버킷 정책에 OAC(Origin Access Control)를 묶어 CloudFront에서만 S3 버킷에 액세스할 수 있도록 보장.
@@ -31,28 +31,57 @@ CloudFront는 콘텐츠 전송 네트워크(CDN)으로 여러 종류의 기원�
 
 ### CloudFront Origins – ALB or EC2 as an origin
 
-- **사용자 정의 HTTP 호환 오리진:**
-    - 가령, EC2 인스턴스, Elastic Load Balancer(CLB 또는 ALB), API Gateway 또는 온프레미스 서버가 있음.
+**✔️ EC2 인스턴스 Public 접근 허용** 
 
-<img src=""/>
+<br><img src="./img/cloudFront_origins_img2.png" width="40%" /><br>
 
-### 기타 사용자 정의 기원
-- **EC2 인스턴스:** 엣지 로케이션이 콘텐츠를 가져올 수 있도록 공개적으로 접근 가능해야 합니다.
-- **Application Load Balancer:** 엣지 로케이션이 공개적으로 접근할 수 있지만 백엔드 EC2 인스턴스는 비공개로 유지될 수 있습니다.
+엣지 로케이션이 콘텐츠를 가져올 수 있도록, 반드시 퍼블릭 접근이 가능해야 함. 
 
-### 경로 기반 라우팅
-CloudFront에서 서로 다른 경로를 서로 다른 기원으로 라우팅할 수 있습니다. 예를 들어:
-- `/images/*`는 S3 버킷으로 라우팅할 수 있습니다.
-- `/api/*`는 사용자 정의 HTTP 백엔드로 라우팅할 수 있습니다.
-- `/*`(기본 경로)는 다른 기원으로 라우팅할 수 있습니다.
+<br/>
 
-### 고가용성 및 장애 조치
-CloudFront는 고가용성을 위해 Origin Groups를 설정할 수 있음.
-주 기원이 실패할 경우 보조 기원이 사용됨.
+**✔️ Application Load Balancer:** 
 
-**예를 들어:**
-- **EC2 인스턴스:** 기본 및 보조 EC2를 기원으로 설정합니다.
-- **S3 버킷:** 장애 조치를 위해 지역 간 S3 복제를 사용합니다.
+<br><img src="./img/cloudFront_origins_img3.png" width="40%" /><br>
 
-결론적으로, CloudFront는 다양한 종류의 기원(예: S3 버킷, EC2 인스턴스 등)을 전 세계적으로 배포하고 고가용성을 달성할 수 있습니다.
+엣지 로케이션이 공개적으로 접근 가능. 백엔드 EC2 인스턴스는 비공개로 유지될 수 있음.
+
+<br/>
+
+### CloudFront - Multiple Origins
+
+CloudFront에서 서로 다른 경로를 서로 다른 기원으로 라우팅할 수 있음
+
+> **Example.**
+> 
+> - `/images/*` → S3 버킷 라우팅
+> - `/api/*` → 사용자 정의 HTTP 백엔드 라우팅
+> - `/*` (기본 경로)  → 다른 오리진 라우팅
+
+<br><img src="./img/cloudFront_origins_img4.png" width="40%" /><br>
+
+<br/>
+
+### CloudFront – Origin Groups
+
+**Origin Groups**
+
+- 고가용성 및 Failover 향상
+- Primary Origin & Secondary Origin
+  - 프라이머리 오리진이 실패할 경우 세컨더리 오리진이 사용됨
+
+<table>
+  <tr>
+    <th>EC2 Instance</th>
+    <th>S3 Bucket</th>
+  </tr>
+  <tr>
+    <td>
+    <img src="./img/cloudFront_origins_img5.png" width="100%" />
+        Primary EC2와 Secondary EC2를 오리진으로 설정
+    </td>
+    <td>
+        <img src="./img/cloudFront_origins_img6.png" width="100%" />
+        장애 조치를 위해 지역 간 S3 복제를 사용
+    </td>
+  </tr>
 
