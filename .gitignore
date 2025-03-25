@@ -3,6 +3,7 @@ out/
 .DS_Store
 *.class
 .swp
+*.kotlin_module
 
 # User-specific stuff
 .idea/**/workspace.xml

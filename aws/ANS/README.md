@@ -157,6 +157,7 @@
 2. [CloudFront Origins](./cloudFront_origins.md)
 3. [CloudFront Origin Headers](./cloudFront_origin_headers.md)
 4. [CloudFront Origin Security](./cloudFront_origin_security.md)
+5. [Hands On: Restrict an ALB to CloudFront](hands_on_restrict_an_alb_to_cloudFront.md)
 
 <br>
 
