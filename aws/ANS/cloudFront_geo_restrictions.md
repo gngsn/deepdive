@@ -4,7 +4,7 @@
 
 - 특정 지역의 사용자가 콘텐츠/배포(distribution)에 액세스하는 것을 방지
 
-<img src="cloudFront_geo_restrictions_img1.png" />
+<br><img src="./img/cloudFront_geo_restrictions_img1.png" width="30%" /><br>
 
 - **CloudFront Geo Restriction**
   - 국가 수준에서 액세스 제한 (써드파티 GeoIP 데이터베이스 사용해서 국자 결정)
