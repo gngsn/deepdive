@@ -5,7 +5,7 @@
 1. 클라이언트와 엣지 로케이션 간 - Viewer Protocol Policy
 2. 엣지 로케이션과 기원 간 - Origin Protocol Policy
 
-<br><img src="./img/cloudFront_and_https_img1.png" width="100%" /><br>
+<br><img src="./img/cloudFront_and_https_img1.png" width="30%" /><br>
 
 #### 1. **Viewer Protocol Policy**
   - **`HTTP` and `HTTPS`**: `HTTP` 와 `HTTPS` 허용
@@ -27,6 +27,8 @@
 <br/>
 
 ## Alternate Domain Names
+
+<br><img src="./img/cloudFront_and_https_img2.png" width="30%" /><br>
 
 - CloudFront에서 할당한 도메인 대신 사용자 지정 도메인 이름 사용
   - e.g. `http://d111111abcdef8.cloudfront.net/cat.jpg` => `http://www.example.com/cat.jpg`
