@@ -4,7 +4,7 @@
 
 <small><i>2024-03-10 ~ Present</i></small>
 
-<br><img src="../img/kotlin-in-action-second-edition.jpg" alt="Unit Testing" width="40%" /><br>
+<br><img src="../img/kotlin-in-action-second-edition.jpg" alt="Kotlin in Action, Second Edition" width="40%" /><br>
 
 <br>
 
@@ -48,7 +48,6 @@
 <a href="./chapter06"> 🔗 link </a>
 <br>
 
-
 **TL;DR**
 
 - **표준 라이브러리 함수**와 **람다**를 활용해 컬렉션을 효율적으로 처리할 수 있음
@@ -83,6 +82,28 @@
   - `asSequence()`: 컬렉션에 `asSequence()`를 호출해서 시퀀스로 변경
   - `generateSequence`: 주어진 이전의 원소로, 다음 원소를 계산
 
+
+<br>
+</details>
+
+<details>
+<summary><b>CHAPTER 07. Working with nullable values</b></summary>
+
+<br>
+
+<a href="./chapter07">🔗 link</a>
+<br>
+
+**TL;DR**
+
+- 코틀린은 널이 될 수 있는 타입을 지원해 `NullPointerException` 오류를 컴파일 시점에 감지할 수 있음
+- **안전한 호출 (`?.`)**: 널이 될 수 있는 객체의 메서드를 호출하거나 프로퍼티에 접근할 수 있음
+- **엘비스 연산자 (`?:`)**: 어떤 식이 null 일 때 대신할 값을 지정할 수도 있고, 실행을 반환시키거나 예외를 던질 수도 있음
+- **널 아님 단언 (`!!`)**: 컴파일러에게 주어진 값이 null 이 아니라고 약속하는 것
+  - null 값에 대한 책임은 개발자에게 있음
+- **`let` 함수**: 자신이 호출된 수신 객체를 람다에게 전달
+  - 안전한 호출 연산자와 `let`을 함께 사용하면 널이 될 수 있는 타입의 객체를 널이 될 수 없는 타입으로 변환하는 효과가 있음
+- **`as?` 연산자**: 값을 다른 타입으로 변환하는 것과 변환이 불가능한 경우를 처리하는 것을 한꺼번에 편리하게 처리할 수 있음
 
 <br>
 </details>

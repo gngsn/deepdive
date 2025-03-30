@@ -4,6 +4,14 @@
 
 **TL;DR**
 
+- 코틀린은 널이 될 수 있는 타입을 지원해 `NullPointerException` 오류를 컴파일 시점에 감지할 수 있음
+- **안전한 호출 (`?.`)**: 널이 될 수 있는 객체의 메서드를 호출하거나 프로퍼티에 접근할 수 있음
+- **엘비스 연산자 (`?:`)**: 어떤 식이 null 일 때 대신할 값을 지정할 수도 있고, 실행을 반환시키거나 예외를 던질 수도 있음
+- **널 아님 단언 (`!!`)**: 컴파일러에게 주어진 값이 null 이 아니라고 약속하는 것
+  - null 값에 대한 책임은 개발자에게 있음
+- **`let` 함수**: 자신이 호출된 수신 객체를 람다에게 전달
+  - 안전한 호출 연산자와 `let`을 함께 사용하면 널이 될 수 있는 타입의 객체를 널이 될 수 없는 타입으로 변환하는 효과가 있음
+- **`as?` 연산자**: 값을 다른 타입으로 변환하는 것과 변환이 불가능한 경우를 처리하는 것을 한꺼번에 편리하게 처리할 수 있음
 
 <br/><br/>
 
@@ -256,5 +264,176 @@ class MyTest {
 - `lateinit` 프로퍼티가 반드시 클래스의 멤버일 필요는 없음: 함수 본문 안의 지역 변수나 최상위 프로퍼티도 지연 초기화할 수 있음
 
 <br/>
+
+## 7.10 Extending types without the safe-call operator: Extensions for nullable types
+
+<small><i>안전한 호출 연산자 없이 타입 확장: 널이 될 수 있는 타입에 대한 확장</i></small>
+
+- 널이 될 수 있는 타입에 대한 확장 함수를 정의하면 `null` 값을 다루는 강력한 도구로 활용 가능
+  - 일반 멤버 호출은 객체 인스턴스를 통해 디스패치<sup>dispatch</sup> 되므로 그 인스턴스가 `null` 인지 여부를 검사하지 않음
+
+#### 예시: `null` 이 될 수 있는 String의 확장 함수
+
+```kotlin
+fun String?.isNullOrBlank(): Boolean = this == null || this.isBlank() 
+```
+
+함수의 내부에서 this 는 null 이 될 수 있어서, null 여부 검사 가능
+
+```kotlin
+fun verify(input: String?) { 
+    if (input.isNullOrBlank()) {
+      println("Please fill in the required fields")
+    }
+}
+verify(null) // 예외 발생 X
+```
+
+<br/>
+
+#### let 함수와 Nullable 객체의 확장 함수
+
+`let` 함수도 널이 될 수 있는 타입의 값에 대해 호출할 수 있지만 `let` 은 this 가 `null` 인지 검사하지 않음
+
+`let`을 사용할 때 수신 객체가 null 이 아닌지 검사하고 싶다면, 반드시 안전한 호출 연산(`?.`)을 사용해야 함
+
+e.g. `recipient?.let { SendEmailTo(it) }`
+
+<br/>
+
+## 7.11 Nullability of type parameters
+
+<small><i>타입 파라미터의 널 가능성</i></small>
+
+- 코틀린에서 타입 파라미터 `T` 사용 시 이름 끝에 물음표가 없어도 `T` 가 널이 될 수 있는 타입
+
+```kotlin
+fun <T> printHashCode(t: T) {
+    println(t?.hashCode())  // t가 널이 될 수 있으므로 안전한 호출을 써야만 함
+}
+```
+
+- 타입 파라미터 `T` 에 대해 추론한 타입은 널이 될 수 있는 `Any?` 타입
+- `null`이 될 수 없는 타입 상계 <sup>upper bound</sup> 를 지정해야 함
+
+```kotlin
+fun <T: Any> printHashCode(t: T) {
+    println(t.hashCode())
+}
+```
+
+널이 될 수 없는 타입의 파라미터에 널을 넘길 수 없음. 컴파일 안됨
+
+```kotlin
+printHashCode(null) // Error: Type parameter bound for `T` is not satisfied
+```
+
+<br/>
+
+## 7.12 Nullability and Java
+
+<small><i>널 가능성과 자바</i></small>
+
+첫째, 자바 코드에도 어노테이션으로 표시된 널 가능성 정보가 있음. 코틀린도 그 정보를 활용
+
+| Java             | Kotlin  |
+|------------------|---------|
+| `@Nullable Type` | `Type?` |
+| `@NotNull Type`  | `Type`  |
+
+<br/>
+
+### 7.12.1 Platform types
+
+<small><i>플랫폼 타입</i></small>
+
+- 플랫폼 타입: 코틀린이 널 관련 정보를 알 수 없는 타입
+- 컴파일러는 모든 연산을 허용: 널이 될 수 있는 타입으로 처리해도 되고 널이 될 수 없는 타입으로 처리해도 됨
+
+| Java            | Kotlin             |
+|-----------------|--------------------|
+| `Type`          | `Type?` or `Type`  |
+
+자바와 마찬가지로 `null` 처리를 제대로 안하면 `NullPointerException` 발생
+
+⚠️ **자바 API 를 다룰 때는 주의 필요**
+
+널이 아닌 것처럼 다루기 쉽지만 오류가 발생할 수 있음
+
+오류를 피하려면 사용하려는 자바 문서를 (혹은 구현 코드) 살펴보고, `null`을 반환할지 찾아보고 처리해야 함
+
+<pre><b>코틀린은 왜 플랫폼 타입을 도입했는가?</b>
+모든 자바 타입을 널이 될 수 있는 타입으로 다루게 되면,
+널이 될 수 없는 값에 대해서도 불필요한 null 검사가 들어감.
+매번 null 처리 시, 널 안전성으로 얻는 이익보다 검사에 드는 비용이 훨씬 더 커짐
+
+결론적으로, 자바의 타입을 가져온 경우 프로그래머에게 그 타입을 제대로 처리할 책임을 부여
+</pre>
+
+- 코틀린에서 폴랫폼 타입을 선언할 수는 없음
+- 자바 코드에서 가져온 타임만 플롯을 타입이 됨
+
+```Java
+/* Java */
+public class Person {
+    private final String name;
+ 
+    public Person(String name) {
+        this.name = name;
+    }
+ 
+    public String getName() {
+        return name;
+    }
+}
+```
+
+아래는 모두 올바른 선언
+
+```kotlin
+val s1: String? = person.name    // ✅ Nullable 로 볼 수도,
+val s2: String = person.name     // ✅ Non-Nullable 로 볼 수도 있음
+```
+
+<br/>
+
+### 7.12.2 Inheritance
+
+<small><i>상속</i></small>
+
+- 코틀린에서 자바 메서드를 오버라이드할 때, 그 메서드의 파라미터와 반환 타입을 널이 될 수 있는 타입으로 선언할지 널이 될 수 없는 타입으로 선언할지 결정해야 함
+- 자바 클래스나 인터페이스를 코틀린에서 구현할 경우 널 가능성을 제대로 처리하는 일이 중요
+
+```Java
+/* Java */
+interface StringProcessor {
+    void process(String value);
+}
+```
+
+```kotlin
+class StringPrinter : StringProcessor { 
+  override fun process(value: String) { /*...*/ }   //  ✅ 
+}
+
+class NullableStringPrinter : StringProcessor {
+  override fun process(value: String?) { /*...*/ }  //  ✅ 
+}
+```
+
+<br/>
+
+## Summary
+
+<small><i>요약</i></small>
+
+- 코틀린은 널이 될 수 있는 타입을 지원해 `NullPointerException` 오류를 컴파일 시점에 감지할 수 있음
+- 안전한 호출 (`?.`): 널이 될 수 있는 객체의 메서드를 호출하거나 프로퍼티에 접근할 수 있음
+- 엘비스 연산자 (`?:`): 어떤 식이 null 일 때 대신할 값을 지정할 수도 있고, 실행을 반환시키거나 예외를 던질 수도 있음
+- 널 아님 단언 (`!!`): 컴파일러에게 주어진 값이 null 이 아니라고 약속하는 것
+  - null 값이 잘못 들어오면, 책임은 개발자에게 있음
+- `let` 영역 함수: 자신이 호출된 수신 객체를 람다에게 전달
+  - 안전한 호출 연산자와 `let`을 함께 사용하면 널이 될 수 있는 타입의 객체를 널이 될 수 없는 타입으로 변환하는 효과가 있음 
+- `as?`: 값을 다른 타입으로 변환하는 것과 변환이 불가능한 경우를 처리하는 것을 한꺼번에 편리하게 처리할 수 있음
 
 
