@@ -345,7 +345,7 @@ val people = listOf(Person("Alice", 27), Person("Bob", 31))
 </tr>
 
 <tr>
-<th><code>count</code></th>
+<th><code>find</code></th>
 <td>
 <pre><code lang="kotlin">people.find(canBeInClub27)) // Person(name=Alice, age=27)
 </code></pre>
