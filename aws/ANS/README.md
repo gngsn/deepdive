@@ -161,8 +161,6 @@
 6. [End-to-End Encryption in CloudFront](./end_to_end_encryption_in_cloudFront.md)
 7. [CloudFront Geo Restrictions](./cloudFront_geo_restrictions.md)
 8. [CloudFront Functions and Lambda@Edge](./cloudFront_functions_lambda_edge.md)
-9. [Hands On: CloudFront Functions]()
-
 
 <br>
 

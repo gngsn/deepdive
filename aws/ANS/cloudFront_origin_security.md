@@ -10,7 +10,24 @@
 2. **S3 버킷 정책 수정**
    - OAC만 GetObject 작업을 허용하도록 수정
 
-<br><img src="./img/cloudFront_origin_security_img2.png" width="50%" /><br>
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "cloudfront.amazonaws.com" },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::mybucket/*",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceArn": "arn:aws:cloudfront::ACCOUNT_ID:distribution/EDFDVBDGEXAMPLE"
+        }
+      }
+    }
+  ]
+}
+```
 
 <br>
 
