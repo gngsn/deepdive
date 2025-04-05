@@ -122,6 +122,153 @@ ref. https://kotlinlang.org/docs/unsigned-integer-types.html#unsigned-arrays-and
 
 <br/>
 
+## 8.1.3 Nullable primitive types: `Int?`, `Boolean?`, and more
+
+<small><i>널이 될 수 있는 기본 타입 : `Int?`, `Boolean?` 등</i></small>
+
+
+- 코틀린의 Nullable 타입은 자바의 래퍼 타입으로 컴파일 됨
+  - 자바의 참조 타입의 변수에만 대입할 수 있기 때문 (원시 타입은 `null` 대입 불가)
+
+<br/>
+
+```kotlin
+data class Person(val name: String,
+                  val age: Int? = null) {
+
+    fun isOlderThan(other: Person): Boolean? {
+        if (age == null || other.age == null)
+            return null
+        return age > other.age
+    }
+}
+
+fun main() {
+    println(Person("Sam", 35).isOlderThan(Person("Amy", 42)))   // false
+    println(Person("Sam", 35).isOlderThan(Person("Jane")))      // null
+}
+```
+
+- 컴파일러는 `null` 검사 후 두 값을 일반 값으로 다룸
+  - `java.lang.Integer`로 저장
+
+
+### 제네릭 클래스 
+- 제네릭 클래스의 경우 래퍼 타입을 사용
+- 어떤 클래스의 타입 인자로 원시 타입을 넘기면 코틀린은 그 타입에 대한 박스 타입을 사용
+- `val listOfInts = listOf(1, 2, 3)` → `java.util.List<java.lang.Integer> getListOfInts();`
+
+<br/>
+
+## 8.1.4 Kotlin makes number conversions explicit
+
+<small><i>수 변환</i></small>
+
+- 코틀린과 자바의 가장 큰 차이점 중 하나 → 수를 변환하는 방식
+- 코틀린은 한 타입의 수를 다른 타입의 수로 자동 변환하지 않음
+  - 결과 타입이 허용하는 수의 범위가 원래 타입의 범위보다 넓은 경우도 자동 변환 불가능
+
+- 코틀린은 모든 원시 타입 (`Boolean` 제외) 에 대해 변환 함수를 제공
+  - `toByte()`, `toShort()`, `toChar()` 등
+ 
+- 양방향 변환 함수가 모두 제공
+  - 더 넓은 범위의 타입으로 변환하는 함수 지원 (e.g.`Int.toLong()`) 
+  - 더 좁은 범위의 타입으로 변환하면서 값을 벗어나는 경우에는 일부를 잘라내는 함수 지원 (e.g. `Long.toInt()`)
+- 박스 타입 간의 `equals` 메서드는 값이 아니라 박스 타입 객체를 비교
+- 따라서 자바에서 `new Integer(42).equals(new Long(42))` → `false` 
+- 코틀린에서 암시적 변환을 허용한다면 다음과 같이 쓸 수 있을 것
+
+```kotlin
+val x = 1                       // int 타입
+val list = listOf(1L, 2L, 3L)   // Long 타입 리스트
+x in list                       // ❌ 암시적 타입 변환으로 인해 false
+```
+
+위 코드는 컴파일 오류를 발생 시킴
+
+```bash
+figure08_03.kt:10:7: error: type inference failed. The value of the type parameter 'T' should be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.
+    x in list
+      ^^
+```
+
+코틀린에서는 타입을 명시적으로 변환해서 같은 타입의 값으로 만든 후 비교해야 함
+
+```kotlin
+println(x.toLong() in listOf(1L, 2L, 3L))
+```
+
+예상치 못한 동작을 피하기 위해 각 변수를 명시적으로 변환해야 함
+
+#### 원시 타입 리터럴
+
+코틀린은 수 리터럴을 허용
+
+- `L` 접미사가 붙은 `Long` 타입 리터럴: `123L`
+- 표준 부동소수점 표기법을 사용한 `Double` 타입 리터럴 : `0.12`, `2.0`, `1.2e10`, `1.2e-10`
+- `f`/`F` 접미사가 붙은 `Float` 타입 리터럴 : `123.4f`, `.456F`, `1e3f`
+- `0x` 나 `0x` 접두사가 붙은 16 진 리터럴 : `0XCAFEBABE`, `0xbcdL`
+- `0b` 나 `0B` 접두사가 붙은 2 진 리터럴 : `0b000000101`
+- `U` 접미사가 붙은 부호 없는 정수 리터럴 : `123U`, `123UL`, `0x10cU` 
+- **코틀린 문자 리터럴**: 이스케이스 시퀀스를 사용 가능
+  - `'1'`
+  - `'\t'`(이스케이프 시퀀스로 정의한 탭 문자)
+  - `\u009` (유니코드 이스케이프 시퀀스로 정의한 탭 문자)
+
+
+숫자 리터럴을 타입이 알려진 변수에 대입하거나 함수에 인자로 넘기면 컴파일러가 필요한 변환을 자동으로 넣어줌
+
+추가로 산술 연산자는 적당한 타입의 값을 받아들일 수 있도록 이미 오버로드돼 있음
+
+```kotlin
+fun printALong(l: Long) = println(l)
+ 
+fun main() {
+    val b: Byte = 1        // 상수 값은 적절한 타입으로 해석됨
+    val l = b + 1L         // + 는 Byte 와 Long 을 인자로 받을 수 있음
+    printALong(42)         // 컴파일러는 42를 Long 값으로 해석
+}
+```
+
+- 숫자 연산 시 **오버플로** <sup>overflow</sup> 나 **언더플로** <sup>underflow</sup> 가 발생할 수 있음
+- 코틀린은 검사에 추가 비용을 들이지 않음
+
+```kotlin
+fun main() {
+    println(Int.MAX_VALUE + 1)
+    // -2147483648                 // 오버플로로 인해 값이 양수 최댓값에서 음수 최솟값으로 넘어감
+    println(Int.MIN_VALUE - 1)
+    // 2147483647                  // 언더플로로 인해 값이 음수 최솟값에서 양수 최댓값으로 넘어감
+}
+```
+
+<br/>
+
+### 문자열을 수로 변환하기
+
+- 코틀린 표준 라이브러리는 문자열을 수로 변환하는 함수 제공: `toInt`, `toByte`, `toBoolean`, ...
+  - `"42".toInt()` ← `42`
+- 파싱에 실패하면 `NumberFormatException` 발생
+- 각 확장 함수로 변환 실패 시 `null` 을 돌려주는 `toIntOrNull`, `toByteOrNull` 등의 함수가 존재
+  - `"seven".toIntOrNull()` ← `null`
+- 문자열을 불리언 값으로 변환할 때, 문자열이 `null`이 아니고 단어 `"true"`와 같으면 `true` 반환 (대소 문자 구분 X)
+  - `"trUE".toBoolean()` ← `true`
+  - `"7".toBoolean()`    ← `false`
+  - `null.toBoolean()`   ← `false`
+
+- `toBooleanStrict`: 정확히 `true` `false` 와 일치할 때 변환. 일치하지 않은 경우에는 예외 발생
+  - `"true".toBooleanStrict()` ← `true`
+  - `"trUE".toBooleanStrict()` ← `Exception in thread "main" java.lang.IllegalArgumentException: The string doesn't represent a boolean value: trUE`
+
+
+
+
+
+
+
+
+
+
 
 
 
