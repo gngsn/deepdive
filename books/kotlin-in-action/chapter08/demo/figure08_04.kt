@@ -24,3 +24,4 @@ fun main() {
     //        at org.jetbrains.kotlin.runner.Main.run(Main.kt:183)
     //        at org.jetbrains.kotlin.runner.Main.main(Main.kt:193)
 }
+val answer: Any = 42

@@ -10,7 +10,7 @@
 
 <br/>
 
-## 8.1.1 Representing integers, floating-point numbers, characters, and Booleans with primitive types
+### 8.1.1 Representing integers, floating-point numbers, characters, and Booleans with primitive types
 
 <small><i>정수, 부동소수점 수, 문자, 불리언 값을 원시 타입으로 표현</i></small>
 
@@ -64,7 +64,7 @@ fun main() {
   - 불리언 타입: `Boolean`
 
 
-## 8.1.2 Using the full bit range to represent positive numbers: Unsigned number types
+### 8.1.2 Using the full bit range to represent positive numbers: Unsigned number types
 
 <small><i>양수를 표현하기 위해 모든 비트 범위 사용: 부호 없는 숫자 타입</i></small>
 
@@ -122,7 +122,7 @@ ref. https://kotlinlang.org/docs/unsigned-integer-types.html#unsigned-arrays-and
 
 <br/>
 
-## 8.1.3 Nullable primitive types: `Int?`, `Boolean?`, and more
+### 8.1.3 Nullable primitive types: `Int?`, `Boolean?`, and more
 
 <small><i>널이 될 수 있는 기본 타입 : `Int?`, `Boolean?` 등</i></small>
 
@@ -153,14 +153,14 @@ fun main() {
   - `java.lang.Integer`로 저장
 
 
-### 제네릭 클래스 
+#### 제네릭 클래스 
 - 제네릭 클래스의 경우 래퍼 타입을 사용
 - 어떤 클래스의 타입 인자로 원시 타입을 넘기면 코틀린은 그 타입에 대한 박스 타입을 사용
 - `val listOfInts = listOf(1, 2, 3)` → `java.util.List<java.lang.Integer> getListOfInts();`
 
 <br/>
 
-## 8.1.4 Kotlin makes number conversions explicit
+### 8.1.4 Kotlin makes number conversions explicit
 
 <small><i>수 변환</i></small>
 
@@ -199,6 +199,8 @@ println(x.toLong() in listOf(1L, 2L, 3L))
 ```
 
 예상치 못한 동작을 피하기 위해 각 변수를 명시적으로 변환해야 함
+
+<br/>
 
 #### 원시 타입 리터럴
 
@@ -244,7 +246,7 @@ fun main() {
 
 <br/>
 
-### 문자열을 수로 변환하기
+#### 문자열을 수로 변환하기
 
 - 코틀린 표준 라이브러리는 문자열을 수로 변환하는 함수 제공: `toInt`, `toByte`, `toBoolean`, ...
   - `"42".toInt()` ← `42`
@@ -259,6 +261,240 @@ fun main() {
 - `toBooleanStrict`: 정확히 `true` `false` 와 일치할 때 변환. 일치하지 않은 경우에는 예외 발생
   - `"true".toBooleanStrict()` ← `true`
   - `"trUE".toBooleanStrict()` ← `Exception in thread "main" java.lang.IllegalArgumentException: The string doesn't represent a boolean value: trUE`
+
+<br/>
+
+### 8.1.5 `Any` and `Any?`: The root of the Kotlin type hierarchy
+
+<small><i>`Any` 와 `Any?`: 코틀린 타입 계층의 뿌리</i></small>
+
+자바에서 Object 가 클래스 계층의 최상위 타입이듯 코틀린에서는 Any 타입이 모든
+널이 될 수 없는 타입의 조상 타입
+
+- **자바**: 참조 타입만 `Object`를 조상으로 하는 타입 계층에 포함, 원시 타입은 계층에 들어있지 않음
+  - Object 타입 필요 시, 원시 타입을 래퍼 타입으로 감싸야만 함
+- **코틀린**: `Any`가 원시 타입을 포함한 모든 타입의 조상 타입
+  - 자바와 마찬가지로 코틀린에서도 원시 타입 값을 Any 타입의 변수에 대입하면 자동으로 값을 객체로 감쌈 (박싱 boxing),
+
+```kotlin
+val answer: Any = 42  // Any가 참조 타입이기 때문에 42가 박싱됨
+```
+
+- 자바 메서드에서 `Object`를 인자로 받거나 반환하면 코틀린에서는 `Any` 로 그 타입을 취급
+  - 정확히는, 널이 될 수 있는지 여부를 알 수 없으므로 플랫폼 타입인 `Any!` 로 취급
+- 코틀린 함수가 `Any` 를 사용하면 자바 바이트코드의 `Object`로 컴파일됨
+
+<br/>
+
+### 8.1.6 The Unit type: Kotlin’s `void`
+
+<small><i>Unit 타입: 코틀린의 `void`</i></small>
+
+- 코틀린 `Unit` 타입 = 자바 `void` 
+- 반환 타입이 없을 때 Unit 을 쓸 수 있음
+  - = 반환 타입을 선언하지 않는 것과 동일. 컴파일러가 암시적으로 `return Unit` 을 넣어줌
+
+- `Unit` 타입에 속한 값은 단 하나뿐이며 그 이름도 Unit 임
+  - [github: Kotlin Unit](https://github.com/JetBrains/kotlin/blob/2.1.20/libraries/stdlib/src/kotlin/Unit.kt#L11)
+
+```kotlin
+/**
+ * The type with only one value: the `Unit` object. This type corresponds to the `void` type in Java.
+ */
+public expect object Unit
+```
+
+- **Ref.** [expect & actual](https://kotlinlang.org/docs/multiplatform-expect-actual.html#expected-and-actual-classes)
+
+- 코틀린 `Unit` 타입 vs. 자바 `void`
+  - `Unit`은 모든 기능을 갖는 일반적인 타입
+  - `void` 와 달리 `Unit`을 **타입 인자**로 사용 가능
+  - `Unit` 타입의 함수는 Unit 값을 암시적으로 반환
+- 이 두 특성은 제네릭 파라미터를 반환하는 함수를 오버라이드하면서 반환 타입으로 Unit 을 쓸 때 쓸모가 있음
+
+```kotlin
+interface Processor<T> {
+    fun process(): T
+}
+ 
+class NoResultProcessor : Processor<Unit> {
+    override fun process() {                  // Unit을 반환하지만 타입을 지정할 필요는 없음
+        // do stuff
+    }                                         // 명시적으로 return 할 필요가 없음
+}
+```
+
+<br/>
+
+#### 자바에서 '값 없음'을 표현하는 타입 인자
+- 코틀린처럼 깔끔히 해결 불가능 
+- **방법1**: 별도의 인터페이스를 사용해 **값을 반환하는 경우**와 **값을 반환하지 않는 경우**를 분리
+- **방법2**: 타입 파라미터로 특별히 `java.lang.Void` 타입을 사용
+
+<br/>
+
+### 8.1.7 The `Nothing` type: “This function never returns”
+
+<small><i>`Nothing` 타입: 이 함수는 결코 반환되지 않는다</i></small>
+
+- 반환값이라는 개념 자체가 의미가 없는 함수가 존재
+
+
+```kotlin
+fun fail(message: String): Nothing {
+    throw IllegalStateException(message)
+}
+```
+
+- `Nothing` 타입은 아무 값도 포함하지 않음
+- 함수의 '반환 타입' 혹은 '반환 타입으로 쓰일 타입 파라미터'로만 쓸 수 있음
+
+<br/>
+
+**Example. 엘비스 연산자의 오른쪽에 사용해서 전제조건 검사**
+
+```kotlin
+val address = company.address ?: fail("No address")
+println(address.city)
+```
+
+컴파일러는 `Nothing` 이 반환 타입인 함수가 정상 종료되지 않음을 알고 그 함수를 호출하는 코드를 분석할 때 사용
+
+<br/>
+
+## 8.2 Collections and arrays
+
+<small><i>컬렉션과 배열</i></small>
+
+<br/>
+
+### 8.2.1 Collections of nullable values and nullable collections
+
+<small><i>널이 될 수 있는 값의 컬렉션과 널이 될 수 있는 컬렉션</i></small>
+
+변수 타입과 동일하게, **타입 인자**에도 `?` 를 붙이면 `null`을 저장할 수 있음
+
+```kotlin
+fun readNumbers(text: String): List<Int?> {
+    val result = mutableListOf<Int?>()                // Nullable Int 값으로 이뤄진 가변 리스트
+    for (line in text.lineSequence()) {
+        val numberOrNull = line.toIntOrNull()
+        result.add(numberOrNull)                      // 파싱한 정수 혹은 null 추가
+    }
+    return result
+}
+```
+
+- '변수 타입의 널 가능성'과 '타입 파라미터로 쓰이는 타입의 널 가능성' 을 구분해야함
+  - e.g. `List<Int?>` vs `List<Int>?`
+  - `List<Int?>`: List 자체는 항상 Null 아님. 리스트 원소는 Nullable.
+  - `List<Int>?`: List 자체가 Nullable. 리스트 존재 시, 원소는 항상 Null 아님.
+- Nullable 값으로 이뤄진 Nullable 리스트: `List<Int?>?`
+- `.filterNotNull()`
+  - 코틀린 표준 라이브러리에서 제공
+  - Nullable 값으로 이뤄진 컬렉션에서 `null` 값을 걸러냄
+  - e.g. `List<Int?>` → `List<Int>`
+
+
+<br/>
+
+### 8.2.2 Read-only and mutable collections
+
+<small><i>읽기 전용과 변경 가능한 컬렉션</i></small>
+
+코틀린 컬렉션은 '**데이터에 접근하는 인터페이스**'와 '**데이터를 변경하는 인터페이스**'를 분리
+
+<small>→ 코틀린 컬렉션과 자바 컬렉션을 나누는 가장 중요한 특성 중 하나</small>
+
+- '**데이터에 접근하는 인터페이스**': `kotlin.collections.Collection` (읽기 전용)
+- '**데이터를 변경하는 인터페이스**': `kotlin.collections.MutableCollection`
+
+```
+  +----------------+        +---------------------+
+  |   Collection   |        |  MutalbeCollection  |    
+  +----------------+        +---------------------+
+  | - size         | <----- | - add()             |       
+  | - iterator()   |        | - remove()          |       
+  | - contains()   |        | - clear()           |       
+  +----------------+        +---------------------+
+```
+
+- 기본적으로 읽기 전용 인터페이스 사용, 변경이 필요 시에만 `MutableCollection` 사용
+  - ≈ `val` vs `var`
+
+<br/>
+
+**Example.**
+
+**방어적 복사** <sup>defensive copy</sup>: 원본의 변경을 막고자 컬렉션을 복사할 떄
+
+```kotlin
+fun <T> copyElements(source: Collection<T>,
+                     target: MutableCollection<T>) {
+    for (item in source) {
+        target.add(item)
+    }
+}
+```
+
+- `target: MutableCollection<T>` 인자로 읽기 전용 컬렉션 타입의 값을 넘길 수는 없음
+
+```kotlin
+val source: Collection<Int> = arrayListOf(3, 5, 7)
+val target: Collection<Int> = arrayListOf(1)
+copyElements(source, target)
+// Error: Type mismatch: inferred type is Collection<Int>
+// but MutableCollection<Int> was expected
+```
+
+<br/>
+
+#### 읽기 전용 컬렉션의 값이 중간에 변경될 수 있다?
+
+- 읽기 전용 컬렉션이더라도 꼭 Immutable 컬렉션일 필요는 없다는 점
+- 읽기 전용 인터페이스 타입인 변수가, 특정 컬렉션 인스턴스를 가리키는 수많은 참조 중 하나일 수 있음
+- `ConcurrentModificationException` 같은 오류 발생 가능
+
+<br><img src="./img/figure08-01.png" width="40%" />
+
+**같은 컬렉션 객체를 가리키는 다른 타입의 참조**
+
+<br>
+
+**⚠️ 컬렉션 인터페이스를 사용할 때 항상 염두에 둬야 함**
+
+\: 읽기 전용 컬렉션이 항상 **스레드 세이프** 하지는 않음. 다중 스레드 환경에서 데이터를 다루는 경우, 그 데이터를 적절히 동기화하거나 동시 접근을 허용하는 데이터 구조를 활용해야 함.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
