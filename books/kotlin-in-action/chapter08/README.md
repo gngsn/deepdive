@@ -395,7 +395,6 @@ fun readNumbers(text: String): List<Int?> {
   - Nullable 값으로 이뤄진 컬렉션에서 `null` 값을 걸러냄
   - e.g. `List<Int?>` → `List<Int>`
 
-
 <br/>
 
 ### 8.2.2 Read-only and mutable collections
@@ -409,6 +408,8 @@ fun readNumbers(text: String): List<Int?> {
 - '**데이터에 접근하는 인터페이스**': `kotlin.collections.Collection` (읽기 전용)
 - '**데이터를 변경하는 인터페이스**': `kotlin.collections.MutableCollection`
 
+<br/>
+
 ```
   +----------------+        +---------------------+
   |   Collection   |        |  MutalbeCollection  |    
@@ -418,6 +419,8 @@ fun readNumbers(text: String): List<Int?> {
   | - contains()   |        | - clear()           |       
   +----------------+        +---------------------+
 ```
+
+<br/>
 
 - 기본적으로 읽기 전용 인터페이스 사용, 변경이 필요 시에만 `MutableCollection` 사용
   - ≈ `val` vs `var`
@@ -465,32 +468,198 @@ copyElements(source, target)
 
 \: 읽기 전용 컬렉션이 항상 **스레드 세이프** 하지는 않음. 다중 스레드 환경에서 데이터를 다루는 경우, 그 데이터를 적절히 동기화하거나 동시 접근을 허용하는 데이터 구조를 활용해야 함.
 
+<br/>
+
+### 8.2.3 Kotlin collections and Java collections are deeply related
+
+<small><i>코틀린 컬렉션과 자바 컬렉션은 밀접히 연관됨</i></small>
+
+- 코틀린은 자바 호환성을 제공하는 동시에, **읽기 전용** 인터페이스와 **변경 가능** 인터페이스를 분리
+
+<br><img src="./img/figure08-02.png" width="40%" />
+
+- 코틀린의 읽기 전용과 변경 가능 인터페이스의 기본 구조는 `java.util` 패키지에 있는 자바 컬렉션 인터페이스의 구조와 같음
+- 컬렉션 인스턴스는 각각 코틀린의 Mutable 컬렉션 인터페이스를 상속한 것처럼 취급
+  - e.g. `ArrayList`와 `HashSet`은 마치 `MutableList`, `MutableSet` 인터페이스를 상속한 것처럼 취급
+
+<br/>
+
+#### 컬렉션 생성 함수
+
+여러 유형의 켤렉션을 만들 때 사용하는 함수
+
+| Collection type  | Read-only    | Mutable                                                     |
+|------------------|--------------|-------------------------------------------------------------|
+| List             | listOf, List | mutableListOf, MutableList, arrayListOf, buildList          |
+| Set              | setOf        | mutableSetOf, hashSetOf, linkedSetOf, sortedSetOf, buildSet |
+| Map              | mapOf        | mutableMapOf, hashMapOf, linkedMapOf, sortedMapOf, buildMap |
 
 
+<br/>
+
+#### 자바 메서드와의 호환
+
+- 자바 메서드에 코틀린 컬렉션을 넘길 땐, 추가 작업 없이 컬렉션을 넘기면 됨  
+- e.g. `java.util.Collection` 파라미터는 `Collection`이나 `MutableCollection` 둘 다 넘길 수 있음
+
+코틀린에서 읽기 전용 컬렉션으로 선언된 객체라도 자바 코드에서는 그 컬렉션 객체의 내용을 변경할 수 있음
+
+- 자바는 읽기 전용 컬렉션과 변경 가능 컬렉션을 구분하지 않기 때문
+- 올바른 파라미터 타입을 사용할 책임은 개발자에게 있음
+- 널이 아닌 원소로 이뤄진 컬렉션 타입에서도 동일한 문제 발생
+  - 널이 아닌 원소로 이뤄진 컬렉션을 자바 메서드로 넘겼는데, 자바 메서드가 `null` 을 컬렉션에 넣을 수도 있음
+- 코틀린에서는 성능을 포기하지 않고는 이를 막거나 감지할 방법이 없음 
+
+<br/>
+
+### 8.2.4 Collections declared in Java are seen as platform types in Kotlin
+
+<small><i>자바에서 선언한 컬렉션은 코틀린에서 플랫폼 타입으로 보임</i></small>
+
+- 자바 쪽에서 선언한 컬렉션 타입의 변수를 코틀린에서는 플랫폼 타입으로 봄
+- 즉, 코틀린 코드는 그 타입을 읽기 전용 컬렉션이나 변경 가능한 컬렉션 어느쪽으로든 다룰 수 있음
 
 
+**코틀린에서 위 Java 인터페이스 구현 시 고려할 점**
+- 컬렉션의 `null` 가능성
+- 컬렉션 원소의 `null` 가능성
+- 메서드 내부에서의 컬렉션 변경 가능성
 
+<table>
+<tr>
+<th></th>
+<th>Java</th>
+<th>Kotlin</th>
+</tr>
+<tr>
+<th>Example 1</th>
+<td>
 
+```Java
+interface FileContentProcessor {
+    void processContents(
+        File path,
+        byte[] binaryContents,
+        List<String> textContents
+    );
+}
+```
 
+</td>
+<td>
 
+```Kotlin
+class FileIndexer : FileContentProcessor {
+  override fun processContents(
+    path: File,
+    binaryContents: ByteArray?,     // - 이진 파일 내용은 텍스트로 표현할 수 없는 경우가 있음 → Nullable
+    textContents: List<String>?     // - 파일 라인은 null일 수 없음 → 원소는 null 아님
+  ) { /* ... */ }                   //     & 파일의 내용을 바꿀 필요가 없으므로 읽기전용
+}
+```
 
+</td>
+</tr>
+<tr>
+<th>Example 2</th>
+<td>
 
+```Java
+interface DataParser<T> {
+  void parseData(
+          String input,
+          List<T> output,
+          List<String> errors
+  );
+}
+```
 
+</td>
+<td>
 
+```Kotlin
+class PersonParser : DataParser<Person> {
+    override fun parseData(
+        input: String,
+        output: MutableList<Person>,
+        errors: MutableList<String?>
+    ) { /* ... */ }
+}
+```
 
+</td>
+</tr>
+</table>
 
+<br/>
 
+### 8.2.4 Creating arrays of objects and primitive types for interoperability and performance reasons
 
+<small><i>성능과 상호운용을 위해 객체의 배열이나 원시 타입의 배열을 만들기</i></small>
 
+- 자바 `main` 함수의 표준 시그니처에는 배열 파라미터가 들어있음
 
+```kotlin
+fun main(args: Array<String>) {
+    for (i in args.indices) {
+         println("Argument $i is: ${args[i]}")
+    }
+}
+```
 
+코틀린에서 배열을 만드는 방법은 다양함
+- `arrayOf`: 인자로 받은 원소들을 포함하는 배열 생성
+- `arrayOfNulls`: 모든 원소가 `null` 인 정해진 크기의 배열 생성 (물론 원소 타입이 널이 될 수 있는 타입인 경우에만 사용 가능)
+- `Array` 생성자: 배열 크기와 람다를 인자로 받아 람다를 호출해서 각 배열 원소를 초기화. 
+  - 원소를 하나하나 전달하지 않으면서 원소가 널이 아닌 배열을 만들어야 하는 경우 생성자 사용
 
+<br/>
 
+**Example.**
 
+```kotlin
+val letters = Array(26) { i -> ('a' + i).toString() }
+println(letters.joinToString(""))
+// abcdefghijklmnopqrstuvwxyz
+```
 
+- 람다는 배열 원소의 인덱스를 인자로 받아 배열의 해당 위치에 들어갈 원소를 반환
+- 인덱스 값 a 문자 값을 더한 결과를 문자열로 변환.
 
+<br/>
 
+#### 컬렉션 → 배열
 
+`toTypedArray` 메서드를 사용하면 쉽게 컬렉션을 배열로 바꿀 수 있음
+
+```kotlin
+fun main() {
+    val strings = listOf("a", "b", "c")
+    println("%s/%s/%s".format(*strings.toTypedArray()))  // vararg 인자를 넘기기 위해 스프레드 연산자(*)를 써야 함
+    // a/b/c
+}
+```
+
+**원시 타입의 배열을 만드는 방법**
+- 각 배열 타입의 생성자는 size 인자를 받아 해당 원시 타입의 기본값 (보통 0)으로 초기화된 size 크기의 배열을 반환
+- 팩토리 함수 (`IntArray` 를 생성하는 `intArrayOf` 등)는 인수로 받은 여러 가변 인자를 배열로 반환
+  - e.g. `val fiveZerosToo = intArrayOf(0, 0, 0, 0, 0)` = `IntArray(5)`
+- 크기와 람다를 인자로 받는 다른 생성자를 사용
+  - e.g. `val squares = IntArray(5) { i -> (i+1) * (i+1) }`
+
+<br/>
+
+#### 배열 연산
+
+코틀린 표준 라이브러리는 모든 컬렉션 확장 함수를 배열에도 제공 (가령, `filter`, `map`, etc)
+
+```kotlin
+fun main(args: Array<String>) {
+    args.forEachIndexed { index, element ->
+        println("Argument $index is: $element")
+    }
+}
+```
 
 
 
