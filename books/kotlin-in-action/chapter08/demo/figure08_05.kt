@@ -12,3 +12,4 @@
  * }
  */
 val answer: Any = 42
+val fiveZerosToo = intArrayOf(0, 0, 0, 0, 0)
