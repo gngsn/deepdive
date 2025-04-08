@@ -10,7 +10,7 @@
 
 **Example.**
 - Inda에 Public ALB가 있고, America, Europe, Australia 내 여러 나라에서 해당 ALB에 접근하고 싶음
-- 많은 홉들을 지나쳐야 하고, 가면서 커넥션을 읽을 수도 있음
+- 많은 홉들을 지나쳐야 하고, 가면서 커넥션을 잃을 수도 있음
 - → **AWS Global Accelerator** 로 해결
 
 <br/>
@@ -27,7 +27,7 @@
 <td>Sender to Individual Representative of a Group</td>
 </tr>
 <tr>
-<td><img src="img/aws_global_accelerator_img3.png" alt="AWS Global Accelerator" /></td>
+<td><img src="img/aws_global_accelerator_img2.png" alt="AWS Global Accelerator" /></td>
 <td><img src="./img/aws_global_accelerator_img3.png" alt="AWS Global Accelerator" /></td>
 </tr>
 <tr>
