@@ -162,7 +162,15 @@
 7. [CloudFront Geo Restrictions](./cloudFront_geo_restrictions.md)
 8. [CloudFront Functions and Lambda@Edge](./cloudFront_functions_lambda_edge.md)
 9. [AWS Global Accelerator](./aws_global_accelerator.md)
-     
+
+## Section 19: Elastic Load Balancers
+
+1. [ELB Overview](./elb_overview.md)
+2. [Classic Load Balancer](./classic_load_balancer.md)
+3. [Application Load Balancer](./application_load_balancer.md)
+4. [Network Load Balancer](./network_load_balancer.md)
+5. [Connection Idle Timeout]
+
 
 <br>
 

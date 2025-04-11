@@ -48,11 +48,91 @@
 <br/><img src="./img/elb_overview_img2.png" alt="ELB Overview Health Check" width="100%"/><br/>
 
 
+## Types of load balancer on AWS
 
 
+- AWS는 **4가지 종류의 관리형 로드 밸런서** 제공
+- **Classic Load Balancer** (v1 - old generation) – 2009 – CLB
+  - HTTP, HTTPS, TCP, SSL (secure TCP)
+  - Old generation 으로, 콘솔 창에서 deprecated 표시되어 있지만, 아직까지 사용 가능
+- **Application Load Balancer** (v2 - new generation) – 2016 – ALB
+  - HTTP, HTTPS, WebSocket
+- **Network Load Balancer** (v2 - new generation) – 2017 – NLB
+  - TCP, TLS (secure TCP), UDP
+- **Gateway Load Balancer** – 2020 – GWLB
+  - Layer 3 (Network layer) – IP Protocol
 
+- 전반적으로 최신 세대 로드 밸런서를 사용하는 것이 더 많은 기능을 제공하므로 권장됨
+- 일부 로드 밸런서는 **내부**(프라이빗) 또는 **외부**(퍼블릭) ELB로 설정할 수 있음
 
+<br/>
 
+## Load Balancer Security Groups
 
+<table>
+<tr>
+<td colspan="2">
 
+<img src="./img/elb_overview_img3.png" alt="ELB Overview Health Check" width="100%"/>
+
+</td>
+</tr>
+<tr>
+<th>Load Balancer Security Group:</th>
+<th>Application Security Group: Allow traffic only from Load Balancer</th>
+</tr>
+<tr>
+<td>
+
+<table>
+<tr>
+  <th>Type</th>
+  <th>Protocol</th>
+  <th>Port Range</th>
+  <th>Source</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td>HTTP</td>
+  <td>TCP</td>
+  <td>80</td>
+  <td>0.0.0.0/0</td>
+  <td>Allow HTTP from an...</td>
+</tr>
+<tr>
+  <td>HTTPS</td>
+  <td>TCP</td>
+  <td>443</td>
+  <td>0.0.0.0/0</td>
+  <td>Allow HTTPS from a...</td>
+</tr>
+</table>
+
+</td>
+<td>
+
+<table>
+<tr>
+  <th>Type</th>
+  <th>Protocol</th>
+  <th>Port Range</th>
+  <th>Source</th>
+  <th>Description</th>
+</tr>
+<tr>
+  <td>HTTP</td>
+  <td>TCP</td>
+  <td>80</td>
+  <td>sg-0354sfff2d4a563de</td>
+  <td>Allow HTTP from an...</td>
+</tr>
+</table>
+
+EC2의 보안 그룹 정책에서 Source 값은 로드 밸러서의 보안 그룹으로 설정
+
+</td>
+</tr>
+</table>
+
+<br/>
 
