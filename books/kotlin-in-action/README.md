@@ -8,6 +8,9 @@
 
 <br>
 
+
+### Part 1. Introducing Kotlin
+
 <details>
 <summary><b>CHAPTER 05. Programming with lambdas</b></summary>
 
@@ -137,3 +140,17 @@
 
 <br>
 </details>
+
+
+### Part 2. Embracing Kotlin
+
+코틀린으로 자신의 API 를 만드는 방법
+
+라이브러리를 개발하는 사람만 API 를 만들지는 않음
+
+프로그램 안에서 상호작용하는 클래스가 둘 이상이라면 다른 클래스에 API 를 제공하는 클래스가 적어도 하나 이상 있기 마련
+
+
+
+
+
