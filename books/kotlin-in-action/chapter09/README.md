@@ -422,8 +422,200 @@ fun main() {
 
 <br/>
 
+## 9.3 Conventions used for collections and ranges
+
+<small><i>컬렉션과 범위에 대해 쓸 수 있는 컨벤션</i></small>
+
+<br/>
+
+### 9.3.1 Accessing elements by index: The `get` and `set` conventions
+
+<small><i>인덱스로 원소 접근 : `get`과 `set`</i></small>
+
+- 맵에 접근할 때 각괄호 (`[]`) 를 사용
+- **인덱스 접근 연산자**를 사용해 원소를 읽는 연산은 `get` 연산자 메서드로, 원소를 쓰는 연산은 `set` 연산자 메서드로 변환됨
+- 코틀린에서는 이러한 **인덱스 연산**을 직접 구현할 수 있음: `operator fun get(...)`, `operator fun set(...)`
+
+<br/>
+
+#### `x[a, b]` → `x.get(a, b)`
+
+**✅ `operator get` 구현 예시**
+
+```kotlin
+operator fun Point.get(index: Int): Int {
+    return when(index) {
+        0 -> x
+        1 -> y
+        else ->
+            throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+```
+
+**✅ 사용**
+
+```kotlin
+val p = Point(10, 20)
+println(p[1])           // 20
+```
+
+<br/>
+
+#### `x[a, b] = c` → `x.set(a, b, c)`
+
+**Example. `operator set` 구현 예시**
+
+```kotlin
+data class MutablePoint(var x: Int, var y: Int)
+ 
+operator fun MutablePoint.set(index: Int, value: Int) {
+    when(index) {
+        0 -> x = value
+        1 -> y = value
+        else ->
+            throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+```
+
+**✅ 사용**
+
+```kotlin
+val p = MutablePoint(10, 20)
+p[1] = 42
+println(p)                  // MutablePoint(x=10, y=42)
+```
+
+<br/>
+
+### 9.3.2 Checking whether an object belongs to a collection: The `in` convention
+
+<small><i>떤 객체가 컬렉션에 들어있는지 검사 : `in` 컨벤션</i></small>
+
+- `in`은 객체가 컬렉션에 들어있는지 검사<sup>membership test</sup>: 대응 함수 `contains`
+
+**Example. `operator set` 구현 예시**
+
+```kotlin
+data class Rectangle(val upperLeft: Point, val lowerRight: Point)
+
+operator fun Rectangle.contains(p: Point): Boolean {
+  return p.x in upperLeft.x..<lowerRight.x &&           // 범위 생성 후 x좌표가 범위 내에 있는지 검사
+  p.y in upperLeft.y..<lowerRight.y                     // ..< 연산자로 열린 범위 생성
+}
+```
+
+**✅ 사용**
+
+```kotlin
+val rect = Rectangle(Point(10, 20), Point(50, 50))
+println(Point(20, 30) in rect)          // true
+println(Point(5, 5) in rect)            // false
+```
+
+- `a in c` → `c.contains(a)` 
+
+<br/>
+
+### 9.3.3 Creating ranges from objects: The `rangeTo` and `rangeUntil` conventions
+
+<small><i>객체로부터 범위 만들기 : `rangeTo`와 `rangeUntil` 컨벤션</i></small>
+
+<br/>
+
+#### `rangeTo` 연산자 <sub>start ≤ x ≤ end</sub>
+
+- `start..end` → `start.rangeTo(end)` (_start ≤ x ≤ end_)
+- `rangeTo` 함수는 범위를 반환
+
+`Comparable` 객체에 이미 `rangeTo` 함수가 있어서, `Comparable` 인터페이스 구현 시 따로 정의 할 필요가 없음
+
+```kotlin
+operator fun <T: Comparable<T>> T.rangeTo(that: T): ClosedRange<T>
+```
+
+<br/>
+
+**Example. `LocalDate` 클래스로 날짜 범위 생성**
+
+```kotlin
+import java.time.LocalDate
+
+fun main() {
+  val now = LocalDate.now()
+  val vacation = now..now.plusDays(10)    // now 부터 시작해 10 일짜리 범위 생성
+  println(now.plusWeeks(1) in vacation)   // true
+}
+```
+
+- `now..now.plusDays(10)` 식은 컴파일러에 의해 `now.rangeTo(now.plusDays(10))` 로 변환됨
+
+<br/>
+
+`rangeTo` 연산자는 다른 산술 연산자보다 우선순위가 낮음
+
+- `0..(n + 1)` 는 `0..n + 1` 과 동일. (괄호로 더 뜻이 명확해짐)
+- 우선순위가 낮은 이유로 메서드 호출은 괄호가 필요함
+  -  ❌ `0..n.forEach {}` 컴파일 불가
+  -  ✅ `(0..n).forEach {}`
+
+<br/>
+
+#### `rangeUntil` 연산자 <sub>start ≤ x < end</sub>
+
+`rangeTo` 연산자와 비슷하게 `rangeUntil` 연산자(`..<`) 는 열린 범위를 만듦
+
+- **Example**: `(0..n).forEach { print(it) }` ← `0123456789` 출력 
+
+<br/>
+
+### 9.3.4 Making it possible to loop over your types: The `iterator` convention
+
+<small><i>자신의 타입에 대해 루프 수행 : `iterator` 컨벤션</i></small>
+
+- `for (x in list) { ... }` → `list.iterator()`를 호출해서 이터레이터를 얻은 다음, 그 이터레이터에 대해 `hasNext` 와 `next` 호출을 반복하는 식으로 변환
+- 코틀린 표준 라이브러리는 `String`의 상위 클래스인 `CharSequence`에 대한 `iterator` 확장 함수를 제공
+
+```kotlin
+operator fun CharSequence.iterator(): CharIterator
+```
+
+**직접 구현**
+
+- `iterator` 함수가 `Iterator<LocalDate>` 인터페이스를 구현하는 객체를 반환해야만 함
+- 즉, `hasNext` 와 `next` 함수 구현을 지정한 객체 선언을 사용
 
 
+```kotlin
+import java.time.LocalDate
+ 
+operator fun ClosedRange<LocalDate>.iterator(): Iterator<LocalDate> =
+    object : Iterator<LocalDate> {                  // LocalDate 원소에 대한 Iterator 를 구현
+        var current = start
+ 
+        override fun hasNext() =
+            current <= endInclusive                 // compareTo 관례를 사용해 날짜를 비교
+ 
+        override fun next(): LocalDate {
+            val thisDate = current
+            current = current.plusDays(1)
+            return thisDate
+        }
+    }
+```
+
+**✅ 사용**
+
+```kotlin
+val newYear = LocalDate.ofYearDay(2042, 1)
+val daysOff = newYear.minusDays(1)..newYear
+for (dayOff in daysOff) { println(dayOff) }
+// 2041-12-31
+// 2042-01-01
+```
+
+<br/>
 
 
 
