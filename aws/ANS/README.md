@@ -170,6 +170,7 @@
 3. [Application Load Balancer](./application_load_balancer.md)
 4. [Network Load Balancer](./network_load_balancer.md)
 5. [Connection Idle Timeout](./connection_idle_timeout.md)
+6. [Request Routing Algorithm](./request_routing_algorithm.md)
 
 
 <br>

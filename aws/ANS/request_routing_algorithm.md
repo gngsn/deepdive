@@ -29,8 +29,8 @@
 
 ## Summary
 
-|           | Least Outstanding Requests                                               | Round Robin                                                        | Flow Hash                                                                            |
-| --------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-|           | <img src="./img/request_routing_algorithm_img1.png" width="100%"/>       | <img src="./img/request_routing_algorithm_img2.png" width="100%"/> | <img src="./img/request_routing_algorithm_img3.png" width="100%"/>                   |
-| 알고리즘  | Pending/Unfinished Request의 수가 가장 적은 인스턴스에 요청 전달          | 타겟 그룹으로 부터 대상을 고르게 선택                               | 프로토콜, 소스/대상 IP 주소, 소스/대상 포트 및 TCP 시퀀스 번호를 기반으로 대상을 선택 |
-| 동작 위치 | - Application Load Balancer<br/>-Classic Load Balancer<br/>- → HTTP/HTTPS | - Application Load Balancer<br/>-Classic Load Balancer<br/>- → TCP | - Network Load Balancer                                                              |
+|            | Least Outstanding Requests                                                | Round Robin                                                        | Flow Hash                                                                            |
+|------------|---------------------------------------------------------------------------| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+|            | <img src="./img/request_routing_algorithm_img1.png" width="100%"/>        | <img src="./img/request_routing_algorithm_img2.png" width="100%"/> | <img src="./img/request_routing_algorithm_img3.png" width="100%"/>                   |
+| 알고리즘       | Pending/Unfinished Request의 수가 가장 적은 인스턴스에 요청 전달                          | 타겟 그룹으로 부터 대상을 고르게 선택                               | 프로토콜, 소스/대상 IP 주소, 소스/대상 포트 및 TCP 시퀀스 번호를 기반으로 대상을 선택 |
+| 동작 위치      | - Application Load Balancer<br/>-Classic Load Balancer<br/>- → HTTP/HTTPS | - Application Load Balancer<br/>-Classic Load Balancer<br/>- → TCP | - Network Load Balancer                                                              |
