@@ -171,6 +171,12 @@
 4. [Network Load Balancer](./network_load_balancer.md)
 5. [Connection Idle Timeout](./connection_idle_timeout.md)
 6. [Request Routing Algorithm](./request_routing_algorithm.md)
+7. [Sticky Sessions (Session Affinity)](./sticky_sessions.md)
+8. [Cross-Zone Load Balancing](./cross_zone_load_balancing.md)
+9. [ELB SSL/TLS](./elb_ssl_tls.md)
+10. [Connection Draining](./connection_draining.md)
+11. [X-Forwarded Headers](./x_forwareded_headers.md)
+
 
 
 <br>
