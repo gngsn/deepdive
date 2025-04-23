@@ -75,11 +75,35 @@ Proxy Protocol v2는 바이너리 형식이기 때문에 사람이 직접 읽기
 
 - **CLB**는 **Proxy Protocol 버전 1**을 사용하고 **NLB**는 **Proxy Protocol 버전 2**를 사용
 - **Network Load Balancer의 경우**:
-    - **인스턴스 ID 및 ECS 작업이 있는 타겟**: 클라이언트의 소스 IP가 보존됨
-    - **IP 주소가 있는 타겟**:
-        - TCP 및 TLS: 클라이언트의 소스 IP가 보존되지 않음, Proxy Protocol을 활성화해야 함
-        - UDP 및 TCP_UDP: 클라이언트의 소스 IP가 보존됨
+  - **인스턴스 ID 및 ECS 작업이 있는 타겟**: 클라이언트의 소스 IP가 보존됨 ⭕️
+  - **IP 주소가 있는 타겟**:
+    - **TCP 및 TLS**: 클라이언트의 소스 IP가 보존되지 않음 ❌, Proxy Protocol을 활성화해야 함
+    - **UDP 및 TCP_UDP**: 클라이언트의 소스 IP가 보존됨 ⭕️
 - 로드 밸런서는 프록시 서버 뒤에 있어서는 안 됨, 그렇지 않으면 백엔드가 중복 구성 정보를 수신하여 오류가 발생할 수 있음
-- 프록시 프로토콜은 Application Load Balancer를 사용할 때 필요하지 않음, ALB는 이미 HTTP X-Forwarded-For 헤더를 삽입함
+- 프록시 프로토콜은 Application Load Balancer를 사용할 때 필요하지 않음, ALB는 이미 HTTP `X-Forwarded-For` 헤더를 삽입함
+
+⚠️ Proxy Protocol은 오직 NLB가 IP 주소가 있는 타겟의 TCP/TLS로 연결될 때 사용됨
 
 <br/>
+
+<table><tr><td>
+
+### Network Load Balancer: Hots-based targets vs. IP-based targets
+
+#### Hots-based Targets
+- NLB가 특정 서버나 컨테이너로 데이터를 보낼 때, NLB는 그 서버나 컨테이너에 직접 연결.
+- **소스 IP 보존**: 클라이언트의 원래 IP 주소를 그대로 유지. 서버는 클라이언트의 진짜 IP 주소를 볼 수 있음.
+
+#### IP-based Targets
+- 타겟이 IP 주소인 경우, NLB는 지정된 IP 주소로 트래픽을 전달. 이 IP 주소는 서버나 다른 네트워크 장치일 수 있음.
+- **소스 IP 보존**:
+  - **TCP 및 TLS 프로토콜**: 
+    - NLB가 패킷을 수정해 타겟 IP로 전달
+    - 때문에, 기본적으로 클라이언트의 IP 주소가 유지되지 않음
+    - 서버는 클라이언트 IP 대신 NLB의 IP 주소를 봄
+    - 원래 IP 주소를 보존하려면 특별한 설정(Proxy Protocol)을 해야 함
+  - **UDP 및 TCP_UDP 프로토콜**:
+    - 클라이언트의 IP 주소가 그대로 유지
+    - 서버는 클라이언트의 진짜 IP 주소를 볼 수 있음
+
+</td></tr></table>
