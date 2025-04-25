@@ -176,6 +176,13 @@
 9. [ELB SSL/TLS](./elb_ssl_tls.md)
 10. [Connection Draining](./connection_draining.md)
 11. [X-Forwarded Headers](./x_forwareded_headers.md)
+12. [Proxy Protocol](./proxy_protocol.md)
+13. [gRPC & ALB](./grpc_alb.md)
+14. [Hybrid Connectivity](./hybrid_connectivity.md)
+15. [Security Groups Outbound Rules & Managed Prefixes](./security_groups_outbound_rules_managed_prefixes.md)
+
+
+
 
 
 
