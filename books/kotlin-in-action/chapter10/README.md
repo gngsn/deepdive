@@ -130,41 +130,89 @@ println("ab1c".filter { it in 'a'..'z' })     // abc
 
 <small><i>자바에서 코틀린 함수 타입 사용</i></small>
 
+- 자동 SAM 변환을 통해 코틀린 람다를 함수형 인터페이스를 요구하는 자바 메서드에게 넘길 수 있음
+  - [🔗 5.2 Using Java functional](https://github.com/gngsn/deepdive/tree/main/books/kotlin-in-action/chapter05#52-using-java-functional)
+- 코틀린 코드가 자바 라이브러리에 의존할 수 있고, 자바에서 정의된 고차 함수를 문제없이 사용 가능
+
+리스트처럼 자바 람다는 자동으로 코틀린 합수 타입으로 변환됨
 
 
+<table>
+<tr>
+    <th>Kotlin declaration</th>
+    <th>Java call</th>
+</tr>
+<tr>
+<td>
+
+```kotlin
+fun processTheAnswer(f: (Int) -> Int) {
+  println(f(42))
+}
+```
+
+</td>
+<td>
+
+```java
+processTheAnswer(number -> number + 1); 
+// 43
+```
+
+</td>
+</tr>
+</table>
 
 
-10:30 -> 11:10 -> ... 2hours ... 13:30시 출발 -> 15:00시~17:00시 -> 19:30시 
+- 자바 코드가 깔끔하진 않음
+  - 수신 객체를 명시적으로 전달해야 함 
+  - 코틀린 Unit 타입에는 값이 존재하기 때문에, 자바에서 Unit을 명시적으로 반환해줘야 함
 
+```java
+/* Java */
+import kotlin.collections.CollectionsKt;
+ 
+CollectionsKt.forEach(strings, s -> {    // 코틀린 표준 라이브러리 함수 호출
+   return Unit.INSTANCE;                 // Unit 명시적 반환 필요: void 불가
+});
+```
 
+<table><tr><td>
 
-<br/>
+#### 함수 타입 : 자세한 구현
 
-### 10.1.4 Parameters with function types can provide defaults or be nullable
+내부에서 코틀린 함수 타입은 일반 인터
 
-<small><i></i></small>
+[FunctionN: Function0 ~ Function22](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/runtime/kotlin/jvm/functions/Functions.kt)
 
+함수 타입의 변수는 함수에 대응하는 FunctionN 인터페이스를 구현하는 클래스의 인스턴스
 
-<br/>
+`invoke` 메서드에는 람다가 들어감
+내부적으로 대략 다음처럼 생겼다는 뜻
 
-### 10.1.5 Returning functions from functions
+```kotlin
+// kotlin code
+fun processTheAnswer(f: (Int) -> Int) {
+  println(f(42))
+}
 
-<small><i></i></small>
+// actual behavior
+fun processTheAnswer(f: (Int) -> Int) {
+  println(f.invoke(42))
+}
+```
 
+<code>FunctionN</code> 인터페이스는 컴파일러가 생성한 합성 타입 (코틀린 표준 라이브러리에서 이들의 정의를 찾을 수 없음)
+대신 컴파일러는 필요할 때 이런 인터페이스들을 생성해줌
+→ 개수 제한 없이 파라미터를 정의하여 사용할 수 있음
 
-<br/>
-
-### 10.1.6 Making code more reusable by reducing duplication with lambdas
-
-<small><i></i></small>
-
-
-
-
-
-
-
-
+<pre><b>Function22 이후부터는 어떻게 될까 ❓</b>
+<a href="./demo/functionN_Args.kt">functionN_Args.kt</a> 파일에서 테스트
+- 인자 22개일 때: <code>kotlin.jvm.functions.Function22<? super java.lang.Integer,...,></code>
+- 인자 23개 부터: <code>kotlin.jvm.functions.FunctionN<java.lang.Integer></code>
+- 가변 인자일 때: <code>kotlin.jvm.functions.Function1<? super java.lang.Integer[], java.lang.Integer>)</code>
+</pre>
+</td></tr></table>
 
 
 
