@@ -47,10 +47,10 @@
 
 ## Internet-facing vs. Internal Load Balancer
 
+클라이언트가 인터넷을 통해서 접근 가능한 로드 밸런서(이하 인터넷-페이싱 로드 밸런서)와 인터널 로드 밸런서의 차이점
+
 <br/><img src="./img/hybrid_connectivity_img3.png" alt="Hybrid Connectivity" width="100%"/><br/>
 
-
-마지막으로, 인터넷-페이싱과 인터널 로드 밸런서의 차이점.
 인터넷-페이싱 로드 밸런서는 ALB가 퍼블릭 서브넷에 위치하고 EC2 인스턴스는 프라이빗 서브넷에 위치하며 IPv4만 사용중
 
 EC2 인스턴스는 ALB가 연결을 종료하기 때문에 프라이빗 IP 주소에서만 트래픽을 수신

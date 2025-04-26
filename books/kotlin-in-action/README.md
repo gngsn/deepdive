@@ -169,6 +169,19 @@
 - `Delegates.observable` 함수를 사용하면 프로퍼티 변경을 관찰할 수 있는 옵저버를 쉽게 추가할 수 있음
 - 맵을 위임 객체로 사용하는 위임 프로퍼티를 통해 다양한 속성을 제공하는 객체를 유연하게 다룰 수 있음
 
+<br>
+</details>
+
+<details>
+<summary><b>CHAPTER 10. Operator overloading and other conventions</b></summary>
+
+<br>
+
+<a href="./chapter09">🔗 link</a>
+<br>
+
+**TL;DR**
+
 
 <br>
 </details>
