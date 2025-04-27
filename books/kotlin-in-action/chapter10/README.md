@@ -214,6 +214,224 @@ fun processTheAnswer(f: (Int) -> Int) {
 </pre>
 </td></tr></table>
 
+<br/>
+
+### 10.1.4 Parameters with function types can provide defaults or be nullable
+
+<small><i>함수 타입의 파라미터에 대해 기본값을 지정할 수 있고, 널이 될 수도 있다</i></small>
+
+**'함수 파라미터'에 대한 기본값 지정 가능**
+
+```kotlin
+fun funA(
+  param: () -> String = { it.toString() }
+) { ... }
+```
+
+<br/>
+
+**Example. `joinToString`**
+
+```kotlin
+fun <T> Collection<T>.joinToString(
+        separator: String = ", ",
+        prefix: String = "",
+        postfix: String = ""
+): String {
+    val result = StringBuilder(prefix)
+ 
+    for ((index, element) in this.withIndex()) {
+        if (index > 0) result.append(separator)
+        result.append(element)
+    }
+ 
+    result.append(postfix)
+    return result.toString()
+}
+```
+
+- **동작**: 항상 객체를 toString 메서드를 통해 문자열로 바꿈
+- **한계**: 컬렉션의 각 원소를 문자열로 변환하는 방법 제어 불가
+- **해결**: 함수 타입의 파라미터에 대한 기본값으로 람다식을 넣음
+
+
+```kotlin
+fun <T> Collection<T>.joinToString(
+        separator: String = ", ",
+        prefix: String = "",
+        postfix: String = "",
+        transform: (T) -> String = { it.toString() }         // 함수 타입 파라미터를 선언 시, 디폴트 람다 지정
+): String {
+    val result = StringBuilder(prefix)
+ 
+    for ((index, element) in this.withIndex()) {
+        if (index > 0) result.append(separator)
+        result.append(transform(element))                    // tranform 파라미터 함수 호출
+    }
+ 
+    result.append(postfix)
+    return result.toString()
+}
+```
+```kotlin
+letters.joinToString()                                   // 디폴트 값 사용: Alpha, Beta 
+println(letters.joinToString { it.lowercase() })         // 람다 넘김: alpha, beta
+println(letters.joinToString(
+  separator = "! ",
+  postfix = "! ",
+  transform = { it.uppercase() }))                       // 람다 넘김: ALPHA! BETA!
+```
+
+<br/>
+
+
+🚨 **널이 될 수 있는 합수 타입으로 합수를 받으면 그 함수를 직접 호출할 수 없음**
+
+- NPE 발생 가능성 때문에 컴파일 불가
+
+- **해결 1**: null 여부를 명시적으로 검사해야 함
+    - ```kotlin
+      fun foo(callback: (() -> Unit)?) {
+        // ...
+        if (callback != null) {
+          callback()
+        }
+      }
+      ```
+- **해결 2**: null 여부를 명시적으로 검사해야 함
+  - ```kotlin
+    fun <T> Collection<T>.joinToString(
+        ...
+        transform: ((T) -> String)? = null
+    ): String {
+      ...
+      val str = transform?.invoke(element) ?: element.toString()
+      result.append(str)
+      ...
+    }
+    ```
+
+
+### 10.1.5 Returning functions from functions
+
+<small><i>함수를 함수에서 반환</i></small>
+
+- 함수를 반환하는 함수를 정의해 사용할 수 있음
+  - 프로그램의 상태나 다른 조건에 따라 달라질 수 있는 로직
+
+<br/>
+
+**Example. 사용자가 선택한 배송 수단에 따라 배송비를 계산하는 로직**
+
+```kotlin
+enum class Delivery { STANDARD, EXPEDITED }
+ 
+class Order(val itemCount: Int)
+ 
+fun getShippingCostCalculator(delivery: Delivery): (Order) -> Double {  // 반환 타입: 반환할 함수 타입
+    if (delivery == Delivery.EXPEDITED) {
+        return { order -> 6 + 2.1 * order.itemCount }                   // 람다 반환
+    }
+ 
+    return { order -> 1.2 * order.itemCount }                           // 람다 반환
+}
+```
+
+```kotlin
+val calculator = getShippingCostCalculator(Delivery.EXPEDITED)
+println("Shipping costs ${calculator(Order(3))}")                   // Shipping costs 12.3
+```
+
+<br/>
+
+### 10.1.6 Making code more reusable by reducing duplication with lambdas
+
+<small><i>람다를 활용해 중복을 줄여 코드 재사용성 높이기</i></small>
+
+- `Sitevisit`: 방문한 사이트의 경로 , 사이트에서 머문 시간 , 사용자의 운영체제가
+
+```kotlin
+data class SiteVisit(
+    val path: String,
+    val duration: Double,
+    val os: OS
+)
+```
+ 
+- OS: 운영체제 이넘<sup>enum</sup>
+
+```kotlin
+enum class OS { WINDOWS, LINUX, MAC, IOS, ANDROID }
+```
+
+- `averageWindowsDuration`: 윈도우 사용자의 평균 방문 시간 출력
+
+```kotlin
+val log = listOf(
+  SiteVisit("/", 34.0, OS.WINDOWS),
+  SiteVisit("/", 22.0, OS.MAC),
+  SiteVisit("/login", 12.0, OS.WINDOWS),
+  SiteVisit("/signup", 8.0, OS.IOS),
+  SiteVisit("/", 16.3, OS.ANDROID)
+)
+
+val averageWindowsDuration = log
+    .filter { it.os == OS.WINDOWS }
+    .map(SiteVisit::duration)
+    .average()
+```
+
+- **맥 사용자**에 대해 통계 구하고 싶어서, OS를 파라미터로 입력받도록 수정
+
+```kotlin
+fun List<SiteVisit>.averageDurationFor(os: OS) =
+        filter { it.os == os }.map(SiteVisit::duration).average()
+```
+
+**결과:**
+ 
+```kotlin
+println(log.averageDurationFor(OS.WINDOWS))     // 23.0
+println(log.averageDurationFor(OS.MAC))         // 22.0
+```
+
+더 복잡한 요구사항은, 간단한 파라미터로 처리할 수 없음
+
+**가령,** 
+- 모바일 디바이스 사용자의 평균 방문 시간?
+- iOS 사용자의 `/signup` 페이지 평균 방문 시간?
+
+→ 함수 타입으로 필요 조건을 파라미터 뽑기
+
+<br/>
+
+```kotlin
+fun List<SiteVisit>.averageDurationFor(predicate: (SiteVisit) -> Boolean) =
+        filter(predicate).map(SiteVisit::duration).average()
+```
+
+**결과:**
+
+```kotlin
+log.averageDurationFor { it.os in setOf(OS.ANDROID, OS.IOS)}         // 12.15
+log.averageDurationFor { it.os == OS.IOS && it.path == "/signup" }   // 8.0
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
