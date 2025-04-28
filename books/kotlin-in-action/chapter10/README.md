@@ -298,7 +298,7 @@ println(letters.joinToString(
         }
       }
       ```
-- **해결 2**: null 여부를 명시적으로 검사해야 함
+- **해결 2**: 안전한 호출을 통해 `invoke` 함수 사용
   - ```kotlin
     fun <T> Collection<T>.joinToString(
         ...
@@ -417,6 +417,19 @@ log.averageDurationFor { it.os in setOf(OS.ANDROID, OS.IOS)}         // 12.15
 log.averageDurationFor { it.os == OS.IOS && it.path == "/signup" }   // 8.0
 ```
 
+<br/>
+
+## 10.2 Removing the overhead of lambdas with inline functions
+
+<small><i>인라인 함수를 사용해 람다의 부가 비용 없애기</i></small>
+
+- 코틀린은 보통, **람다를 익명 클래스로 컴파일** (5장 참고)
+- 람다식마다 새로운 클래스가 생기고 람다가 변수를 캡처한 경우 람다 정의가 포함된 코드를 호출하는 시점마다 새로운 객체가 생김
+- 부가 비용 발생 
+- 반복되는 코드를 별도 함수로 빼면서 효율적으로 코드를 실행하는 방법: **`inline` 변경자**
+  - 컴파일러는 **`inline` 변경자**가 붙은 함수가 쓰이는 위치에, 함수 호출을 생성하는 대신, 함수를 구현하는 코드로 바꿔치기 해줌
+
+<br/>
 
 
 
