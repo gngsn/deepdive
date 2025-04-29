@@ -21,7 +21,7 @@
 람다 파라미터의 선언 타입 방법
 
 ```
- << 코틀린 함수 타입 문법 >> 
+ << 코틀린 함수 타입 문법 >>
 
 (Int, string) -> Unit
 —————————————    ————
@@ -31,8 +31,8 @@
 **Examples.**
 
 ```
-val sum = { x, y -> x + y }      // (Int, Int) -> Int 
-val action = { println(42) }     // () -> Unit 
+val sum = { x, y -> x + y }      // (Int, Int) -> Int
+val action = { println(42) }     // () -> Unit
 ```
 
 <br/>
@@ -103,7 +103,7 @@ twoAndThree { alpha, beta -> alpha + beta }
 #### filter 함수 내부 구현
 
 ```
-                  파라미터 이름 
+                  파라미터 이름
                   —————————
 fun String.filter(predicate: (Char) -> Boolean): String
     ——————                   ——————————————————
@@ -136,7 +136,6 @@ println("ab1c".filter { it in 'a'..'z' })     // abc
 
 리스트처럼 자바 람다는 자동으로 코틀린 합수 타입으로 변환됨
 
-
 <table>
 <tr>
     <th>Kotlin declaration</th>
@@ -155,7 +154,7 @@ fun processTheAnswer(f: (Int) -> Int) {
 <td>
 
 ```java
-processTheAnswer(number -> number + 1); 
+processTheAnswer(number -> number + 1);
 // 43
 ```
 
@@ -163,15 +162,14 @@ processTheAnswer(number -> number + 1);
 </tr>
 </table>
 
-
 - 자바 코드가 깔끔하진 않음
-  - 수신 객체를 명시적으로 전달해야 함 
+  - 수신 객체를 명시적으로 전달해야 함
   - 코틀린 Unit 타입에는 값이 존재하기 때문에, 자바에서 Unit을 명시적으로 반환해줘야 함
 
 ```java
 /* Java */
 import kotlin.collections.CollectionsKt;
- 
+
 CollectionsKt.forEach(strings, s -> {    // 코틀린 표준 라이브러리 함수 호출
    return Unit.INSTANCE;                 // Unit 명시적 반환 필요: void 불가
 });
@@ -239,12 +237,12 @@ fun <T> Collection<T>.joinToString(
         postfix: String = ""
 ): String {
     val result = StringBuilder(prefix)
- 
+
     for ((index, element) in this.withIndex()) {
         if (index > 0) result.append(separator)
         result.append(element)
     }
- 
+
     result.append(postfix)
     return result.toString()
 }
@@ -254,7 +252,6 @@ fun <T> Collection<T>.joinToString(
 - **한계**: 컬렉션의 각 원소를 문자열로 변환하는 방법 제어 불가
 - **해결**: 함수 타입의 파라미터에 대한 기본값으로 람다식을 넣음
 
-
 ```kotlin
 fun <T> Collection<T>.joinToString(
         separator: String = ", ",
@@ -263,18 +260,19 @@ fun <T> Collection<T>.joinToString(
         transform: (T) -> String = { it.toString() }         // 함수 타입 파라미터를 선언 시, 디폴트 람다 지정
 ): String {
     val result = StringBuilder(prefix)
- 
+
     for ((index, element) in this.withIndex()) {
         if (index > 0) result.append(separator)
         result.append(transform(element))                    // tranform 파라미터 함수 호출
     }
- 
+
     result.append(postfix)
     return result.toString()
 }
 ```
+
 ```kotlin
-letters.joinToString()                                   // 디폴트 값 사용: Alpha, Beta 
+letters.joinToString()                                   // 디폴트 값 사용: Alpha, Beta
 println(letters.joinToString { it.lowercase() })         // 람다 넘김: alpha, beta
 println(letters.joinToString(
   separator = "! ",
@@ -284,20 +282,19 @@ println(letters.joinToString(
 
 <br/>
 
-
 🚨 **널이 될 수 있는 합수 타입으로 합수를 받으면 그 함수를 직접 호출할 수 없음**
 
 - NPE 발생 가능성 때문에 컴파일 불가
 
 - **해결 1**: null 여부를 명시적으로 검사해야 함
-    - ```kotlin
-      fun foo(callback: (() -> Unit)?) {
-        // ...
-        if (callback != null) {
-          callback()
-        }
+  - ```kotlin
+    fun foo(callback: (() -> Unit)?) {
+      // ...
+      if (callback != null) {
+        callback()
       }
-      ```
+    }
+    ```
 - **해결 2**: 안전한 호출을 통해 `invoke` 함수 사용
   - ```kotlin
     fun <T> Collection<T>.joinToString(
@@ -310,7 +307,6 @@ println(letters.joinToString(
       ...
     }
     ```
-
 
 ### 10.1.5 Returning functions from functions
 
@@ -325,14 +321,14 @@ println(letters.joinToString(
 
 ```kotlin
 enum class Delivery { STANDARD, EXPEDITED }
- 
+
 class Order(val itemCount: Int)
- 
+
 fun getShippingCostCalculator(delivery: Delivery): (Order) -> Double {  // 반환 타입: 반환할 함수 타입
     if (delivery == Delivery.EXPEDITED) {
         return { order -> 6 + 2.1 * order.itemCount }                   // 람다 반환
     }
- 
+
     return { order -> 1.2 * order.itemCount }                           // 람다 반환
 }
 ```
@@ -357,7 +353,7 @@ data class SiteVisit(
     val os: OS
 )
 ```
- 
+
 - OS: 운영체제 이넘<sup>enum</sup>
 
 ```kotlin
@@ -389,7 +385,7 @@ fun List<SiteVisit>.averageDurationFor(os: OS) =
 ```
 
 **결과:**
- 
+
 ```kotlin
 println(log.averageDurationFor(OS.WINDOWS))     // 23.0
 println(log.averageDurationFor(OS.MAC))         // 22.0
@@ -397,7 +393,8 @@ println(log.averageDurationFor(OS.MAC))         // 22.0
 
 더 복잡한 요구사항은, 간단한 파라미터로 처리할 수 없음
 
-**가령,** 
+**가령,**
+
 - 모바일 디바이스 사용자의 평균 방문 시간?
 - iOS 사용자의 `/signup` 페이지 평균 방문 시간?
 
@@ -425,26 +422,79 @@ log.averageDurationFor { it.os == OS.IOS && it.path == "/signup" }   // 8.0
 
 - 코틀린은 보통, **람다를 익명 클래스로 컴파일** (5장 참고)
 - 람다식마다 새로운 클래스가 생기고 람다가 변수를 캡처한 경우 람다 정의가 포함된 코드를 호출하는 시점마다 새로운 객체가 생김
-- 부가 비용 발생 
+- 부가 비용 발생
 - 반복되는 코드를 별도 함수로 빼면서 효율적으로 코드를 실행하는 방법: **`inline` 변경자**
   - 컴파일러는 **`inline` 변경자**가 붙은 함수가 쓰이는 위치에, 함수 호출을 생성하는 대신, 함수를 구현하는 코드로 바꿔치기 해줌
 
 <br/>
 
+### 10.2.1 Inlining means substituting a function body to each call site
 
+<small><i>인라이닝이 작동하는 방식</i></small>
 
+- 함수의 inline 선언: **함수의 본문이 인라인**이 됨
+  - 다른 말로, 함수를 호출하는 코드를 함수를 호출하는 바이트코드 대신에 함수 본문을 번역한 바이트코드로 컴파일한다는 뜻
 
+다중 스레드 환경에서 어떤 공유 자원에 대한 동시 접근을 막기 위한 것
+이 함수는 Lock 객체를 잠그고 주어진 코드 블록을 실행한 다음에 Lock 객체에 대한 잠금 해제
 
+```kotlin
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
+inline fun <T> synchronized(lock: Lock, action: () -> T): T {   // inline 함수를 호출하는 부분은
+    lock.lock()                                                 // 해당 함수의 본문으로 치환
+    try {
+        return action()
+    }
+    finally {
+        lock.unlock()
+    }
+}
 
+fun main() {
+    val l = ReentrantLock()
+    synchronized(l) {
+        // ...
+    }
+}
+```
 
+> ✔️ 락을 건 상태에서 코드를 실행해야 한다면 `withLock` 을 우선 고려해야 함
 
+<table>
+<tr>
+<th>`Synchronized()` 사용 예제</th>
+<th>컴파일 버전</th>
+</tr>
+<tr>
+<td>
 
+```kotlin
+fun foo(l: Lock) {
+    println("Before sync")
+    synchronized(l) {
+        println("Action")
+    }
+    println("After sync")
+}
+```
 
+</td>
+<td>
 
+<pre lang="kotlin">fun __foo__(l: Lock) {
+    println("Before sync")
+    <b>l.lock()                 // 해당 함수의 본문으로 치환
+    try {
+      println("Action")
+    } finally {
+      l.unlock()
+    }</b>
+    println("After sync")
+}
+</pre>
 
-
-
-
-
-
+</td>
+</tr>
+</table>
