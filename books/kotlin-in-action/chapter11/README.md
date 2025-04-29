@@ -41,3 +41,35 @@ ArrayList aList = new ArrayList();
 </td></tr></table>
 
 <br/>
+
+### 11.1.1 Functions and properties that work with generic types
+
+<small><i>제네릭 타입과 함께 동작하는 함수와 프로퍼티</i></small>
+
+- 컬렉션을 다루는 라이브러리 함수는 대부분 제네릭 함수
+
+```kotlin
+fun <T> List<T>.slice(indices: IntRange): List<T>
+```
+
+- 타입 파리미터가 수신 객체와 반환 타입에 쓰이는데, 대부분 컴파일러가 타입 인자를 추론해서 둘 다 명시하지 않음
+
+```kotlin
+// 사용
+val letters = ('a'..'z').toList()
+letters.slice<Char>(0..2)   // 명시적 타입 인자 지정
+letters.slice(10..13)       // 타입 인자 생략
+```
+
+<br/>
+
+- 클래스나 인터페이스 안에 정의된 **메서드**, **최상위 함수**, **확장 함수**에서 타입 파라미터 선언 가능
+- 제네릭 함수를 정의할 때와 마찬가지 구문으로 제네릭 **확장 프로퍼티**를 선언할 수 있음
+  - ```kotlin
+      val <T> List<T>.penultimate: T  // 모든 리스트 타입에서 사용 가능
+        get() = this[size - 2]
+    ```
+- **확장 프로퍼티**가 아닌 일반 프로퍼티는 제네릭 불가
+  - `val <T> x: T = TODO()` ← `ERROR: type parameter of a property must be used in its receiver type`
+
+<br/>
