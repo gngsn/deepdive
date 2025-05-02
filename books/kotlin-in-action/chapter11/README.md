@@ -158,3 +158,50 @@ fun \<T\> ensureTrailingPeriod(seq: T)
   }
 }
 </code></pre>
+
+<br/>
+
+### 11.1.4 Excluding nullable type arguments by explicitly marking type parameters as non-null
+
+<small><i>명시적으로 타입 파라미터를 널이 될 수 없는 타입으로 표시해서 널이 될 수
+있는 타입 인자 제외시키기</i></small>
+
+- 타입 파라미터를 널이 될 수 있는 값으로 지정할 수 있음
+  - 제네릭 클래스나 함수를 정의 후 그 타입을 인스턴스화할 때는, 널이 될 수 있는
+    타입을 포함하여 치환할 수 있음
+- 기본적으로, 타입 파라미터는 `Any?` 를 상계로 하는 파라미터와 동일
+
+```kotlin
+class Processor<T> {
+  fun process(value: T)
+    value?.hashCode() // value 는 nullable: 안전한 호출을 사용해야만 함
+  }
+}
+```
+
+정상 실행한 형식은 다음과 같음
+
+```kotlin
+val nullableStringProcessor = Processor<String?>()
+nullableStringProcessor.process(null)
+```
+
+- 널이 불가능한 타입 지정은 `Any?` 대신 `Any` 를 상계로 사용
+  - `<T : Any>` 라는 제약은 `T` 타입이 항상 널이 될 수 없는 타입이 되도록 보장
+
+```kotlin
+class Processor<T : Any> {
+  fun process(value: T) {
+    value.hashCode()    // null 불가
+  }
+}
+```
+
+- Nullable 사용 시 컴파일 오류
+
+```kotlin
+Processor<String?>()
+// Error: Type argument is not within its bounds: should be subtype of 'Any'
+```
+
+<br/>
