@@ -249,3 +249,82 @@ class KBox<T : Any>: JBox<T> {
 ```
 
 <br/>
+
+## 11.2 Generics at run time: Erased and reified type parameters
+
+<small><i>실행 시점 제네릭스 동작: 소거된 타입 파라미터와 실체화된 타입 파라미터</i></small>
+
+- JVM의 제네릭스는 보통 **타입 소거**<sup>type erasure</sup>로 구현
+- 실행 시점에 제네릭 클래스의 인스턴스에 타입 인자 정보가 들어있지 않다는 의미
+- 코틀린에서는 함수를 `inline`으로 만들면 타입 인자가 지워지지 않게 할 수 있음
+  - 이를 '실체화됐다'<sup>reified</sup>고 표현
+
+<br/>
+
+## 11.2.1 Limitations to finding type information of a generic class at run time: Type checks and casts
+
+<small><i>실행 시점에 제네릭 클래스의 타입 정보를 찾을 때 한계: 타입 검사와 캐스팅</i></small>
+
+- 자바와 마찬가지로 코틀린 제네릭 타입 인자 정보는 런타임에 지워짐
+- 제네릭 클래스 인스턴스가 그 인스턴스를 생성할 때 쓰인 타입 인자에 대한 정보를 유지하지 않는다는 의미
+
+```kotlin
+val list1: List<String> = listof("a", "b")
+val list2: List<Int> = listof(1, 2, 3)
+```
+
+- 컴파일러는 두 리스트를 서로 다른 타입으로 인식하지만 실행 시점에 그 둘은 완전히 같음
+
+  - 컴파일러가 올바른 타입의 값만 각 리스트에 넣도록 보장
+
+- 타입 인자를 따로 저장하지않기 때문에 실행 시점에 타입 인자를 검사 불가
+- `is` 검사를 통해 타입 인자로 지정한 타입을 검사 불가
+
+```kotlin
+fun printList(l: List<Any>) {
+  when (l) {
+    is List<String> -> println("Strings: $1")
+    is List<Int> -> println("Integers: $1")
+  } // Error: Cannot check for an instance of erased type
+}
+```
+
+- 실행 시점의 List 인자 타입 정보는 지워짐
+- **장점**: 저장할 타입 정보 크기가 줄어듦
+- **단점**: 타입 정보를 알 수 없음
+
+<br/>
+
+> 베이스 타입 (가령, 어떤 값이 집합이나 맵이 아니라 리스트인지)의 구분은 가능
+>
+> → 스타 프로젝션<sup>star projection</sup>
+
+<br/>
+
+- `as` / `as?` 캐스팅에도 제네릭 타입 가능
+- 🚨 기저 클래스(base class)는 일치하지만, 타입 인자가 불일치하는 타입으로 캐스팅해도 여전히 캐스팅 성공
+  - 실행 시점에는 제네릭 타입의 타입 인자를 알 수 없기 때문
+  - 컴파일러가 `unchecked cast`(검사할 수 없는 캐스팅) 경고
+
+```kotlin
+fun printSum(c: Collection<*>) {
+  // [warn] Unchecked cast: List<*> to List
+  val intList = c as? List<Int>
+        ?: throw IllegalArgumentException("List is expected")
+}
+```
+
+**결과:**
+
+```kotlin
+printSum(listOf(1, 2, 3)) // 6 (정상 작동)
+printSum(setOf(1, 2, 3)) // IllegalArgumentException: List is expected
+```
+
+- 하지만, 잘못된 타입 원소 리스트를 전달하면 실행 시점에 `ClassCastException` 발생
+- `as?` 캐스팅은 성공하지만 문자열을 합할 수는 없으므로 나중에 다른 예외가 발생
+
+```kotlin
+printSum(listOf("a", "b", "с"))
+// ClassCastException: String cannot be cast to Number
+```
