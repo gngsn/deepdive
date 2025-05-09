@@ -321,10 +321,126 @@ printSum(listOf(1, 2, 3)) // 6 (정상 작동)
 printSum(setOf(1, 2, 3)) // IllegalArgumentException: List is expected
 ```
 
-- 하지만, 잘못된 타입 원소 리스트를 전달하면 실행 시점에 `ClassCastException` 발생
-- `as?` 캐스팅은 성공하지만 문자열을 합할 수는 없으므로 나중에 다른 예외가 발생
+- `as?` 캐스팅은 성공하지만 실행 시점에 `ClassCastException` 발생
 
 ```kotlin
 printSum(listOf("a", "b", "с"))
 // ClassCastException: String cannot be cast to Number
 ```
+
+<br/>
+
+- 컴파일 시점에 타입 정보를 전달 후, `is` 검사 수행 가능
+
+```kotlin
+fun printSum(c: Collection<Int>) {
+  when (c) {
+    is List<Int> -> println("List sum: ${c.sum()}") //  올바른 타입 검사
+    is Set<Int> -> println("Set sum: ${c.sum()}")
+  }
+}
+```
+
+<br/>
+
+**결과:**
+
+- `as?` 캐스트가 성공하고 문자열 리스트에 대해 Sum 함수가 됨
+
+```kotlin
+printSum(listOf(1,2,3)) // List sum: 6
+printSum(setOf(3,4,5)) // Set sum: 12
+```
+
+- 컵파일 시점에 원소의 타입에 대한 정보가 있기 때문에, 어떤 컬렉션인지 검사 가능
+  - 원소가 `Int` 타입임을 알기 때문에 리스트나 결합 등 컬렉션 종류는 문제 안됨
+- 코틀린 컴파일러는 가능한 모든 검사의 위험성과 가능성을 알려줌
+- 인전하지 못한 `is` 검사는 **금지**, 위험한 `as` 캐스팅은 **경고**
+
+<br/>
+
+## 11.2.2 Functions with reified type parameters can refer to actual type arguments at run time
+
+<small><i>실체화된 타입 파라미터를 사용하는 함수는 타입 인자를 실행 시점에 언급할 수 있다</i></small>
+
+- 코틀린 제네릭 타입의 타입 인자 정보는 실행 시점에 지워짐
+- **제네릭 클래스**의 **인스턴스**를 만들면 **사용한 타입 인자를 알아낼 수 없음**
+- **제네릭 함수**의 **타입 인자**도 마찬가지로, **함수 본문에 쓰인 타입 인자를 알 수 없음**
+
+```kotlin
+fun <T> isA(value: Any) = value is T
+// Error: Cannot check for instance of erased type: T
+```
+
+- 위 제약의 예외: **인라인 함수의 타입 파라미터는 실체화**
+- 실행 시점에 인라인 함수의 실제 타입 인자를 알 수 있음
+
+<br/>
+<pre><b><code>inline</code> 함수</b> 
+함수 앞에 <code>inline</code> 키워드를 붙이면, 컴파일러는 그 함수를 호출한 식을 모두 함수를 구현하는 코드로 바꿈</pre>
+<br/>
+<br/>
+
+#### 실체화된 타입 파라미터를 사용하는 함수 정의
+
+- 함수가 람다를 인자로 사용하는 경우, 그 함수를 인라인 함수로 만들면 **람다 코드도 함께 인라이닝**되고 익명 클래스와 객체가 생성되지 않아서 성능이 더 좋아질 수 있음
+- 인라인 함수가 유용한 다른 이유인 **타입 인자 실체화**
+
+- `isA` 함수를 인라인 함수로 만들고 타입 파라미터를 `reified`로 지정하면 `Value` 의 타입이 `T` 의 인스턴스인지를 실행 시점에 검사할 수 있음
+
+```kotlin
+inline fun <reified T> isA(value: Any) = value is T
+```
+
+**결과:**
+
+```kotlin
+isA<String>("abc")   // true
+isA<String>(123)     // false
+```
+
+<br/>
+
+- **실체화된 타입 파라미터를 활용 예제**: 표준 라이브러리 함수 - `filterIsInstance`
+- 인자로 받은 컬렉션에서 지정 클래스 인스턴스만을 모은 리스트 반환
+
+```kotlin
+// 간단하게 정리한 버전
+inline fun <reified T>  // reified 키워드: 해당 타입 파라미터가 실행 시점에 지워지지 않음을 표시
+      Iterable<*>.filterIsInstance(): List<T> {
+  val destination = mutableListOf<T>()
+  for (element in this) {
+    if (element is T) {
+      destination.add(element) // ❶
+    }
+  }
+  return destination
+}
+```
+
+**사용 예시:**
+
+```kotlin
+listOf("one", 2, "three").filterIsInstance<String>()  // [one, three]
+```
+
+<br/>
+<table><tr><td>
+
+#### 인라인 함수에서만 실체화된 타입 인자를 쓸 수 있는 이유
+
+- 컴파일러는 인라인 함수의 본문을 구현한 바이트코드를 모든 호출 지점에 대치
+- 컴파일러는 타입 인자로 쓰인 구체적인 클래스를 참조하는 바이트코드를 생성해 삽입할 수 있음
+
+따라서, 컴파일러가 실체화된 타입 인자를 사용해 인라인 함수를 호출하는 각 부분의 정확한 타입 인자를 알 수 있게됨
+
+- 만들어진 바이트코드는 타입 파라미터가 아니라 구체적인 타입을 사용하므로 실행 시점에 벌어지는
+  타입 소거의 영향을 받지 않음
+
+- ⚠️ 자바 코드에서는 `reified` 타입 파라미터를 사용하는 `inline` 함수를 호출할 수 없음
+- 자바에서는 코틀린 인라인 함수를 다른 보통 함수처럼 호출
+  - 실체화된 타입 파라미터가 있는 함수의 경우 타입 인자 값을 바이트코드에 넣기 위해 더 많은 작업이 필요
+  - 인라인 함수를 호출해도 실제로 인라이닝이 되지 않음
+
+</td></tr></table>
+<br/>
