@@ -21,7 +21,7 @@
 람다 파라미터의 선언 타입 방법
 
 ```
- << 코틀린 함수 타입 문법 >>
+ << 코틀린 함수 타입 문법 >> 
 
 (Int, string) -> Unit
 —————————————    ————
@@ -31,8 +31,8 @@
 **Examples.**
 
 ```
-val sum = { x, y -> x + y }      // (Int, Int) -> Int
-val action = { println(42) }     // () -> Unit
+val sum = { x, y -> x + y }      // (Int, Int) -> Int 
+val action = { println(42) }     // () -> Unit 
 ```
 
 <br/>
@@ -103,7 +103,7 @@ twoAndThree { alpha, beta -> alpha + beta }
 #### filter 함수 내부 구현
 
 ```
-                  파라미터 이름
+                  파라미터 이름 
                   —————————
 fun String.filter(predicate: (Char) -> Boolean): String
     ——————                   ——————————————————
@@ -136,6 +136,7 @@ println("ab1c".filter { it in 'a'..'z' })     // abc
 
 리스트처럼 자바 람다는 자동으로 코틀린 합수 타입으로 변환됨
 
+
 <table>
 <tr>
     <th>Kotlin declaration</th>
@@ -154,7 +155,7 @@ fun processTheAnswer(f: (Int) -> Int) {
 <td>
 
 ```java
-processTheAnswer(number -> number + 1);
+processTheAnswer(number -> number + 1); 
 // 43
 ```
 
@@ -162,14 +163,15 @@ processTheAnswer(number -> number + 1);
 </tr>
 </table>
 
+
 - 자바 코드가 깔끔하진 않음
-  - 수신 객체를 명시적으로 전달해야 함
+  - 수신 객체를 명시적으로 전달해야 함 
   - 코틀린 Unit 타입에는 값이 존재하기 때문에, 자바에서 Unit을 명시적으로 반환해줘야 함
 
 ```java
 /* Java */
 import kotlin.collections.CollectionsKt;
-
+ 
 CollectionsKt.forEach(strings, s -> {    // 코틀린 표준 라이브러리 함수 호출
    return Unit.INSTANCE;                 // Unit 명시적 반환 필요: void 불가
 });
@@ -237,12 +239,12 @@ fun <T> Collection<T>.joinToString(
         postfix: String = ""
 ): String {
     val result = StringBuilder(prefix)
-
+ 
     for ((index, element) in this.withIndex()) {
         if (index > 0) result.append(separator)
         result.append(element)
     }
-
+ 
     result.append(postfix)
     return result.toString()
 }
@@ -252,6 +254,7 @@ fun <T> Collection<T>.joinToString(
 - **한계**: 컬렉션의 각 원소를 문자열로 변환하는 방법 제어 불가
 - **해결**: 함수 타입의 파라미터에 대한 기본값으로 람다식을 넣음
 
+
 ```kotlin
 fun <T> Collection<T>.joinToString(
         separator: String = ", ",
@@ -260,19 +263,18 @@ fun <T> Collection<T>.joinToString(
         transform: (T) -> String = { it.toString() }         // 함수 타입 파라미터를 선언 시, 디폴트 람다 지정
 ): String {
     val result = StringBuilder(prefix)
-
+ 
     for ((index, element) in this.withIndex()) {
         if (index > 0) result.append(separator)
         result.append(transform(element))                    // tranform 파라미터 함수 호출
     }
-
+ 
     result.append(postfix)
     return result.toString()
 }
 ```
-
 ```kotlin
-letters.joinToString()                                   // 디폴트 값 사용: Alpha, Beta
+letters.joinToString()                                   // 디폴트 값 사용: Alpha, Beta 
 println(letters.joinToString { it.lowercase() })         // 람다 넘김: alpha, beta
 println(letters.joinToString(
   separator = "! ",
@@ -282,19 +284,20 @@ println(letters.joinToString(
 
 <br/>
 
+
 🚨 **널이 될 수 있는 합수 타입으로 합수를 받으면 그 함수를 직접 호출할 수 없음**
 
 - NPE 발생 가능성 때문에 컴파일 불가
 
 - **해결 1**: null 여부를 명시적으로 검사해야 함
-  - ```kotlin
-    fun foo(callback: (() -> Unit)?) {
-      // ...
-      if (callback != null) {
-        callback()
+    - ```kotlin
+      fun foo(callback: (() -> Unit)?) {
+        // ...
+        if (callback != null) {
+          callback()
+        }
       }
-    }
-    ```
+      ```
 - **해결 2**: 안전한 호출을 통해 `invoke` 함수 사용
   - ```kotlin
     fun <T> Collection<T>.joinToString(
@@ -307,6 +310,7 @@ println(letters.joinToString(
       ...
     }
     ```
+
 
 ### 10.1.5 Returning functions from functions
 
@@ -321,14 +325,14 @@ println(letters.joinToString(
 
 ```kotlin
 enum class Delivery { STANDARD, EXPEDITED }
-
+ 
 class Order(val itemCount: Int)
-
+ 
 fun getShippingCostCalculator(delivery: Delivery): (Order) -> Double {  // 반환 타입: 반환할 함수 타입
     if (delivery == Delivery.EXPEDITED) {
         return { order -> 6 + 2.1 * order.itemCount }                   // 람다 반환
     }
-
+ 
     return { order -> 1.2 * order.itemCount }                           // 람다 반환
 }
 ```
@@ -353,7 +357,7 @@ data class SiteVisit(
     val os: OS
 )
 ```
-
+ 
 - OS: 운영체제 이넘<sup>enum</sup>
 
 ```kotlin
@@ -385,7 +389,7 @@ fun List<SiteVisit>.averageDurationFor(os: OS) =
 ```
 
 **결과:**
-
+ 
 ```kotlin
 println(log.averageDurationFor(OS.WINDOWS))     // 23.0
 println(log.averageDurationFor(OS.MAC))         // 22.0
@@ -393,8 +397,7 @@ println(log.averageDurationFor(OS.MAC))         // 22.0
 
 더 복잡한 요구사항은, 간단한 파라미터로 처리할 수 없음
 
-**가령,**
-
+**가령,** 
 - 모바일 디바이스 사용자의 평균 방문 시간?
 - iOS 사용자의 `/signup` 페이지 평균 방문 시간?
 
@@ -422,7 +425,7 @@ log.averageDurationFor { it.os == OS.IOS && it.path == "/signup" }   // 8.0
 
 - 코틀린은 보통, **람다를 익명 클래스로 컴파일** (5장 참고)
 - 람다식마다 새로운 클래스가 생기고 람다가 변수를 캡처한 경우 람다 정의가 포함된 코드를 호출하는 시점마다 새로운 객체가 생김
-- 부가 비용 발생
+- 부가 비용 발생 
 - 반복되는 코드를 별도 함수로 빼면서 효율적으로 코드를 실행하는 방법: **`inline` 변경자**
   - 컴파일러는 **`inline` 변경자**가 붙은 함수가 쓰이는 위치에, 함수 호출을 생성하는 대신, 함수를 구현하는 코드로 바꿔치기 해줌
 
@@ -441,7 +444,7 @@ log.averageDurationFor { it.os == OS.IOS && it.path == "/signup" }   // 8.0
 ```kotlin
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
-
+ 
 inline fun <T> synchronized(lock: Lock, action: () -> T): T {   // inline 함수를 호출하는 부분은
     lock.lock()                                                 // 해당 함수의 본문으로 치환
     try {
@@ -498,3 +501,155 @@ fun foo(l: Lock) {
 </td>
 </tr>
 </table>
+
+<br/>
+
+람다가 아닌, 함수 타입의 변수를 넘기면?
+
+<pre lang="kotlin">class LockOwner(val lock: Lock) {
+    fun runUnderLock(<b>body: () -> Unit</b>) {
+        synchronized(lock, <b>body</b>)        // 람다가 아닌 파라미터로 받은 함수 넘김
+    }
+}
+</pre>
+
+- 위 코드는 `synchronized` 함수의 본문만 인라이닝됨
+- **람다 본문은 인라이닝되지 않음**
+  - 인라인 함수를 호출하는 코드 위치에서는 **변수에 저장된 람다의 코드를 알 수 없기 때문**
+
+`runUnderLock` 은 아래와 비슷하게 컴파일 됨
+
+```kotlin
+class LockOwner(val lock: Lock) {
+    fun __runUnderLock__(body: () -> Unit) {
+        lock.lock()
+        try {
+            body()           // synchronized 호출부에서의 람다를 알 수 없으므로
+        }                    // 인라이닝되지 않음
+        finally {
+            lock.unlock()
+        }
+    }
+}
+```
+
+- 하나의 인라인 함수를 **두 개의 다른 람다에서 호출**하면, **두 호출은 각각 따로 인라이닝**됨
+  1. **인라인 함수의 본문 코드가 호출 지점에 복사**되고,
+  2. **각 람다의 본문**이 **인라인 함수의 본문 코드에서 람다를 사용하는 위치에 복사**됨
+
+
+> 함수에 더해 프로퍼티 접근자 (get, set) 에도 inline을 붙일 수 있음
+> 코틀린을 실체화한 제네릭<sup>reified generic</sup> 에서 유용      ← 11장 참고
+
+<br/>
+
+### 10.2.2 Restrictions on inline functions
+
+<small><i>인라인 함수의 제약</i></small>
+
+- 파라미터로 받은 람다를 호출 시, 쉽게 람다 본문으로 바꿀 수 있음
+- 하지만 파라미터로 받은 람다를 변수에 저장 후, 나중에 그 변수를 사용하면, 람다를 표현하는 객체가 어딘가는 존재해야 하기 때문에 람다를 인라이닝할 수 없음
+
+<br/>
+
+**일반적으로 인라인 함수를 사용할 수 있는 경우**
+
+- 인라인 함수의 본문에서 람다식을 바로 호출
+- 다른 인라인 함수의 인자로 전달하는 경우
+
+**하지만 이외의 경우, 컴파일러는 인라이닝을 금지: `"legal usage of inline-parameter"`**
+
+```kotlin
+class FunctionStorage {
+    var myStoredFunction: ((Int) -> Unit)? = null
+    inline fun storeFunction(f: (Int) -> Unit) {
+        myStoredFunction = f                       // 전달된 파라미터 저장
+    }
+}
+// 🚨 Illegal usage of inline-parameter
+// 'f' in 'public final inline fun storeFunction(f: (Int) -> Unit): Unit defined in README. FunctionStorage'.
+// Add 'noinline' modifier to the parameter declaration
+```
+
+예를 들어, 시퀀스에 대해 동작하는 메서드 중에는 람다를 받아 모든 시퀀스 원소에 그 람다를 적용한 새 시퀀스를 반환하는 함수가 많음
+
+<br/>
+
+**Example. `Sequence.map` 정의를 보여줌**
+
+**`map` 함수는** 
+- ❌ `transform` 파라미터로 전달받은 함수 값을 호출하지 않는 대신, 
+- ✅ `TransformingSequence` 라는 클래스의 생성자에게 그 함수 값을 넘김
+
+둘 이상의 람다를 인자로 받는 함수에서 일부 다만 인라이닝하고 싶을 때도 있음
+
+예를 들어 어떤 람다에 너무 많은 코드가 들어가거나 어떤 람다에 인라이닝을 하면 안 되는 코드가 들어갈 가능성이 있는 경우가 그렇다. 
+이런 식으로 인라이닝하면 안 되는 람다를 파라미터로 받는다면 noinl1ne 변경자를 파라미터 이름 앞에 붙여 인라이닝을 금지할 수 있음
+
+<br/>
+
+### 10.2.3 Inlining collection operations
+
+<small><i></i></small>
+
+<br/>
+
+### 10.2.4 Deciding when to declare functions as inline
+
+<small><i></i></small>
+
+<br/>
+
+### 10.2.5 Using inlined lambdas for resource management with withLock, use, and useLines
+
+<small><i></i></small>
+
+<br/>
+
+## 10.3 Returning from lambdas: Control flow in higher-order functions
+
+<small><i></i></small>
+
+<br/>
+
+### 10.3.1 Return statements in lambdas: returning from an enclosing function
+
+<small><i></i></small>
+
+<br/>
+
+### 10.3.2 Returning from lambdas: Return with a label
+
+<small><i></i></small>
+
+<br/>
+
+### 10.3.3 Anonymous functions: Local returns by default
+
+<small><i></i></small>
+
+<br/>
+
+## Summary
+
+<small><i></i></small>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

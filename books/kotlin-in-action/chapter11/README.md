@@ -124,10 +124,10 @@ fun <T : Number> List<t>.sum(): T
 
 </td></tr></table><br/>
 
-Number 는코틀린 표준 라이브러리에서 숫자 타입을 표현하는 모든 클래스의 상위 클래스
+Number 는 코틀린 표준 라이브러리에서 숫자 타입을 표현하는 모든 클래스의 상위 클래스
 
 ```kotlin
-listof (1, 2, 3) sum()    // 6
+listOf(1, 2, 3).sum()    // 6
 ```
 
 - 타입 파라미터 `T` 의 상계를 지정하면, 해당 상계 타입으로 취급
@@ -141,7 +141,7 @@ fun <T : Number> oneHalf(value: T): Double {
 
 <br/>
 
-#### 타입 파라미터에 여러 제약을 가하기
+#### 타입 파라미터에 여러 제약을 적용하기
 
 드물게 타입 파라미터에 대해 둘 이상의 제약을 가해야 하는 경우가 있음
 
@@ -206,8 +206,6 @@ Processor<String?>()
 
 <br/>
 
-<table>
-
 #### 자바와 상호운용할 때 제네릭 타입을 '확실히 널이 될 수 없음' 으로 표시하기
 
 예를 들어 다음의 제네릭 `JBox` 인터페이스
@@ -215,18 +213,20 @@ Processor<String?>()
 - `put` 메서드의 타입 파라미터로 **널이 될 수 없는 `T`** 만 사용하도록 제약
 - 동일하게 `T`를 사용하는 `putIfNotNull` 메서드는 **널이 될 수 있는 값**으로 입력받음
 
-```kotlin
+```java
 import org.jetbrains.annotations.NotNull;
 public interface JBox<T> {
-  /**
-   *  널이 될 수 없는 값을 박스에 넣음
-   */
-  void put (@NotNull T t);
-  /**
-   *  널 값이 아닌 경우 값을 박스에 넣고
-   *  널 값인 경우 아무것도 하지 않음
-   */
-  void putIfNotNull(T t);
+    /**
+     *  널이 될 수 없는 값을 박스에 넣음
+     */
+    void put(@NotNull T t);
+
+    /**
+     *  널 값이 아닌 경우 값을 박스에 넣고
+     *  널 값인 경우 아무것도 하지 않음
+     */
+    void putIfNotNull(T t);
+}
 ```
 
 - `T : Any` 로 제한하면 `putIfNotNull`에서 Nullable하게 사용할 수 없음
@@ -261,7 +261,7 @@ class KBox<T : Any>: JBox<T> {
 
 <br/>
 
-## 11.2.1 Limitations to finding type information of a generic class at run time: Type checks and casts
+### 11.2.1 Limitations to finding type information of a generic class at run time: Type checks and casts
 
 <small><i>실행 시점에 제네릭 클래스의 타입 정보를 찾을 때 한계: 타입 검사와 캐스팅</i></small>
 
@@ -378,8 +378,7 @@ fun <T> isA(value: Any) = value is T
 <br/>
 <pre><b><code>inline</code> 함수</b> 
 함수 앞에 <code>inline</code> 키워드를 붙이면, 컴파일러는 그 함수를 호출한 식을 모두 함수를 구현하는 코드로 바꿈</pre>
-<br/>
-<br/>
+<br/><br/>
 
 #### 실체화된 타입 파라미터를 사용하는 함수 정의
 
@@ -434,8 +433,7 @@ listOf("one", 2, "three").filterIsInstance<String>()  // [one, three]
 
 따라서, 컴파일러가 실체화된 타입 인자를 사용해 인라인 함수를 호출하는 각 부분의 정확한 타입 인자를 알 수 있게됨
 
-- 만들어진 바이트코드는 타입 파라미터가 아니라 구체적인 타입을 사용하므로 실행 시점에 벌어지는
-  타입 소거의 영향을 받지 않음
+- 만들어진 바이트코드는 타입 파라미터가 아니라 구체적인 타입을 사용하므로 실행 시점에 벌어지는 타입 소거의 영향을 받지 않음
 
 - ⚠️ 자바 코드에서는 `reified` 타입 파라미터를 사용하는 `inline` 함수를 호출할 수 없음
 - 자바에서는 코틀린 인라인 함수를 다른 보통 함수처럼 호출
@@ -443,4 +441,40 @@ listOf("one", 2, "three").filterIsInstance<String>()  // [one, three]
   - 인라인 함수를 호출해도 실제로 인라이닝이 되지 않음
 
 </td></tr></table>
+
 <br/>
+
+### 11.2.3 Avoiding `java.lang.Class` parameters by replacing class references with reified type parameters
+
+<small><i>클래스 참조를 실체화된 타입 파라미터로 대신함으로써 `java.lang.Class` 파라미터 피하기</i></small>
+
+- `java.lang.Class` 타입 인자를 파라미터로 받는 API 에 대한 코틀린 어댑터를 구축하는 경우 실체화된 타입 파라미터를 자주 사용
+
+<br/>
+
+**Example. Serviceloader**
+
+```kotlin
+val serviceImpl = ServiceLoader.load(Service::class.java)
+```
+
+<br/>
+
+`loadService` 의 파라미터를 실체화된 타입으로 지정한 형식:
+
+```kotlin
+inline fun <reified T> loadService() {
+  return ServiceLoader.load(T::class.java)
+}
+
+// Usage
+val serviceImpl = loadService<Service>()
+```
+
+<br/>
+
+### 11.2.4 Declaring accessors with reified type parameters
+
+<small><i>실체화된 타입 파라미터가 있는 접근자 정의</i></small>
+
+
