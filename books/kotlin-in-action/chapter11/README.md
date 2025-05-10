@@ -477,4 +477,104 @@ val serviceImpl = loadService<Service>()
 
 <small><i>실체화된 타입 파라미터가 있는 접근자 정의</i></small>
 
+- 게터와 세터의 커스텀 구현 가능
+- 제네릭 타입에 대해 프로퍼티 접근자를 정의하는 경우 프로퍼티를 `inline`으로 표시하고 타입 파라미터를 `reified`로 하면 타입 인자에 쓰인 구체적인 클래스를 참조 가능
+
+**Example. 확장 프로퍼티: `canonical`**
+
+```kotlin
+inline val <reified T> T.canonical: String
+    get() = T::class.java.canonicalName
+```
+ 
+**사용:**
+
+```kotlin
+listOf(1, 2, 3).canonical   // java.util.List
+1.canonical                 // java.lang.Integer
+```
+
+<br/>
+
+### 11.2.5 Reified type parameters come with restrictions
+
+<small><i>실체화된 타입 파라미터의 제약</i></small>
+
+**실체화된 타입 파라미터 사용 케이스 ✅**
+
+- 타입 검사와 캐스팅 (`is`, `!is`, `as`, `as?`)
+- **코틀린 리플렉션 API** (`::class`) - 12장 참고
+- 코틀린 타입에 대응하는 **`Java.lang.class` 얻기** (`::class.java`)
+- 다른 함수를 호출하기 위한 **타입 인자**로 사용
+
+<br/>
+
+**실체화된 타입 파라미터 사용 불가 케이스 ❌**
+
+- 타입 파라미터 클래스의 인스턴스 생성
+- 타입 파라미터 클래스의 컴패니언 객체 (Companion Object) 메서드 호출
+- 실체화된 타입 파라미터를 받는 함수 호출 시, 실체화되지 않은 타입 파라미터를 넘기기
+- 클래스나 논-인라인 함수의 타입 파라미터를 `reified`로 지정하기
+  - 인라인 함수에만 사용 → 즉, 실체화된 타입 파라미터를 사용하는 함수는 자신에게 전달되는 모든 람다를 인라이닝 
+  - `noinline` 변경자를 함수 타입 파라미터에 붙여 인라이닝을 금지할 수 있음
+
+<br/>
+
+## 11.3 Variance describes the subtyping relationship between generic arguments
+
+<small><i>변성은 제네릭과 타입 인자 사이의 하위 타입 관계를 기술</i></small>
+
+- **변성**<sup>variance</sup>은 베이스 타입이 같고 타입 인자가 다른 여러 타입이 서로 어떤 관계가 있는지 설명
+  - Example. `List<String>`과 `List<Any>`
+
+<br/>
+
+### 11.3.1 Variance determines whether it is safe to pass an argument to a function
+
+<small><i>변성은 인자를 함수에 넘겨도 안전한지 판단하게 해준다</i></small>
+
+- `Any`가 `List` 인터페이스의 타입 인자로 들어가는 경우 안전성을 장담할 수 없음
+- `List` 와 `MutableList` 의 타입 인자의 변성이 다름
+
+```kotlin
+fun addAnswer(list: MutableList<Any>) {
+  list.add(42)
+}
+```
+
+**결과:**
+
+```kotlin
+val strings = mutableListOf("abc", "bac")
+addAnswer(strings)
+println(strings.maxBy { it.length })  // ClassCastException: Integer cannot be cast to String
+```
+
+<br/>
+
+### 11.3.2 Understanding the differences between classes, types, and subtypes
+
+<small><i>클래스, 타입, 하위 타입</i></small>
+
+- `타입 B`가 `타입 A`의 하위 타입이라면, `타입 A`의 값 대신 `타입 B` 값을 넣어도 문제가 없음
+
+**Example. `i`가 `Int` 타입일 때,** 
+
+- `val n: Number = i` 은 컴파일 ✅
+- `val s: String = i` 은 컴파일 ❌
+
+<br/>
+
+- **널이 될 수 없는 타입은 널이 될 수 있는 타입의 하위 타입**
+  - Example. `val s = "abc"`일 때, `val t: String = s` 은 컴파일 ✅
+
+```
+  A?   Int?   Int
+  ↑     ↑      ↑
+  ✅    ✅    ❌
+  ⏐     ⏐      ⏐
+  A    Int    Int?
+```
+
+<br/>
 
