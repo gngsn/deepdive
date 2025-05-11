@@ -771,7 +771,9 @@ val apples: List<Apple> = listOf(
 )
 ```
 
-**결과:**
+</td></tr>
+<tr><th colspan="2">결과</th></tr>
+<tr><td colspan="2">
 
 ```kotlin
 fruits.sortedWith(weightComparator)  
@@ -780,9 +782,7 @@ apples.sortedWith(weightComparator)
 // [Apple(weight=50, color=red), Apple(weight=120, color=green), Apple(weight=155, color=yellow)]
 ```
 
-</td>
-</tr>
-</table>
+</td></tr></table>
 <br/>
 
 - 어떤 클래스에 대해 (`Consumer<T>` 를 예로 들면) `타입 B` 가 `타입 A` 의 하위 타입일 때 `Consumer<A>` 가 `Consumer<B>` 의 하위 타입인 관계가 성립하면, **제네릭 클래스는 타입 인자 `T` 에 대해 반공변임**
@@ -801,12 +801,12 @@ apples.sortedWith(weightComparator)
 
 <br/>
 
-| 공변성                                         | 반공변성                                        | 무공변성                    |
-|---------------------------------------------|---------------------------------------------|-------------------------|
-| `Producer<out T>`                           | `Consumer<in T>`                            | `MutableList<T>`        | 
-| 타입 인자의 하위 타입 관계가 제네릭 타입에서도 유지               | 타입 인자의 하위 타입 관계가 제네릭 타입에서 뒤집힘               | 하위 타입 관계가 성립하지 않음       |
-| `Producer<Cat>`은 `Producer<Animal>` 의 하위 타입 | `Producer<Animal>`은 `Producer<Cat>` 의 하위 타입 |                         |
-| `T` 를 **아웃 위치**에서만 사용할 수 있음                 | `T` 를 **인 위치**에서만 사용할 수 있음                  | `T` 를 **아무 위치**에서나 사용할 수 있음 | 
+| 공변성                                          | 반공변성                                         | 무공변성                        |
+|----------------------------------------------|----------------------------------------------|-----------------------------|
+| `Producer<out T>`                            | `Consumer<in T>`                             | `MutableList<T>`            | 
+| 타입 인자의 하위 타입 관계가 제네릭 타입에서도 유지                | 타입 인자의 하위 타입 관계가 제네릭 타입에서 뒤집힘                | 하위 타입 관계가 성립하지 않음           |
+| `Producer<Cat>`은 `Producer<Animal>` 의 하위 타입  | `Producer<Animal>`은 `Producer<Cat>` 의 하위 타입  |                             |
+| `T` 를 **아웃 위치**에서만 사용할 수 있음                  | `T` 를 **인 위치**에서만 사용할 수 있음                   | `T` 를 **아무 위치**에서나 사용할 수 있음 | 
 
 <br/>
 
@@ -823,3 +823,238 @@ interface Function1<in P, out R> {
 ### 11.3.5 Specifying variance for type occurrences via use-site variance
 
 <small><i>사용 지점 변성을 사용해 타입이 언급되는 지점에서 변성 지정</i></small>
+
+- **선언 지점 변성**<sup>declaration site variance</sup>: 
+  - 클래스를 선언하면서 변성을 지정하면 그 클래스를 사용하는 모든 장소에 변성 지정자가 영향을 끼치므로 편리
+
+- **사용 지점 변성** <sup>user-site variance</sup> 
+  - 자바에서는 타입 파라미터가 있는 타입을 사용할 때마다, 그 타입 파라미터를 하위 타입이나 상위 타입 중 어떤 타입으로 대치할 수 있는지 명시
+  - **Example**. `Functions<? super T, ? extends R>`
+  - 코틀린도 사용 지점 변성을 지원
+
+<br/>
+
+<pre>코틀린의 <b>사용 지점 변성 선언</b>은 자바의 <b>한정 와일드카드 (bounded wildcard)</b> 와 동일
+코틀린 <code>MutableList<out T></code> 는 자바 <code>MutableList<? extends T></code> 와 동일
+코틀린 <code>MutableList<in T></code> 는 자바 <code>MutableList<? super T></code> 와 동일</pre>
+
+선언 지점 변성을 사용하면 변성 변경자를 단 한 번만 표시하고 클래스를 쓰는 쪽에서는 변성에 대해 신경을 쓸 필요가 없어서 코드가 더 간결
+
+<br/>
+
+**Example. 타입 파라미터가 둘인 데이터 복사 함수**
+
+원본 리스트 원소 타입은 대상 리스트 원소 타입의 하위 타입이어야 함
+
+<table>
+<tr>
+<th>두 번째 제네릭 타입 정의</th>
+<th>더 우아하게 표현한 방식</th>
+</tr>
+<tr>
+<td>
+
+```kotlin
+fun <T: R, R> copyData(source: MutableList<T>,
+                       destination: MutableList<R>) {
+    for (item in source) {
+        destination.add(item)
+    }
+}
+```
+
+</td>
+<td>
+
+```kotlin
+fun <T> copyData(source: MutableList<out T>,
+                 destination: MutableList<T>) {
+    for (item in source) {
+        destination.add(item)
+    }
+}
+```
+
+</td></tr>
+</table>
+
+<br/>
+
+#### 타입 프로젝션 _type projection_
+
+\: 파라미터를 프로젝션(제약을 가한) 타입으로 만듦
+
+- 타입 선언에서 타입 파라미터를 사용하는 위치에 변성 변경자를 붙일 수 있음
+  - 위 `copyData` 함수는 `MutableList` 의 메서드 중에서 타입 파라미터 `T` 를 아웃 위치(반환)에만 사용할 수 있음 
+  - 즉, 컴파일러는 타입 파라미터 `T` 를 인위치(함수 인자 타입)로 사용하지 못하게 막음
+
+```kotlin
+val list: MutableList<out Number> = mutableListOf()
+list.add(42)
+// Error: Out-projected type 'MutableList<out Number>' prohibits
+// the use of 'fun add(element: E): Boolean'
+```
+
+<br/>
+
+### 11.3.6 Star projection: Using the * character to indicate a lack of information about a generic argument
+
+<small><i>스타 프로젝션 : 제네릭 타입 인자에 대한 정보가 없음을 표현하고자 `*` 사용</i></small>
+
+- **스타 프로젝션** <sup>star projection</sup>: 제네릭 타입 인자 정보가 없음 표현
+- 타입 인자 정보가 중요하지 않을 때 사용
+
+- `MutableList<*>` ≠ `MutableList<Any?>`
+  - `MutableList<*>`: 정확히 모르는 특정 구체적인 타입의 원소만을 담는 리스트 
+    - 아무 원소나 다 담아도 된다는 뜻이 아님
+    - `MutableList<*>` 타입의 리스트를 생성할 수 없음
+  - `MutableList<Any?>`: 모든 타입의 원소를 담을 수 있음을 알 수 있는 리스트
+  - `MutableList<T>`는 `T`에 대해 무공변성
+
+ ```kotlin
+val list: MutableList<Any?> = mutableListOf('a', 1, "qwe")
+val chars = mutableListOf('a', 'b', 'c')
+val unknownElements: MutableList<*> =
+        if (Random.nextBoolean()) list else chars
+
+println(unknownElements.first())                 // ✅ Any? 타입 원소 반환: "a"
+unknownElements.add(42)
+// 🚨 Error: Out-projected type 'MutableList<*>' prohibits
+// the use of 'fun add(element: E): Boolean'
+```
+
+- 리스트의 원소 타입을 몰라도 `Any?` 타입의 원소를 꺼내올 수 있지만, 타입을 모르는 리스트에 원소를 마음대로 넣을 수는 없음
+- `Any?` 는 모든 코틀린 타입의 상위 타입이기 때문
+- Kotlin `MyType<*>` = Java `MyType<?>`
+
+<br/>
+
+#### 스타 프로젝션 사용 시 빠지기 쉬운 함정
+
+- `FieldValidator` 에는 인 위치에만 쓰이는 타입 파라미터가 있음 (`FieldValidator`는 반공변성)
+
+```kotlin
+interface FieldValidator<in T> {
+    fun validate(input: T): Boolean
+}
+```
+
+<br/>
+
+`String`과 `Int` 타입의 `FieldValidator` 구현
+
+```kotlin
+object DefaultStringValidator : FieldValidator<String> {
+    override fun validate(input: String) = input.isNotEmpty()
+}
+ 
+object DefaultIntValidator : FieldValidator<Int> {
+    override fun validate(input: Int) = input >= 0
+}
+```
+
+<br/>
+
+모든 타입의 검증기를 맵에 넣을 수 있어야 하므로 `KClass`를 키로 하고, `FieldValidator<*>`를 값으로 하는 맵을 선언 (`KClass`: 코틀린 클래스)
+
+```kotlin
+val validators = mutableMapOf<KClass<*>, FieldValidator<*>>()
+validators[String::class] = DefaultStringValidator
+validators[Int::class] = DefaultIntValidator
+```
+
+<br/>
+
+🚨 `String` 타입의 필드를 `FieldValidator<*>` 타입의 검증기로 검증할 수 없음
+
+```kotlin
+validators[String::class]!!.validate("")                     
+// Error: Out-projected type 'FieldValidator<*>' prohibits
+// the use of 'fun validate(input: T): Boolean'
+```
+
+<br/>
+
+**방법 1:** 안전하진 않지만 타입 캐스팅을 하면 사용 가능
+
+```kotlin
+val stringValidator = validators[String::class] as FieldValidator<String>  // Warning: unchecked cast 경고 발생
+println(stringValidator.validate(""))   // false
+```
+
+<br/>
+
+**방법 2:** 검증기를 등록하거나 가져오는 작업을 수행할 때 타입을 제대로 검사하도록 캡슐화
+
+- `Warning: unchecked cast 경고 발생` 여전히 발생하지만, `Validators` 객체가 맵 접근을 통제하기 때문에 맵에 잘못된 값이 들어가지 못하게 막음
+
+```kotlin
+object Validators {
+    private val validators = mutableMapOf<KClass<*>, FieldValidator<*>>()   // 외부 접근 불가
+ 
+    fun <T: Any> registerValidator(
+            kClass: KClass<T>, fieldValidator: FieldValidator<T>) {
+        validators[kClass] = fieldValidator                 // 타입이 맞을 때만 키/값 쌍으로 입력
+    }
+ 
+    @Suppress("UNCHECKED_CAST")                            // FieldValidator<T> 캐스팅이 안전하지 않다는 경고를 무시
+    operator fun <T: Any> get(kClass: KClass<T>): FieldValidator<T> =
+        validators[kClass] as? FieldValidator<T>
+                ?: throw IllegalArgumentException("No validator for ${kClass.simpleName}")
+}
+```
+
+- `Validators` 의 제네릭 메서드가 항상 올바른 검증기를 돌려주기 때문에, 컴파일러가 잘못된 검증기를 쓰지 못하게 막음
+- **안전하지 못한 코드의 위치를 한곳으로 한정** → 오사용 방지 + 안전하게 사용하도록 만들 수 있음
+
+<br/>
+
+### 11.3.7 Type aliases
+
+<small><i>타입 별명</i></small>
+
+- **타입 별명**<sup>type aliases</sup>: 기존 타입에 대해 다른 이름을 부여
+
+```kotlin
+typealias NameCombiner = (String, String, String, String) -> String    // typealias로 타입 별명 정의
+
+fun combineAuthors(combiner: NameCombiner) {
+    println(combiner("Sveta", "Seb", "Dima", "Roman"))
+}
+```
+
+**사용:**
+
+```kotlin
+val bandCombiner: NameCombiner = { a, b, c, d -> "$a, $b & The Gang" }
+combineAuthors(bandCombiner)                        // Sveta, Seb & The Gang
+combineAuthors { a, b, c, d -> "$d, $c & Co."}      // Roman, Dima & Co.
+```
+
+<br/>
+
+## 11.4 Summary
+
+<small><i>요약</i></small>
+
+- 코틀린 제네릭스는 자바와 아주 비슷해서, 제네릭 함수와 클래스를 자바와 비슷하게 선언할 수 있음
+- **타입 소거** <sup>Type Erasure</sup>: 타입 인자가 실행 시점에 지워짐
+  - 제네릭 타입의 타입 인자는 컴파일 시점에만 존재 (자바와 동일)
+  - 제네릭 타입을 `is` 연산자로 검사할 수 없음
+- 인라인 함수의 타입 파라미터를 `reified`로 표시해서 실체화
+  - 실행 시점에 그 타입을 `is`로 검사하거나 `java.lang.Class` 인스턴스를 얻을 수 있음
+- 변성은 **베이스 클래스가 같고 타입 파라미터가 다른 두 제네릭 타입 사이**의 상하위 타입 관계를 명시하는 방법
+- 제네릭 클래스의 타입 파라미터가 **아웃 위치**에서만 사용되는 경우: 타입 파라미터를 `out` 으로 표시해서 공변성 명시 - 생성자
+- 제네릭 클래스의 타입 파라미터가 **인 위치**에서만 사용되는 경우: 타입 파라미터를 `in` 으로 표시해서 반공변성 명시 - 소비자
+- 공변성의 반대는 반공변성. 
+  - 코틀린의 읽기 전용 `List` 인터페이스: **공변적** ← `List<String>`은 `List<Any>`의 하위 타입
+  - `Function1<in P, out R>` 함수 인터페이스: **첫 번째 타입 파라미터**에 대해서는 **반공변적**, **두 번째 타입 파라미터**에 대해서는 **공변적**
+    - `(Animal) -> Int` 는 `(Cat) -> Number` 의 하위 타입
+    - 즉, 함수 타입은 함수 파라미터 타입에 대해서는 반공변적이며 함수 반환 타입에 대해서는 공변적
+- 코틀린에서의 제네릭 클래스의 **공변성 정의 지점**:
+  - **선언 지점 변성**: 전체적으로 지정
+  - **사용 지점 변성**: 구체적인 사용 위치에서 지정
+- **스타 프로젝션**: 제네릭 클래스의 타입 인자가 어떤 타입인지 정확히 모르거나 혹은 중요하지 않을 때 사용
+- **타입 별명**: 타입에 대해 더 짧은 이름이나 다른 이름을 부여
+  - 타입 별명은 컴파일 시점에 원래의 타입으로 치환.
+
