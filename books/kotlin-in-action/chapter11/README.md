@@ -708,4 +708,104 @@ class Herd<out T: Animal>(private var leadAnimal: T,
                           vararg animals: T) { /* ... */ }
 ```
 
+<br/>
 
+### 11.3.4 Contravariance reverses the subtyping relation
+
+<small><i>반공성은 하위 타입 관계를 뒤집는다</i></small>
+
+- 반공변<sup>contravariance</sup> 클래스의 하위 타입 관계는 해당 클래스의 타입 파라미터의 상하위 타입 관계와 반대
+
+<table>
+<tr>
+<td colspan="2">
+
+```kotlin
+open class Animal {
+  fun feed() { /* ... */ }
+}
+```
+
+</td>
+</tr>
+<tr>
+<th>계층 구조의 과일 클래스: 공통 프로퍼티 `weight`를 가짐</th>
+<th>사용</th>
+</tr>
+<tr>
+<td>
+
+```kotlin
+sealed class Fruit {
+    abstract val weight: Int
+}
+ 
+data class Apple(
+    override val weight: Int,
+    val color: String,
+): Fruit()
+ 
+data class Orange(
+    override val weight: Int,
+    val juicy: Boolean,
+): Fruit()
+```
+
+</td>
+<td>
+
+```kotlin
+val weightComparator = Comparator<Fruit> { a, b ->
+    a.weight - b.weight
+}
+val fruits: List<Fruit> = listOf(
+    Orange(180, true),
+    Apple(100, "green")
+)
+val apples: List<Apple> = listOf(
+    Apple(50, "red"),
+    Apple(120, "green"),
+    Apple(155, "yellow")
+)
+```
+
+**결과:**
+
+```kotlin
+fruits.sortedWith(weightComparator)  
+// [Apple(weight=100, color=green), Orange(weight=180, juicy=true)]
+apples.sortedWith(weightComparator)
+// [Apple(weight=50, color=red), Apple(weight=120, color=green), Apple(weight=155, color=yellow)]
+```
+
+</td>
+</tr>
+</table>
+
+- 어떤 클래스에 대해 (`Consumer<T>` 를 예로 들면) `타입 B` 가 `타입 A` 의 하위 타입일 때 `Consumer<A>` 가 `Consumer<B>` 의 하위 타입인 관계가 성립하면, **제네릭 클래스는 타입 인자 `T` 에 대해 반공변임**
+
+```
+  Animal     Producer<Cat>     Consumer<Animal>
+    ↑             ↑                  ⏐
+    ⏐           공변적              반공변적
+    ⏐             ⏐                  ↓
+   Cat       Producer<Cat>     Consumer<Cat>
+```
+
+- `in`: 해당 클래스의 메서드 안으로 전달돼 메서드에 의해 소비된다는 뜻
+
+| 공변성                                         | 반공변성                                        | 무공변성                    |
+|---------------------------------------------|---------------------------------------------|-------------------------|
+| `Producer<out T>`                           | `Consumer<in T>`                            | `MutableList<T>`        | 
+| 타입 인자의 하위 타입 관계가 제네릭 타입에서도 유지               | 타입 인자의 하위 타입 관계가 제네릭 타입에서 뒤집힘               | 하위 타입 관계가 성립하지 않음       |
+| `Producer<Cat>`은 `Producer<Animal>` 의 하위 타입 | `Producer<Animal>`은 `Producer<Cat>` 의 하위 타입 |                         |
+| `T` 를 **아웃 위치**에서만 사용할 수 있음                 | `T` 를 **인 위치**에서만 사용할 수 있음                  | `T` 를 **아무 위치**에서나 사용할 수 있음 | 
+
+
+- 어떤 타일 파라미터에 대해서는 공변적이면서 다른 타입 파라미터에 대해서는 반공변적일 수도 있음
+
+```kotlin
+interface Function1<in P, out R> {
+    operator fun invoke(p: P): R
+}
+```
