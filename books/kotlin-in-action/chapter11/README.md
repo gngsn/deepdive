@@ -673,7 +673,7 @@ fun takeCareOfCats(cats: Herd<Cat>) {
 - **타입 파라미터 T 에 붙은 out 키워드는 다음 2 가지를 의미**
   - 하위 타입 관계가 유지됨 (`Producer<Cat>`은 `Producer<Animal>` 의 하위 타입).
   - T 를 아웃 위치에서만 사용할 수 있음
-- 어떤 위치가 아웃인지 인인지 판정하는 정확한 알고리듬이 궁금한 독자는 코틀린 언어 문서 참고
+- 어떤 위치가 아웃인지 인인지 판정하는 정확한 알고리즘이 궁금한 독자는 코틀린 언어 문서 참고
 - `MutableList<T>` 를 타입 파라미터 `T` 에 대해 공변적인 클래스로 선언할 수는 없음
   - `MutableList<T>` 에는 `T` 를 인자로 받아, 그 타입의 값을 반환하는 메서드가 있음 (`T`가 인과 아웃 위치에 동시에 쓰임)
 
@@ -694,6 +694,8 @@ interface MutableList<out T>               //  T에 대해 공변적일 수 없�
 class Herd<out T: Animal>(vararg animals: T) { /* ... */ }
 ```
 
+<br/>
+
 - `val` 이나 `var` 키워드를 생성자 파라미터에 적는다면 게터나 (변경 가능한 프로퍼티의 경우) 세터를 정의하는 것과 같음
 - **읽기 전용 프로퍼티**는 **아웃 위치**, **변경 가능 프로퍼티**는 **아웃과 인 위치 모두**에 해당
 
@@ -701,6 +703,8 @@ class Herd<out T: Animal>(vararg animals: T) { /* ... */ }
 // leadAnimal 프로퍼티가 인 위치에 있기 때문에 T 를 out으로 표시할 수 없음
 class Herd<T: Animal>(var leadAnimal: T, vararg animals: T) { /* ... */ }
 ```
+
+<br/>
 
 - 비공개<sup>private</sup> 메서드의 파라미터는 인도 아니고 아웃도 아님
 
@@ -716,7 +720,9 @@ class Herd<out T: Animal>(private var leadAnimal: T,
 
 <small><i>반공성은 하위 타입 관계를 뒤집는다</i></small>
 
-- 반공변<sup>contravariance</sup> 클래스의 하위 타입 관계는 해당 클래스의 타입 파라미터의 상하위 타입 관계와 반대
+- **반공변**<sup>contravariance</sup> 클래스의 하위 타입 관계는 해당 클래스의 타입 파라미터의 상하위 타입 관계와 반대
+
+<br/>
 
 <table>
 <tr>
@@ -911,12 +917,20 @@ list.add(42)
   - `MutableList<Any?>`: 모든 타입의 원소를 담을 수 있음을 알 수 있는 리스트
   - `MutableList<T>`는 `T`에 대해 무공변성
 
- ```kotlin
+<br/>
+
+```kotlin
 val list: MutableList<Any?> = mutableListOf('a', 1, "qwe")
 val chars = mutableListOf('a', 'b', 'c')
 val unknownElements: MutableList<*> =
         if (Random.nextBoolean()) list else chars
+```
 
+<br/>
+
+**사용:**
+
+```kotlin
 println(unknownElements.first())                 // ✅ Any? 타입 원소 반환: "a"
 unknownElements.add(42)
 // 🚨 Error: Out-projected type 'MutableList<*>' prohibits
