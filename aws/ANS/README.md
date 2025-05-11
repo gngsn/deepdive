@@ -182,7 +182,12 @@
 15. [Security Groups Outbound Rules & Managed Prefixes](./security_groups_outbound_rules_managed_prefixes.md)
 
 
+## Section 20: Route 53
 
+1. [What is a DNS?](./what_is_a_dns.md])
+2. [Route 53 Overview]()
+3. Route 53 - Registering a domain 
+4. Route 53 - Creating our first records
 
 
 
