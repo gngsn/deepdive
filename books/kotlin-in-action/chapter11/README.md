@@ -578,3 +578,134 @@ println(strings.maxBy { it.length })  // ClassCastException: Integer cannot be c
 
 <br/>
 
+### 11.3.3 Covariance preserves the subtyping relation
+
+<small><i>공변성은 하위 타입 관계를 유지한다</i></small>
+
+- `A`가 `B`의 하위 타입이면 `List<A>` 는 `List<B>` 의 하위 타입
+- 이런 클래스나 인터페이스를 공변적<sup>covariant</sup> 이라 부름
+
+- **공변적인 클래스**: 제네릭 클래스 `Producer<A>` 에 대해 `A` 가 `B` 의 하위 타입일 때, `Producer<A>` 가 `Producer<B>` 의 하위 타입인 경우
+  - > "하위 타입 관계를 유지한다"
+- 제네릭 클래스가 타입 파라미터에 대해 공변적임을 표시하려면 타입 파라미터 이름 앞에 `out` 표시
+
+<table>
+<tr>
+<td colspan="2">
+
+```kotlin
+open class Animal {
+  fun feed() { /* ... */ }
+}
+```
+
+</td>
+</tr>
+<tr>
+<th>공변적 ❌</th>
+<th>공변적 ✅</th>
+</tr>
+<tr>
+<td>
+
+```kotlin
+class Herd<T : Animal> {             // T는 공변적이지 않음
+  val size: Int get() = /* ... */
+    operator fun get(i: Int): T { /* ... */ }
+}
+```
+
+</td>
+<td>
+
+```kotlin
+class Herd<out T : Animal> {    // T는 공변적임
+  /* ... */
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>
+
+```kotlin       
+fun feedAll(animals: Herd<Animal>) {
+  for (i in 0..<animals.size) {
+    animals[i].feed()
+  }
+}
+```
+
+**무공변 클래스에 하위 타입 대입하기** 
+
+```kotlin
+class Cat : Animal() {               // Cat 은 Animal
+    fun cleanLitter() { /* ... */ }
+}
+ 
+fun takeCareOfCats(cats: Herd<Cat>) {
+    for (i in 0..<cats.size) {
+        cats[i].cleanLitter()
+    }
+    // feedAll(cats) ← Error: inferred type is Herd<Cat>, but Herd<Animal> was expected          
+}
+```
+
+</td>
+<td>
+
+```kotlin 
+fun takeCareOfCats(cats: Herd<Cat>) {
+    for (i in 0..<cats.size) {
+        cats[i].cleanLitter()
+    }
+    feedAll(cats)               // 캐스팅할 필요 X
+}
+```
+
+</td>
+</tr>
+</table>
+
+- **타입 파라미터 T 에 붙은 out 키워드는 다음 2 가지를 의미**
+  - 하위 타입 관계가 유지됨 (`Producer<Cat>`은 `Producer<Animal>` 의 하위 타입).
+  - T 를 아웃 위치에서만 사용할 수 있음
+- 어떤 위치가 아웃인지 인인지 판정하는 정확한 알고리듬이 궁금한 독자는 코틀린 언어 문서 참고
+- `MutableList<T>` 를 타입 파라미터 `T` 에 대해 공변적인 클래스로 선언할 수는 없음
+  - `MutableList<T>` 에는 `T` 를 인자로 받아, 그 타입의 값을 반환하는 메서드가 있음 (`T`가 인과 아웃 위치에 동시에 쓰임)
+
+```kotlin
+interface MutableList<out T>               //  T에 대해 공변적일 수 없음
+       : List<T>, MutableCollection<T> {
+   override fun add(element: T): Boolean  // T가 In 위치(함수 파라미터의 타입)에 쓰이기 때문
+}
+```
+
+<br/>
+
+#### 생성자 파라미터
+
+⚠️ 생성자 파라미터는 인이나 아웃 위치 어느 쪽도 아님
+
+```kotlin
+class Herd<out T: Animal>(vararg animals: T) { /* ... */ }
+```
+
+- `val` 이나 `var` 키워드를 생성자 파라미터에 적는다면 게터나 (변경 가능한 프로퍼티의 경우) 세터를 정의하는 것과 같음
+- **읽기 전용 프로퍼티**는 **아웃 위치**, **변경 가능 프로퍼티**는 **아웃과 인 위치 모두**에 해당
+
+```kotlin
+// leadAnimal 프로퍼티가 인 위치에 있기 때문에 T 를 out으로 표시할 수 없음
+class Herd<T: Animal>(var leadAnimal: T, vararg animals: T) { /* ... */ }
+```
+
+- 비공개<sup>private</sup> 메서드의 파라미터는 인도 아니고 아웃도 아님
+
+```kotlin
+// Herd 를 T에 대해 공변적으로 선언해도 안전
+class Herd<out T: Animal>(private var leadAnimal: T,
+                          vararg animals: T) { /* ... */ }
+```
+
+
