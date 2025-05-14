@@ -184,10 +184,10 @@
 
 ## Section 20: Route 53
 
-1. [What is a DNS?](./what_is_a_dns.md])
-2. [Route 53 Overview]()
-3. Route 53 - Registering a domain 
-4. Route 53 - Creating our first records
+1. [What is a DNS?](./what_is_a_dns.md)
+2. [Route 53 Overview](./route_53_overview.md)
+4. [Route 53 - Setup](./route_53_setup.md)
+5. [Route 53 - TTL](./route_53_ttl.md)
 
 
 
