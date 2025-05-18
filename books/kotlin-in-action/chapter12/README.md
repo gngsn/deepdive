@@ -15,7 +15,7 @@
 
 <br/>
 
-### 12.1.1. Applying annotations to mark declarations
+### 12.1.1 Applying annotations to mark declarations
 
 <small><i>어노테이션을 적용해 선언에 표지 남기기</i></small>
 
@@ -83,7 +83,7 @@ class MyTest {
 
 <br/>
 
-### 12.1.2. Specifying the exact declaration an annotation refers to: Annotation targets
+### 12.1.2 Specifying the exact declaration an annotation refers to: Annotation targets
 
 <small><i>어노테이션이 참조할 수 있는 정확한 선언 지정: 어노테이션 타깃</i></small>
 
@@ -183,4 +183,192 @@ class Foo {
 - `@JvmField` 를 프로퍼티에 사용하면 대상 프로퍼티를 게터나 세터가 없는 공개된 (Public) 자바 필드로 노출시킴
 - `@JvmRecord`: `data class` 에 사용하면 자바 레코드 클래스를 선언할 수 있음
 
+<br/>
 
+### 12.1.3 Using annotations to customize JSON serialization
+
+<small><i>어노테이션을 활용해 JSON 직렬화 제어</i></small>
+
+어노테이션을 사용하는 고전적인 예제: JSON 직렬화
+
+코틀린 객체를 JSON 으로 변환하는 코틀린 라이브러리로 젯브레인즈의 `kotlinx.serialization`
+
+- [**kotlinx.serialization**](http://github.com/kotlin/kotlinx.serialization)
+- 자바 객체를 JSON 으로 변환하기 위해 설계된 대표 라이브러리와도 완전히 호환
+  - [**Jackson**](https://github.com/FasterXML/jackson) 
+  - [**Gson**](https://github.com/google/gson) 
+
+[Kotlin in Action 2e: JKid Implementation 데모 코드 참고](https://github.com/Kotlin/kotlin-in-action-2e-jkid/tree/main/src/test/kotlin/examples)
+
+##### Examples.
+
+```kotlin
+data class Person(val name: String, val age: Int)
+```
+
+<table>
+<tr>
+  <td>✔️ <b><code>serialize()</code></b>: 코틀린 객체 → JSON</td>
+  <td></td>
+  <td>✔️ <b><code>deserialize()</code></b>: JSON → 코틀린 객체</td>
+</tr>
+<tr>
+<td>
+
+```kotlin
+import kia.jkid.serialization.serialize
+// ...
+val person = Person("Alice", 29)
+println(serialize(person))          // {"age": 29, "name": "Alice"}
+```
+
+</td>
+<td>
+
+ 직렬화
+⎯⎯⎯⎯→
+←⎯⎯⎯⎯
+ 역직렬화
+
+</td>
+<td>
+
+JSON에 객체의 타입 정보가 들어있지 않기 때문에 타입 인자로 지정해야 함
+
+```kotlin
+import kia.jkid.deserialization.deserialize
+// ...
+val json = """{"name": "Alice", "age": 29}"""
+println(deserialize<Person>(json))      // Person(name=Alice, age=29)
+```
+
+</td>
+</tr>
+</table>
+
+[_1PersonExample.kt](https://github.com/Kotlin/kotlin-in-action-2e-jkid/blob/main/src/test/kotlin/examples/_1PersonExample.kt)
+
+<br/>
+
+✔️ **`@JsonName`**
+
+- 어노테이션을 사용하면 프로퍼티를 표현하는 키/값 쌍의 이름 대신, **어노테이션이 지정한 문자열을 쓰게 할 수 있음**
+
+✔️ **`@JsonExclude`**
+
+- 어노테이션을 사용하면 직렬화나 **역직렬화할 때 무시해야 하는 프로퍼티를 표시할 수 있음**
+
+```kotlin
+data class Person(
+    @JsonName("alias") val firstName: String,
+    @JsonExclude val age: Int? = null
+)
+```
+
+<br/>
+
+### 12.1.4 Creating your own annotation declarations
+
+<small><i>어노테이션 선언</i></small>
+
+<br/>
+
+#### 어노테이션을 선언하는 방법
+
+- 일반 클래스 선언과 비슷하지만, `class` 키워드 앞에 `annotation` 이라는 변경자가 붙어있음
+
+```kotlin
+annotation class JsonName
+```
+
+- 어노테이션 클래스는 내부에 아무 코드도 들어있을 수 없음
+  - 선언이나 식과 관련 있는 **메타데이터의 구조만 정의**하기 때문
+  - 컴파일러가 어노테이션 클래스에서 본문을 정의하지 못하게 막음
+- 파라미터가 있는 어노테이션을 정의하려면 어노테이션 클래스의 주 생성자에 파라미터를 선언해야 함
+- 일반적인 주 생성자 구문을 사용하면서 모든 파라미터를 `val`로 선언
+
+```kotlin
+annotation class JsonName(val name: String)
+```
+
+#### vs. Java
+
+자바 어노테이션 선언과의 비교
+비교를 위해 같은 어노테이션을 자바로 선언한 경우 어떤 모습일지 다음에 적었다
+
+```Java
+/* Java */
+public @interface JsonName {
+    String value();
+}
+```
+
+- 자바 어노테이션에는 `value` 라는 메서드가 있음
+- 코틀린 어노테이션에는 `name` 이라는 프로퍼티가 있음
+자바에서 value 메서드는 특별
+어떤 어노테이션을 적용할 때 `value` 를 제외한 모든 애트리뷰트에는 이름을 명시해야 함
+
+
+<br/>
+
+### 12.1.5 Meta-annotations: Controlling how an annotation is processed
+
+<small><i>메타어노테이션: 어노테이션을 처리하는 방법 제어</i></small>
+
+표준 라이브러리에는 여러 메타어노테이션이 있으며 그런 메타어노테이션들
+은 컴파일러가 어노테이션을 처리하는 방법을 제어
+
+표준 라이브러리에서 가장 많이 사용하는 메타어노테이션: `@Target`
+
+제이키드의 `JsonExclude` 와 `JsonName` 어노테이션도 적용 가능한 타깃을 지정하기 위해 `@Target` 을 사용
+
+```kotlin
+@Target(AnnotationTarget.PROPERTY)
+annotation class JsonExclude
+```
+
+- 어노테이션이 붙을 수 있는 타깃이 정의된 이넘은 `AnnotationTarget`
+- 클래스, 파일, 프로퍼티, 프로퍼티 접근자, 타입, 식 등에 대한 이넘 정의가 되어 있음
+  - https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.annotation/-annotation-target/#
+- 둘 이상의 타깃을 한꺼번에 선언할 수도 있음
+  - `@Target(AnnotationTarget.CLASS, AnnotationTarget.METHOD)`
+
+<br/>
+
+- **메타어노테이션** 생성을 위해 `ANNOTATION_CLASS` 를 타깃으로 지정
+
+```kotlin
+@Target(AnnotationTarget.ANNOTATION_CLASS)
+annotation class BindingAnnotation
+ 
+@BindingAnnotation
+annotation class MyBinding
+```
+
+<br/>
+
+**⚠️ 대상을 `PROPERTY` 로 지정한 어노테이션을 자바 코드에서 사용할 수는 없음**
+
+- 자바에서 타겟을 `PROPERTY` 로 지정한 코틀린 어노테이션을 사용하려면 `AnnotationTarget.FIELD`를 두 번째 타깃으로 추가해야 함
+- 어노테이션을 코틀린 프로퍼티와 자바 필드에 적용할 수 있음
+
+<br/>
+
+#### `@Retention` 어노테이션
+
+`@Retention` 은 정의 중인 어노테이션 클래스 접근 범위를 지정하는 메타어노테이션
+
+- **소스 수준에서만 유지**할지,
+- **`.class` 파일에 저장**할지,
+- **실행 시점에 리플렉션을 사용해 접근할 수 있게 할지** 
+
+<br/>
+
+- **자바 컴파일러**는 기본적으로 어노테이션을 `.class` 파일에는 저장하지만 런타임에는 사용할 수 없게 함
+- **코틀린**에서는 자바와 달리 `@Retention` 을 디폴트로 `RUNTIME` 으로 지정
+  - 대부분의 어노테이션은 런타임에도 사용할 수 있어야 함 
+
+따라서 위 예제에서는 제이키드 어노테이션에 별도로 `@Retention` 메타어노테이션을 붙이지 않았지만, 
+여전히 리플렉션을 통해 제이키드 어노테이션에 접근할 수 있음
+
+<br/>
