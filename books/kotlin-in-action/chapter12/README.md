@@ -366,9 +366,114 @@ annotation class MyBinding
 
 - **자바 컴파일러**는 기본적으로 어노테이션을 `.class` 파일에는 저장하지만 런타임에는 사용할 수 없게 함
 - **코틀린**에서는 자바와 달리 `@Retention` 을 디폴트로 `RUNTIME` 으로 지정
-  - 대부분의 어노테이션은 런타임에도 사용할 수 있어야 함 
+  - 대부분의 어노테이션은 런타임에도 사용할 수 있어야 하기 때문 
 
-따라서 위 예제에서는 제이키드 어노테이션에 별도로 `@Retention` 메타어노테이션을 붙이지 않았지만, 
+지금까지 살펴본 예제에서 제이키드 어노테이션에 별도로 `@Retention` 메타어노테이션을 붙이지 않았지만, 
 여전히 리플렉션을 통해 제이키드 어노테이션에 접근할 수 있음
 
 <br/>
+
+### 12.1.6 Passing classes as annotation parameters to further control behavior
+
+<small><i>어노테이션 파라미터로 클래스 사용</i></small>
+
+- 어떤 클래스를 선언 메타데이터로 참조할 수 있는 기능이 필요할 때 사용
+
+**Example. `@DeserializeInterface`: 인터페이스를 구현하는 클래스를 지정하는 예제**
+
+- 제이키드 라이브러리에 있는 `@DeserializeInterface`는 인터페이스 타입인 프로퍼티에 대한 역직렬화를 제어할 때 쓰는 어노테이션 
+- 인터페이스의 인스턴스를 직접 만들 수는 없기 때문에
+- 따라서 역직렬화 시 어떤 클래스를 사용해 인터페이스를 구현할지를 지정할 수 있어야 함
+
+```kotlin
+interface Company {
+    val name: String
+}
+ 
+data class CompanyImpl(override val name: String) : Company
+ 
+data class Person(
+    val name: String,
+    @DeserializeInterface(CompanyImpl::class) val company: Company
+)
+```
+
+- `@DeserializeInterface` 어노테이션의 인자로 `CompanyImpl::class` 를 넘김
+  - `CompanyImpl`의 인스턴스를 만들어 Person 인스턴스의 `company` 프로퍼티에 설정
+
+<br/>
+
+```kotlin
+annotation class DeserializeInterface(val targetClass: KClass<out Any>)
+```
+
+- `KClass` 타입은 **코틀린 클래스에 대한 참조**를 저장
+  - `KClass`의 인스턴스가 가리키는 코틀린 타입을 지정
+  - e.g. 위 예시에서, `CompanyImpl::class`의 타입은 `KClass<CompanyImpl>`
+
+```
+    KClass<out Any>
+          ↑      
+          ⏐       
+  KClass<CompanyImpl>
+```
+
+<br/>
+
+### 12.1.7 Generic classes as annotation parameters
+
+<small><i>어노테이션 파라미터로 제네릭 클래스 받기</i></small>
+
+`@CustomSerializer` 어노테이션은 커스텀 직렬화 클래스에 대한 참조를 인자로 받음
+
+이 직렬화 클래스는 ValueSerializer 인터페이스를 구현해야 함
+
+```kotlin
+interface ValueSerializer<T> {
+    fun toJsonValue(value: T): Any?
+    fun fromJsonValue(jsonValue: Any?): T
+}
+```
+
+직렬화 로직을 Person 클래스에 적용하는 방법을
+
+```kotlin
+data class Person(
+    val name: String,
+    @CustomSerializer(DateSerializer::class) val birthDate: Date
+)
+```
+
+`@CustomSerializer` 어노테이션을 구현
+
+어노테이션이 어떤 타입에 대해 쓰일지 알 수 없으므로, 스타 프로젝션을 인자로 사용할 수 있음
+
+```kotlin
+annotation class CustomSerializer(
+    val serializerClass: KClass<out ValueSerializer<*>>
+)
+```
+
+
+- `ValueSerializer` 인터페이스를 구현하는 클래스만 인자로 받아야 함을 명시할 필요가 있음
+- 예를 들어 Date 가 ValueSerializer 를 구현하지 않으므로 `@CustomSerializer(Date::class)` 라는 어노테이션을 금지시켜야 함 
+
+약간 어려워 보이지만 다행히 
+- 클래스를 어노테이션 인자로 받아야 할 때마다 같은 패턴을 사용할 수 있음
+- `KClasss<out 자신의 클래스 이름<*>>` 을 쓰면 되고, 
+- 자신의 클래스 이름 자체가 타입 인자를 받아야 한다면 `KClasss<out 자신의 클래스 이름<*>>` 처럼 타입 인자를 `*` 로 바꿈
+
+<pre>
+            <code>DateSerializer::class</code>는 OK ✅ 
+                <code>Date::class</code>는 거부 ❌
+               —————————————————————
+       KClasss&lt;out ValueSerializer&lt;*&gt;&gt;
+               ———                   ———
+      모든 ValueSerializer    어떤 타입의 값이든 직렬화 가능
+        구현 클래스를 받음
+</pre>
+
+
+
+
+
