@@ -26,33 +26,33 @@ RAG: Retrieval Augmented Generation
 
 이전에 발견되지 않은 기획 발굴
 
-| 챌린지 | 솔루션 |
-| --- | --- |
-
-1. 청킹 최적화 -> 데이터 기반 청킹
-2. 데이터 일관성 -> 벡터 데이터 동기화
-3. 부하 관리 -> 자동 부하 제어
-4. 운영 지속성 -> 안정적 시스템 운영
-5. 검색 품질 _. 고급 검색 기능
+| 챌린지       |   | 솔루션        |
+|-----------|---|------------|
+| 청킹 최적화    | → | 데이터 기반 청킹  |
+| 데이터 일관성   | → | 벡터 데이터 동기화 |
+| 부하 관리     | → | 자동 부하 제어   |
+| 운영 지속성    | → | 안정적 시스템 운영 |
+| 검색 품질     | → | 고급 검색 기능   |
 
 #### 인스턴트 애널리스트
 키워드: 인스턴트 애널리스트
 
-<img src="img1" />
+<img src="./image/img1.jpeg" width="100%" />
 
 #### 데이터 수집 파이프라인 아키텍처
 
-<img src="img2" />
+<img src="./image/img2.jpeg" width="100%" />
 
 #### RAG 아키텍처
 
-<img src="img3" />
-
+<img src="./image/img3.jpeg" width="100%" />
 
 #### Advanced Rag
 
 Pre-Retrieval
 요청 검증 > 쿼리 파싱 > 쿼리 재작성 > 쿼리 확장 -> Retrieval > Post-Pretrival (리랭크, 시간 관련성 vs )
+
+<img src="./image/img4.jpeg" width="100%" />
 
 
 ---
