@@ -11,6 +11,9 @@
 
 ## Route 53 – Alias Records Targets
 
+<br/><img src="./img/route53_cname_vs_alias_img1.png" alt="Route 53 - TTL" width="70%"/><br/>
+
+
 - Elastic Load Balancers
 - CloudFront Distributions
 - API Gateway

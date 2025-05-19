@@ -2,7 +2,7 @@
 
 ## Route 53 – Records TTL (Time To Live)
 
-<img src="./img/route53_ttl_img1.png" alt="Route 53 - TTL" width="70%"/>
+<br/><img src="./img/route53_ttl_img1.png" alt="Route 53 - TTL" width="70%"/><br/>
 
 - High TTL – e.g., 24 hr
     - 더 적은 트래픽이 Route 53으로 들어옴
