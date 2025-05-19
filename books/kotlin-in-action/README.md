@@ -215,3 +215,16 @@
 
 <br>
 </details>
+
+<details>
+<summary><b>CHAPTER 12. Annotations and reflection</b></summary>
+
+<br>
+
+<a href="./chapter12">🔗 link</a>
+<br>
+
+**TL;DR**
+
+<br>
+</details>
