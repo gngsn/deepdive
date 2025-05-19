@@ -3,7 +3,7 @@
 # Route 53 Overview
 
 - 사람이 읽을 수 있는 호스트 이름을 기계가 읽을 수 있는 IP 주소로 변환하는 시스템
-- www.google.com => 172.217.18.36
+- `www.google.com` => `172.217.18.36`
 - DNS는 인터넷의 중추
 - DNS는 계층적 이름 구조를 사용
 - 계층적 도메인 이름
@@ -15,7 +15,6 @@
 <br/>
 
 ## DNS Terminologies
-http://api.www.example.com.
 
 - **Domain Registrar**: Amazon Route 53, GoDaddy, ...
 - **DNS Records**: `A`, `AAAA`, `CNAME`, `NS`, ...
