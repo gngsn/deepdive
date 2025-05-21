@@ -794,7 +794,7 @@ apples.sortedWith(weightComparator)
 - 어떤 클래스에 대해 (`Consumer<T>` 를 예로 들면) `타입 B` 가 `타입 A` 의 하위 타입일 때 `Consumer<A>` 가 `Consumer<B>` 의 하위 타입인 관계가 성립하면, **제네릭 클래스는 타입 인자 `T` 에 대해 반공변임**
 
 ```
-  Animal     Producer<Cat>     Consumer<Animal>
+  Animal     Producer<Animal>     Consumer<Animal>
     ↑             ↑                  ⏐
     ⏐           공변적              반공변적
     ⏐             ⏐                  ↓

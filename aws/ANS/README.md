@@ -189,6 +189,7 @@
 3. [Route 53 - Setup](./route_53_setup.md)
 4. [Route 53 - TTL](./route_53_ttl.md)
 5. [Route 53 CNAME vs Alias](./route_53_cname_vs_alias.md)
+6. [Routing Policy](./routing_policy.md)
 
 
 
