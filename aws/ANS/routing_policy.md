@@ -1,4 +1,4 @@
-# Routing Policy - Simple
+# Routing Policy
 
 ## Route 53 – Routing Policies
 
@@ -6,14 +6,20 @@
 - DNS가 트래픽을 "Routing"하는게 아니라, **DNS 쿼리에 응답**함
     - 로드 밸런서 라우팅과 다름
     - "Routing"이라는 단어에 혼동하면 안됨
-- Route 53 지원 라우팅 정책
-    - Simple (단순)
-    - Weighted (가중치)
-    - Failover (장애 조치)
-    - Latency based (지연 시간 기반)
-    - Geolocation (지리적 위치)
-    - Multi-Value Answer (다중 값 응답)
-    - Geoproximity (지리적 근접성) (Route 53 Traffic Flow 기능 사용)
+
+<br/>
+
+**Route 53의 라우팅 정책**
+
+<img src="./img/routing_policy_img1.png" width="80%" />
+
+  - Simple (단순)
+  - Weighted (가중치)
+  - Failover (장애 조치)
+  - Latency based (지연 시간 기반)
+  - Geolocation (지리적 위치)
+  - Multi-Value Answer (다중 값 응답)
+  - Geoproximity (지리적 근접성) (Route 53 Traffic Flow 기능 사용)
 
 <br/>
 
@@ -53,23 +59,31 @@
 - **모든 레코드의 가중치가 `0` 이면, 모든 레코드가 동일하게 반환됨**
 
 
-<br/><img src="./img/routeing_policy_weighted_img1.png" alt="Routing Policies - Weighted" width="80%" /><br/>
+<br/><img src="./img/routing_policy_weighted_img1.png" alt="Routing Policies - Weighted" width="80%" /><br/>
 
 가령, 위와 같이 가중치를 70%, 20%, 10%로 설정하면, 각각 70%, 20%, 10%의 비율로 요청이 분배됨
 
-**Demo**
+<table><tr><td>
+
+#### Demo
+
+<br/><img src="./img/routing_policy_img2.png" width="100%" /><br/>
+
+
 - Subdomain `weighted.example.com` 라고 지정
 - Routing Policy를 'Weighted' 선택
 - Weight를 각각 70
--
+
 'Add another record' 버튼 클릭 후, (2번 반복)
 - Subdomain 를 모두 동일하게 입력 (e.g. `weighted.example.com`)
 - Routing Policy를 'Weighted' 선택
 - Weight를 각각 70, 20, 10으로 설정
 
+</td></tr></table>
+
 <br/>
 
-# Routing Policy - Latency-based
+## Routing Policy - Latency-based
 
 - 사용자에게 가장 낮은 지연 시간<sup>Latency</sup>으로 리소스에 요청을 라우팅
 - 사용자의 지연 시간을 우선순위로 할 때 굉장히 유용
@@ -77,12 +91,15 @@
 - 단, 독일에서 발생한 요청이 미국으로 갈 수 있음 - 만약 지연 시간이 최소인 경우
 - 헬스 체크 연동 가능 (장애 조치 기능<sup>failover capability</sup>를 가짐)
 
-<br/><img src="./img/routeing_policy_latency_img1.png" alt="Routing Policies - Latency" width="80%" /><br/>
+<br/><img src="./img/routing_policy_latency_img1.png" alt="Routing Policies - Latency" width="80%" /><br/>
 
 가령, 위와 같이 ALB를 `us-east-1` 와 `ap-southeast-1`에 각각 배포하고,
 여러 국가에서 요청을 보낼 때, Route53은 지연 시간이 가장 짧은 리전으로 요청을 보냄
 
-**Demo**
+#### Demo
+
+<br/><img src="./img/routing_policy_latency_img2.png" alt="Routing Policies - Latency" width="80%" /><br/>
+
 - Subdomain 를 latency.example.com으로 입력
 - Routing Policy를 'Latency' 선택
 - Region을 각각Asia Pacific(Singapore)
@@ -104,9 +121,9 @@ VPN을 통해 각 리전으로 요청을 보내면, 가장 짧은 지연 시간(
 
 <br/>
 
-# Route 53 - Health Checks
+## Route 53 - Health Checks
 
-<br/><img src="./img/routeing_policy_health_check_img1.png" alt="Routing Policies - Health Check" width="80%" /><br/>
+<br/><img src="./img/routing_policy_health_check_img1.png" alt="Routing Policies - Health Check" width="40%" /><br/>
 
 - HTTP 헬스 체크는 오직 **퍼블릭 리소스에만** 사용 가능
 - 헬스 체크 => 자동화된 DNS 장애 조치
@@ -116,15 +133,22 @@ VPN을 통해 각 리전으로 요청을 보내면, 가장 짧은 지연 시간(
     - e.g. DynamoDB의 스로틀<sup>throttles</sup>, RDS의 알람, 사용자 정의 메트릭 등 (프라이빗 리소스에 유용)
 - 헬스 체크는 CloudWatch 메트릭과 통합됨
 
+#### Route 53 Health Check Setting View
+
+<br/><img src="./img/routing_policy_health_check_screen_img1.png" alt="Routing Policies - Health Check Screenshot" width="100%" /><br/>
+<img src="./img/routing_policy_health_check_screen_img2.png" alt="Routing Policies - Health Check Screenshot" width="100%" /><br/>
+
+<br/>
 
 ## Health Checks – Monitor an Endpoint
 
-<br/><img src="./img/routeing_policy_health_check_img2.png" alt="Routing Policies - Monitor an Endpoint" width="80%" /><br/>
+<br/><img src="./img/routing_policy_health_check_img2.png" alt="Routing Policies - Monitor an Endpoint" width="50%" /><br/>
 
-- 약 15개의 글로벌 헬스 체크가 엔드포인트 헬스를 체크
-  - 3번의 헬스 체크가 성공해야 엔드포인트가 Healthy로 간주됨
-  - 3번의 헬스 체크가 실패해야 엔드포인트가 Unhealthy로 간주됨
-  - 헬스 체크는 30초마다 수행됨 (10초로 설정 가능 - 비용 증가)
+- 약 15개의 글로벌 헬스 체크가 엔드포인트 상태를 체크
+  - Healthy/Unhealthy Threshold – **3** (default)
+    - 3번의 헬스 체크가 성공해야 엔드포인트가 Healthy로 간주됨
+    - 3번의 헬스 체크가 실패해야 엔드포인트가 Unhealthy로 간주됨
+  - 헬스 체크는 **30초**마다 수행됨 (10초로 설정 가능 - 비용 증가)
   - 헬스 체크는 HTTP, HTTPS, TCP 프로토콜을 지원
   - 만약 18%의 헬스 체크가 엔드포인트를 Healthy로 보고하면, Route 53은 해당 엔드포인트를 Healthy로 간주함
   - 어떤 위치에서 Route 53이 헬스 체크를 수행할지 선택 가능
@@ -136,17 +160,17 @@ VPN을 통해 각 리전으로 요청을 보내면, 가장 짧은 지연 시간(
 
 ## Route 53 – Calculated Health Checks
 
-<br/><img src="./img/routeing_policy_health_check_img3.png" alt="Routing Policies - Monitor an Endpoint" width="80%" /><br/>
+<br/><img src="./img/routing_policy_health_check_img3.png" alt="Routing Policies - Monitor an Endpoint" width="40%" /><br/>
 
 - 여러 헬스 체크 결과를 조합하여 단일 헬스 체크로 결합
-- OR, AND, NOT 연산자 사용 가능
+- `OR`, `AND`, `NOT` 연산자 사용 가능
 - 최대 256개의 자식 헬스 체크 모니터링 가능
 - 자식 헬스 체크가 몇 개 통과해야 부모 헬스 체크가 통과하는지 지정 가능
 - 사용 예시: 웹사이트 유지보수 시 모든 헬스 체크가 실패하지 않도록 설정 가능
 
 ## Health Checks – Private Hosted Zones
 
-<br/><img src="./img/routeing_policy_health_check_img4.png" alt="Routing Policies - Monitor an Endpoint" width="80%" /><br/>
+<br/><img src="./img/routing_policy_health_check_img4.png" alt="Routing Policies - Monitor an Endpoint" width="6s0%" /><br/>
 
 - Route 53 헬스 체커는 VPC 밖에 위치
 - 프라이빗 엔드포인트에 접근할 수 없음 (프라이빗 VPC 또는 온프레미스 리소스)
