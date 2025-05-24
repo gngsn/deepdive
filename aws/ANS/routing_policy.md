@@ -69,7 +69,6 @@
 
 <br/><img src="./img/routing_policy_img2.png" width="100%" /><br/>
 
-
 - Subdomain `weighted.example.com` 라고 지정
 - Routing Policy를 'Weighted' 선택
 - Weight를 각각 70
@@ -133,11 +132,6 @@ VPN을 통해 각 리전으로 요청을 보내면, 가장 짧은 지연 시간(
     - e.g. DynamoDB의 스로틀<sup>throttles</sup>, RDS의 알람, 사용자 정의 메트릭 등 (프라이빗 리소스에 유용)
 - 헬스 체크는 CloudWatch 메트릭과 통합됨
 
-#### Route 53 Health Check Setting View
-
-<br/><img src="./img/routing_policy_health_check_screen_img1.png" alt="Routing Policies - Health Check Screenshot" width="100%" /><br/>
-<img src="./img/routing_policy_health_check_screen_img2.png" alt="Routing Policies - Health Check Screenshot" width="100%" /><br/>
-
 <br/>
 
 ## Health Checks – Monitor an Endpoint
@@ -170,10 +164,121 @@ VPN을 통해 각 리전으로 요청을 보내면, 가장 짧은 지연 시간(
 
 ## Health Checks – Private Hosted Zones
 
-<br/><img src="./img/routing_policy_health_check_img4.png" alt="Routing Policies - Monitor an Endpoint" width="6s0%" /><br/>
+<br/><img src="./img/routing_policy_health_check_img4.png" alt="Routing Policies - Monitor an Endpoint" width="60%" /><br/>
 
 - Route 53 헬스 체커는 VPC 밖에 위치
 - 프라이빗 엔드포인트에 접근할 수 없음 (프라이빗 VPC 또는 온프레미스 리소스)
 - **CloudWatch Metric**을 생성하고 **CloudWatch Alarm**과 연결한 후, 헬스 체크를 생성하여 알람 자체를 체크 가능
 
+<br/>
 
+# Route 53 - Health Checks Hands On
+
+➡️ Route 53 > Health Checks > 'Create Health Check'
+
+<br/><img src="./img/routing_policy_health_check_screen_img1.png" alt="Routing Policies - Health Check Screenshot" width="100%" /><br/>
+
+**Configure Health Check**
+- Name: `us-east-1`
+- What to monitor: `Endpoint`
+
+**Monitor an endpoint**
+- Specify endpoint by: ✅ **IP address** / ◽️ domain name
+- Protocol: `HTTP`
+- IP address: `54.172.8.44`
+- Hostname: _≪ blank ≫_
+- Port: `80`
+- Path: `/health`
+
+<br/><img src="./img/routing_policy_health_check_screen_img2.png" alt="Routing Policies - Health Check Screenshot" width="100%" /><br/>
+
+**Advanced Configuration**
+- Request interval: Standard (`30 seconds`) / ◽️ Fast (`10 seconds`)
+- Failure threshold: `3` (Default)
+- String matching: No (Default)
+- **Latency Graph**: No (Default)
+  - 지연 시간이 시간에 따라 어떻게 변하는지 보고싶을 때
+- **Invert health check status**: No (Default)
+- **Disable health check**: No (Default) (By default, disabled health check are considered healthy)
+- **Health checker regions**: ◽️ Customize / ✅Use Recommended
+  - US East (N. Virginia)
+  - US West (Oregon)
+  - Asia Pacific (Singapore)
+  - Asia Pacific (Sydney)
+  - Europe (Ireland)
+  - South America (Sao Paulo)
+  - ...
+
+'Create' 버튼 클릭
+이후, 추가 두 리전에 대해서도 헬스 체크를 생성
+
+<br/>
+
+# Routing Policy - Failover
+
+<br/><img src="./img/routing_policy_failover_img1.png" alt="Routing Policies - Failover" width="100%" /><br/>
+
+Route 53를 중심으로 두 개의 EC2 인스턴스 존재
+- 한 인스턴스는 프라이머리 EC2 인스턴스
+  - 헬스 체크 연결 필수
+- 두 번째 인스턴스는 세컨더리 혹은 재해 복구 EC2 인스턴스
+  - 헬스 체크 선택적 연결 가능
+
+프라이머리 레코드의 헬스 체크가 비정상으로 바뀌면, Route 53은 자동으로 두 번째 EC2 인스턴스 결과를 보내기 시작
+
+→ 자동 장애 조치를 수행
+
+**⚠️ 프라이머리와 세컨더리 인스턴스는 하나씩만 존재할 수 있음**
+
+<br/>
+
+# Routing Policy - Geolocation
+
+<br/><img src="./img/routing_policy_geolocation_img1.png" alt="Routing Policies - Geolocation" width="80%" /><br/>
+
+- Latency-based와 다름
+- 사용자의 위치에 따라 리소스에 요청을 라우팅
+- 위치를 대륙, 국가 또는 미국 주로 지정 가능 (겹치는 경우, 가장 정밀한 위치 선택)
+- "Default" 레코드를 생성해야 함 (위치에 대한 일치가 없을 경우)
+- 사용 사례: 웹사이트 로컬라이제이션, 제한된 콘텐츠 배포, 로드 밸런싱 등
+- 헬스 체크와 연결 가능
+
+<br/>
+
+# Routing Policy - Geoproximity
+
+- 사용자와 리소스의 지리적 위치에 따라 리소스에 요청을 라우팅
+- 정의된 바이어스에 따라 리소스에 더 많은 트래픽을 전송할 수 있음
+- geographic region의 사이즈를 변경할 수 있음
+- 바이어스 값 지정:
+  - 확장 (1 to 99) – 리소스로 더 많은 트래픽
+  - 축소 (-1 to -99) – 리소스로 더 적은 트래픽
+- 리소스는 다음과 같음:
+  - AWS 리소스 (AWS 리전 지정)
+  - 비 AWS 리소스 (위도 및 경도 지정)
+- 이 기능을 사용하려면 Route 53 Traffic Flow를 사용해야 함
+
+### Example. 
+
+#### 1. 모든 지역이 바이어스 `0` 일 때
+
+<br/><img src="./img/routing_policy_geoproximity_img1.png" alt="Routing Policies - Geoproximity" width="80%" /><br/>
+
+- `us-west-1`와 `us-east-1`에 리소스가 하나씩 있다고 가정
+- 두 지역 리소스 모두 바이어스 `0`으로 설정
+
+- 즉, 미국 전역의 사용자가 리소스에 액세스하려고 하면, 미국을 가운데로 가르는 선이 생기고, 그 선의 왼쪽에 있는 사용자는 `us-west-1`로 라우팅되고, 오른쪽에 있는 사용자는 `us-east-1`로 라우팅됨
+- 사용자의 위치를 기반으로 가장 가까운 리소스 지역으로 이동하는 것처럼 보임
+
+#### 2. 모든 지역이 바이어스가 다를 때
+
+위 예시는 바이어스가 없을 때임
+
+바이어스를 활용하면, 동일한 리소스여도 설정한 비율만큼 특정 지역에 더 많은 트래픽을 라우팅할 수 있음
+
+
+<br/><img src="./img/routing_policy_geoproximity_img2.png" alt="Routing Policies - Geoproximity" width="80%" /><br/>
+
+- `us-west-1`는 `0`, `us-east-1`에는 `50`의 바이어스로 설정
+- 바이어스 값을 반영해서, 두 리소스를 나누는 선을 바이어스 비율 만큼 리소스에 더 많은 사용자와 더 많은 트래픽을 라우팅
+- 사용 사례: 예를 들어 전 세계에 리소스를 두고 특정 지역으로 더 많은 트래픽을 이동해야 할 때, Geoproximity Routing Policy를 사용해서 특정 지역의 바이어스를 높일 수 있음 → 더 많은 사용자가 그 지역으로 트래픽을 유도함
