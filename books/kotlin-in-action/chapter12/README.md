@@ -473,7 +473,179 @@ annotation class CustomSerializer(
         구현 클래스를 받음
 </pre>
 
+<br/>
+
+## 12.2 Reflection: Introspecting Kotlin objects at run time
+
+<small><i>리플렉션: 실행 시점에 코틀린 객체 내부 관찰</i></small>
+
+- **리플렉션**: 실행 시점에<sub>동적으로</sub> 객체의 프로퍼티와 메서드에 접근
+- 컴파일러는 지정된 이름을 참조해 코드 내에 선언된 속성을 찾음
+- 컴파일러는 정적으로 (컴파일 시점에) 해당하는 선언을 찾고, 동시에 실제 존재함을 보장할 수 있음
+  - 하지만, 실행 시점에만 알 수 있는 경우도 있음
+
+**대표 코틀린 리플렉션 API**
+- `kotlin.reflect`, `kotlin.reflect.full` 패키지
+- 코틀린은 **자바 리플렉션 API** `java.lang.reflect` 지원
+  - 리플렉션을 사용하는 자바 라이브러리와 코틀린 코드가 완전히 호환
+
+<br/>
+
+### 12.2.1 The Kotlin reflection API: `KClass`, `KCallable`, `KFunction`, and `KProperty`
+
+<small><i>코틀린 리플렉션 API: `KClass`, `KCallable`, `KFunction`, `KProperty`</i></small>
+
+- `::class` 식을 통해 KClass 인스턴스를 얻을 수 있음
+- 클래스 안에 있는 모든 선언을 열거하고 각 선언에 접근하거나 클래스의 상위 클래스를 얻는 등의 작업이 가능 
+
+<br/>
+
+**Example**. 클래스에 포함된 모든 프로퍼티 명 확인
+
+```kotlin
+import kotlin.reflect.full.*
+ 
+class Person(val name: String, val age: Int)
+ 
+fun main() {
+    val person = Person("Alice", 29)
+    val kClass = person::class
+    println(kClass.simpleName)
+    // Person
+    kClass.memberProperties.forEach { println(it.name) }
+    // age
+    // name
+}
+```
+
+<br/>
+
+KClass 인터페이스에 다양한 메서드 정의되어 있음
+
+```
+interface KClass<T : Any> {
+    val simpleName: String?
+    val qualifiedName: String?
+    val members: Collection<KCallable<*>>
+    val constructors: Collection<KFunction<T>>
+    val nestedClasses: Collection<KClass<*>>
+    // ...
+}
+```
+자세한 정보는 Kotlin KClass 공식 안내문서 [kotlinlang: kotlin-stdlib/kotlin.reflect/KClass](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.reflect/-k-class/) 참조
+
+<pre>
+<code>simpleName</code> 과 <code>qualifiedName</code> 프로퍼티는 익명 객체에 대해 널 값을 반환함
+- 익명 객체 생성 시에는 여전히 클래스의 인스턴스지만 익명 클래스임
+- 이런 경우 <code>simpleName</code> 과 <code>qualifiedName</code> 모두 존재하지 않아, 필드 접근 시 <code>null</code> 반환
+
+Example. 
+
+<code>val anonymousObject = object {
+    val x = 1
+}
+
+println(anonymousObject::class.simpleName) // null
+println(anonymousObject::class.qualifiedName) // null
+</code></pre>
+
+<br/>
+
+#### `KCallable`의 `call()` 메소드
+
+- `KClass`에 정의된 `members` 필드는 `Collection<KCallable<*>>` 타입
+- `KCallable` 은 `call` 메소드를 가짐
+
+```kotlin
+interface KCallable<out R> {
+    fun call(vararg args: Any?): R
+    // ...
+}
+```
+
+- `call`을 사용하면 함수나 프로퍼티의 `Getter`나 메소드를 호출할 수 있음
+
+<br/>
+<table width="100%"><tr><td>
+
+아래 두 패키지의 차이점이 뭘까?
+주요 차이점은 **플랫폼 독립적인 코드**와 **JVM에 특화된 코드** 사이의 분리
+
+- [kotlin/libraries/stdlib/src/kotlin/reflect/KCallable.kt](https://github.com/JetBrains/kotlin/blob/whyoleg/dokka2-sync-stdlib/libraries/stdlib/src/kotlin/reflect/KCallable.kt#L13)
+  - 플랫폼에 독립적인 공통 코드를 포함
+  - 모든 Kotlin 지원 플랫폼에서 사용 (e.g. JVM, JS, Native)
+
+- [kotlin/libraries/stdlib/jvm/src/kotlin/reflect/KCallable.kt](https://github.com/JetBrains/kotlin/blob/whyoleg/dokka2-sync-stdlib/libraries/stdlib/jvm/src/kotlin/reflect/KCallable.kt)
+  - JVM에 특화된 구현을 포함
+  - JVM 특정 기능 혹은 JVM 버전의 특정 API를 사용해야 하는 경우, 이 파일에서 관련 코드를 찾을 수 있음
+
+</td></tr></table>
+<br/>
+
+⚠️`call` 인자 개수와 원래 함수에 정의된 **파라미터 개수가 반드시 일치**해야 함
+  
+- 불일치 시 **런타임 오류** 발생: `IllegalArgumentException: Callable expects 1 argument, but 0 were provided` 
+
+실수 방지를 위해 함수 호출 시, 구체적인 메서드 타입을 지정할 수 있음
+
+**Example.**
+
+```kotlin
+fun sum(x: Int, y: Int) = x + y
+```
+
+아래와 같이 `KFunction2<Int, Int, Int>` 타입 명시 
+
+```kotlin
+val kFunction: KFunction2<Int, Int, Int> = ::sum
+println(kFunction.invoke(1, 2) + kFunction(3, 4))   // 10
+
+// kFunction(1)    // ← Compile Error: No value passed for parameter 'p2'
+```
+
+- ✅ 인자 타입과 반환 타입을 모두 다 안다면 invoke 메서드를 호출하는 것이 나음
+  - `KFunction`의 `invoke` 메서드 호출 시에는 **컴파일이 안 되기 때문에** 입력 인자에 대해 실수할 일이 없음
+
+<br/>
+
+<table width="100%"><tr><td>
+
+**`KFunctionN` 인터페이스 정의되는 시점**
+
+- `KFunction1` 과 같은 타입은 파라미터 개수가 다른 여러 함수를 표현
+  - 원하는 수만큼 많은 파라미터를 갖는 함수에 대한 인터페이스를 사용할 수 있음 
+- 각 `KFunctionN` 타입은 `KFunction` 을 확장하며 `N` 과 파라미터 개수가 같은 `invoke` 를 추가로 포함
+  - e.g. `KFunction2<P1,P2,R>` 에는 `operator fun invoke(p1: P1, p2: P2): R` 선언이 들어있음
+- `KFunctionN` 함수 타입은 컴파일러가 생성한 합성 타입
+  - `kotlin.reflect` 패키지에서 이런 타입의 정의를 찾을 수는 없음
+
+</td></tr></table>
 
 
+#### `KProperty` 의 `call` 메서드 호출
 
+`KProperty` 의 `call` 메서드를 호출할 수도 있음 → 프로퍼티의 Getter 호출
 
+- 최상위 읽기 전용 프로퍼티: `KProperty0` 인터페이스로 표현됨
+- 최상위 가변 프로퍼티:`KMutableProperty0` 인터페이스로 표현됨
+- `KProperty0` & `KMutableProperty0` 인터페이스 둘 다 `get()` 메서드를 제공
+
+```kotlin
+var counter = 0
+ 
+fun main() {
+    val kProperty = ::counter    // KMutableProperty0<Int>
+    kProperty.setter.call(21)
+    println(kProperty.get())     // 21
+}
+```
+
+- 멤버 프로퍼티는 `KProperty1` 이나 `KMutableProperty1` 인스턴스로 표현
+- `KProperty1` & `KMutableProperty1` 인터페이스 **둘 다 인자 1개**를 가진 `get` 메서드를 제공
+
+```kotlin
+val person = Person("Alice", 29)
+val memberProperty = Person::age    // KProperty1<Person, Int>
+
+memberProperty.get(person)
+```

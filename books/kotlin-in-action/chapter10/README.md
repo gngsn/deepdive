@@ -181,8 +181,6 @@ CollectionsKt.forEach(strings, s -> {    // 코틀린 표준 라이브러리 함
 
 #### 함수 타입 : 자세한 구현
 
-내부에서 코틀린 함수 타입은 일반 인터
-
 [FunctionN: Function0 ~ Function22](https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/runtime/kotlin/jvm/functions/Functions.kt)
 
 함수 타입의 변수는 함수에 대응하는 FunctionN 인터페이스를 구현하는 클래스의 인스턴스
