@@ -282,3 +282,71 @@ Route 53를 중심으로 두 개의 EC2 인스턴스 존재
 - `us-west-1`는 `0`, `us-east-1`에는 `50`의 바이어스로 설정
 - 바이어스 값을 반영해서, 두 리소스를 나누는 선을 바이어스 비율 만큼 리소스에 더 많은 사용자와 더 많은 트래픽을 라우팅
 - 사용 사례: 예를 들어 전 세계에 리소스를 두고 특정 지역으로 더 많은 트래픽을 이동해야 할 때, Geoproximity Routing Policy를 사용해서 특정 지역의 바이어스를 높일 수 있음 → 더 많은 사용자가 그 지역으로 트래픽을 유도함
+
+<br/>
+
+## Routing Policy - Traffic Flow & Geoproximity Hands On
+
+<br/><img src="./img/routing_policy_traffic_flow_img1.png" alt="Routing Policies - Traffic Flow" width="80%" /><br/>
+
+- 크고 복잡한 트래픽 흐름을 생성하고 관리하는 프로세스를 단순화
+- 복잡한 라우팅 결정 트리를 관리하기 위한 시각적 편집기
+- 트래픽 흐름 정책<sup>Traffic Flow Policy</sup>으로 저장 가능
+- 다른 Route 53 Hosted Zones (다른 도메인 이름)에 적용 가능
+- 버전 관리 지원
+
+<br/><img src="./img/routing_policy_traffic_flow_img2.png" alt="Routing Policies - Traffic Flow" width="80%" /><br/>
+
+Bias를 조정하면 AWS 에서 이에 해당하는 다이어그램을 보여줌
+
+<br/><img src="./img/routing_policy_traffic_flow_img3.png" alt="Routing Policies - Traffic Flow" width="80%" /><br/>
+
+`ap-southeast-1`, `us-east-1`, `eu-central-1` 을 각각 정의하고 Bias 를 다르게 준 상태
+
+<br/>
+
+> **How Amazon Route 53 uses bias to route traffic**
+> 
+> Here's the formula that Amazon Route 53 uses to determine how to route traffic:
+> 
+> **Bias**
+> Biased distance = actual distance * [1 - (bias/100)]
+>
+> - https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-geoproximity.html
+
+<br/>
+
+## Routing Policy - IP-based Routing
+
+- 사용자의 IP 주소를 기반으로 리소스에 요청을 라우팅
+- 운영자가 클라이언트와 엔드포인트/위치 (사용자 IP와 엔드포인트 매핑) 간의 CIDR 목록을 제공
+- 사용 사례: 성능 최적화, 네트워크 비용 절감 등
+- e.g. 특정 ISP의 최종 사용자를 특정 엔드포인트로 라우팅
+
+<br/><img src="./img/routing_policy_ip_based_img1.png" alt="Routing Policies - IP-based Routing" width="80%" /><br/>
+<br/>
+
+## Routing Policies – Multi-Value
+
+<br/><img src="./img/routing_policy_multi_value_img1.png" alt="Routing Policies - IP-based Routing" width="100%" /><br/>
+
+- 여러 리소스에 트래픽을 라우팅해야할 때 사용
+- Route 53는 여러 값/리소스를 반환
+- Health Checks와 연동 가능 (healthy 상태의 리소스만을 반환)
+- 각각 Multi-Value 쿼리에 대해 8개의 healthy 상태의 레코드까지 반환됨
+- Multi-Value는 ELB의 대체 용도가 아님
+
+<table>
+<tr>
+<th>US</th>
+<th>Asia</th>
+<th>EU</th>
+</tr>
+<tr>
+<td><img src="./img/routing_policy_multi_value_img2.png" alt="Routing Policies - IP-based Routing" width="100%" /></td>
+<td><img src="./img/routing_policy_multi_value_img3.png" alt="Routing Policies - IP-based Routing" width="100%" /></td>
+<td><img src="./img/routing_policy_multi_value_img4.png" alt="Routing Policies - IP-based Routing" width="100%" /></td>
+</tr>
+</table>
+
+
