@@ -566,27 +566,28 @@ interface KCallable<out R> {
 - `call`을 사용하면 함수나 프로퍼티의 `Getter`나 메소드를 호출할 수 있음
 
 <br/>
-<table width="100%"><tr><td>
 
-아래 두 패키지의 차이점이 뭘까?
-주요 차이점은 **플랫폼 독립적인 코드**와 **JVM에 특화된 코드** 사이의 분리
+>[!NOTE]
+> 아래 두 패키지의 차이점이 뭘까?
+> 
+> 주요 차이점은 **플랫폼 독립적인 코드**와 **JVM에 특화된 코드** 사이의 분리
+>
+> - [kotlin/libraries/stdlib/src/kotlin/reflect/KCallable.kt](https://github.com/JetBrains/kotlin/blob/whyoleg/dokka2-sync-stdlib/libraries/stdlib/src/kotlin/reflect/KCallable.kt#L13)
+>   - 플랫폼에 독립적인 공통 코드를 포함
+>   - 모든 Kotlin 지원 플랫폼에서 사용 (e.g. JVM, JS, Native)
+>
+> 
+> - [kotlin/libraries/stdlib/jvm/src/kotlin/reflect/KCallable.kt](https://github.com/JetBrains/kotlin/blob/whyoleg/dokka2-sync-stdlib/libraries/stdlib/jvm/src/kotlin/reflect/KCallable.kt)
+>   - JVM에 특화된 구현을 포함
+>   - JVM 특정 기능 혹은 JVM 버전의 특정 API를 사용해야 하는 경우, 이 파일에서 관련 코드를 찾을 수 있음
 
-- [kotlin/libraries/stdlib/src/kotlin/reflect/KCallable.kt](https://github.com/JetBrains/kotlin/blob/whyoleg/dokka2-sync-stdlib/libraries/stdlib/src/kotlin/reflect/KCallable.kt#L13)
-  - 플랫폼에 독립적인 공통 코드를 포함
-  - 모든 Kotlin 지원 플랫폼에서 사용 (e.g. JVM, JS, Native)
+<br/><br/>
 
-- [kotlin/libraries/stdlib/jvm/src/kotlin/reflect/KCallable.kt](https://github.com/JetBrains/kotlin/blob/whyoleg/dokka2-sync-stdlib/libraries/stdlib/jvm/src/kotlin/reflect/KCallable.kt)
-  - JVM에 특화된 구현을 포함
-  - JVM 특정 기능 혹은 JVM 버전의 특정 API를 사용해야 하는 경우, 이 파일에서 관련 코드를 찾을 수 있음
+⚠️ `call` 인자 개수와 원래 함수에 정의된 **파라미터 개수가 반드시 일치**해야 함
 
-</td></tr></table>
-<br/>
-
-⚠️`call` 인자 개수와 원래 함수에 정의된 **파라미터 개수가 반드시 일치**해야 함
-  
-- 불일치 시 **런타임 오류** 발생: `IllegalArgumentException: Callable expects 1 argument, but 0 were provided` 
-
-실수 방지를 위해 함수 호출 시, 구체적인 메서드 타입을 지정할 수 있음
+- 불일치 시 **런타임 오류** 발생
+  - `IllegalArgumentException: Callable expects 1 argument, but 0 were provided` 
+- 실수 방지를 위해 함수 호출 시, 구체적인 메서드 타입을 지정할 수 있음
 
 **Example.**
 
@@ -599,7 +600,6 @@ fun sum(x: Int, y: Int) = x + y
 ```kotlin
 val kFunction: KFunction2<Int, Int, Int> = ::sum
 println(kFunction.invoke(1, 2) + kFunction(3, 4))   // 10
-
 // kFunction(1)    // ← Compile Error: No value passed for parameter 'p2'
 ```
 
@@ -608,19 +608,17 @@ println(kFunction.invoke(1, 2) + kFunction(3, 4))   // 10
 
 <br/>
 
-<table width="100%"><tr><td>
+>[!NOTE]
+> **`KFunctionN` 인터페이스 정의되는 시점**
+> 
+> - `KFunction1` 과 같은 타입은 파라미터 개수가 다른 여러 함수를 표현
+> - 원하는 수만큼 많은 파라미터를 갖는 함수에 대한 인터페이스를 사용할 수 있음 
+> - 각 `KFunctionN` 타입은 `KFunction` 을 확장하며 `N` 과 파라미터 개수가 같은 `invoke` 를 추가로 포함
+>   - e.g. `KFunction2<P1,P2,R>` 에는 `operator fun invoke(p1: P1, p2: P2): R` 선언이 들어있음
+> - `KFunctionN` 함수 타입은 컴파일러가 생성한 합성 타입
+>   - `kotlin.reflect` 패키지에서 이런 타입의 정의를 찾을 수는 없음
 
-**`KFunctionN` 인터페이스 정의되는 시점**
-
-- `KFunction1` 과 같은 타입은 파라미터 개수가 다른 여러 함수를 표현
-  - 원하는 수만큼 많은 파라미터를 갖는 함수에 대한 인터페이스를 사용할 수 있음 
-- 각 `KFunctionN` 타입은 `KFunction` 을 확장하며 `N` 과 파라미터 개수가 같은 `invoke` 를 추가로 포함
-  - e.g. `KFunction2<P1,P2,R>` 에는 `operator fun invoke(p1: P1, p2: P2): R` 선언이 들어있음
-- `KFunctionN` 함수 타입은 컴파일러가 생성한 합성 타입
-  - `kotlin.reflect` 패키지에서 이런 타입의 정의를 찾을 수는 없음
-
-</td></tr></table>
-
+<br/>
 
 #### `KProperty` 의 `call` 메서드 호출
 
@@ -642,6 +640,8 @@ fun main() {
 
 - 멤버 프로퍼티는 `KProperty1` 이나 `KMutableProperty1` 인스턴스로 표현
 - `KProperty1` & `KMutableProperty1` 인터페이스 **둘 다 인자 1개**를 가진 `get` 메서드를 제공
+
+<br/>
 
 ```kotlin
 val person = Person("Alice", 29)
@@ -665,6 +665,8 @@ memberProperty.get(person)
 실행 시점에 소스코드 요소에 접근하기 위해 사용할 수 있는 인터페이스의 계층 구조
 
 <br/><img src="./img/figure12-01.png" width="60%" /><br/>
+
+<br/>
 
 - `KAnnotatedElement`: 구현한 클래스들에 적용된 어노테이션 정보를 가져올 수 있음<br/>
   ```kotlin
