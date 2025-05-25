@@ -908,4 +908,166 @@ fun KProperty<*>.getSerializer(): ValueSerializer<Any?>? {
 
 <br/>
 
+### 12.2.4 JSON parsing and object deserialization
+
+<small><i>JSON 파싱과 객체 역직렬화</i></small>
+
+- JSON 문자열을 Kotlin 객체로 역직렬화
+
+```kotlin
+inline fun <reified T: Any> deserialize(json: String): T
+```
+
+- `T`는 런타임에도 타입 정보를 유지할 수 있도록 `reified`로 선언됨.
+  - `inline` 키워드 필수
+
+**사용 예시:**
+
+```kotlin
+val json = """{"title": "Catch-22", "author": {"name": "J. Heller"}}"""
+val book = deserialize<Book>(json)
+```
+
+<br/>
+
+#### 전체 파이프라인
+
+역직렬화는 총 **3단계**로 구성됨:
+
+1. **Lexer (렉서, 어휘 분석기)**: JSON을 토큰으로 나눔
+
+   - 입력 문자열을 **토큰(token)** 리스트로 변환
+   - 두 가지 종류:
+     - **문자 토큰**: JSON 문법 기호 (`{`, `:`, `,` 등)
+     - **값 토큰**: 문자열, 숫자, Boolean, null 등 실제 데이터
+
+2. **Parser (파서, 구문 분석기)**: 여러 다른 의미 단위를 처리
+
+   - 토큰을 JSON 구조 (객체, 배열, 키/값 쌍 등)로 변환
+   - 구조에 따라 아래의 `JsonObject` 인터페이스의 메서드를 호출:
+
+     ```kotlin
+     interface JsonObject {
+         fun setSimpleProperty(propertyName: String, value: Any?)
+         fun createObject(propertyName: String): JsonObject
+         fun createArray(propertyName: String): JsonObject
+     }
+     ```
+
+3. **Deserializer (역직렬화기)**: 필요한 클래스의 인스턴스를 생성하여 반환
+
+   - `JsonObject`의 구현체를 통해 객체를 구성
+
+<br/>
+
+#### ✔️ Seed: 객체 생성을 위한 빌더 유사 구조
+
+- 역직렬화의 경우 해법이 완전히 제네릭해야 함
+- 객체를 구성하기 전에 데이터를 임시로 저장할 필요가 있음 → **Seed**라는 추상화 사용
+- **주요 구현체**
+  - **일반 객체**: `ObjectSeed`. [🔗 Code](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter12/demo/src/main/kotlin/com/gngsn/jkid/deserialization/Deserializer.kt#L67-L94)
+  - **컬렉션**:
+    - `ObjectListSeed`. [🔗 Code](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter12/demo/src/main/kotlin/com/gngsn/jkid/deserialization/Deserializer.kt#L96-L110)
+    - `ValueListSeed`. [🔗 Code](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter12/demo/src/main/kotlin/com/gngsn/jkid/deserialization/Deserializer.kt#L112-L128)
+
+- `ObjectSeed`를 만들고, 파서를 실행한 후, `spawn()` 호출로 객체 생성
+- `ObjectSeed` 동작 방식
+  - `valueArguments`: 단순 값 보관
+  - `seedArguments`: 복합 객체 값 보관 (중첩 구조)
+  - `arguments`: 위 둘을 합쳐서 생성자 호출 시 사용
+- 재귀적으로 `spawn()`을 호출하여 중첩 객체도 완성
+
+<br/>
+
+### 12.2.5 The final step of deserialization: `callBy()` and creating objects using reflection
+
+<small><i>최종 역직렬화 단계 : `callBy()`와 리플렉션을 사용해 객체 만들기</i></small>
+
+- `KCallable.call(args: List<Any?>)` 는 기본값을 지원하지 않음
+- 때문에, 디폴트 파라미터 값을 지원하는 다른 메서드인 `Kcallable.callBy` 사용해야 함
+
+```kotlin
+interface KCallable<out R> {
+    fun callBy(args: Map<KParameter, Any?>): R
+}
+```
+
+- 파라미터 이름 기반의 `Map` 사용
+- 기본값 있는 파라미터는 생략 가능
+- 파라미터 순서도 상관 없음
+
+<br/>
+
+**⚠️ 타입 처리 시, 타입이 생성자의 파라미터 타입과 일치해야 함**
+
+- JSON의 값 타입이 정확히 매칭되어야 함
+- 특히 숫자 타입(Int, Long, Double 등) 은 정확히 변환 필요
+- `KParameter.type` 을 사용해 타입 확인
+
+
+```kotlin
+fun serializerForType(type: KType): ValueSerializer<out Any?>? =
+        when (type) {
+            typeOf<Byte>() -> ByteSerializer
+            typeOf<Int>() -> IntSerializer
+            typeOf<Boolean>() -> BooleanSerializer
+            // ...
+            else -> null
+        }
+```
+
+- `typeOf<T>()` 를 통해 런타임 타입(`KType`)을 얻고 매핑
+
+<br/>
+
+#### ClassInfoCache
+
+- JSON 에서 모든 키/값 쌍을 읽을 때마다 매번 프로퍼티 검색을 수행하면 아주 느려질 수 있음
+- 때문에, 리플렉션 비용 감소를 위해 **캐싱 수행**
+- 생성자 파라미터와 속성 간 매핑에는 리플렉션 필요 → 클래스 단위로 캐싱
+
+```kotlin
+class ClassInfoCache {
+    private val cacheData = mutableMapOf<KClass<*>, ClassInfo<*>>()
+ 
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T : Any> get(cls: KClass<T>): ClassInfo<T> =
+            cacheData.getOrPut(cls) { ClassInfo(cls) } as ClassInfo<T>
+}
+```
+
+- ClassInfo 클래스 구현 코드 참고: [🔗 Code](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter12/demo/src/main/kotlin/com/gngsn/jkid/deserialization/ClassInfoCache.kt#L11C7-L11C21)
+  1. JSON을 파싱하여 `Map<String, Any?>` 형태의 값 추출
+  2. 각 키를 `KParameter`와 매핑
+  3. `ValueSerializer` 로 타입 변환
+  4. `ClassInfo.createInstance()` 에서 `callBy()`로 객체 생성
+  5. `ClassInfoCache` 를 통해 반복되는 리플렉션 정보 캐싱
+
+<br/>
+
+## Summary
+
+- 코틀린에서는 넓은 범위(파일, 식 등)의 타깃에 대해 어노테이션을 붙일 수 있음
+- 어노테이션 인자로 기본 타임 값, 문자열, 이넘, 클래스 참조, 다른 어노테이션 클래스의 인스턴스, 배열을 사용할 수 있음
+- 어노테이션의 사용 지점 타깃을 명시 가능 (e.g. `@get:JvmName`)
+  - 여러 가지 바이트코드 요소를 만들어내는 경우, 정확히 어떤 부분에 어노테이션을 적용할지 지정할 수 있음
+- 어노테이션 클래스 정의: `annotation class` 
+  - 모든 파라미터를 `val` 프로퍼티로 표시한 주 생성자가 있어야 하고, 본문은 없어야 함
+- 메타어노테이션을 사용해 타깃, 어노테이션 유지 모드 등 여러 어노테이션 특성을 지정할 수 있음
+- **리플렉션 API**: 실행 시점에 객체의 메서드와 프로퍼티를 동적으로 열거하고 접근할 수 있음. 
+  - 리플렉션 API에는 클래스(`KClass`), 함수(`KFunction`) 등 여러 종류의 선언을 표현하는 인터페이스가 있음
+- `::class`로 `KClass` 인스턴스 가져오기
+  - 클래스는 `ClassName::class`를 사용
+  - 객체는 `objName::class`를 사용
+- `Function`과 `KProperty` 인터페이스는 모두 `Kcallable` 을 확장
+  - `KCallable`은 제네릭 `call` 메서드 제공
+  - `KCallable.callBy` 메서드: 메서드 호출 시, 디폴트 파라미터 값을 사용할 수 있음
+- `KFunction0`, `KFunction1` 등의 인터페이스는 모두 파라미터 개수가 다른 함수를 표현하며 `invoke` 메서드를 사용해 함수를 호출할 수 있음
+- `KProperty`, `KProperty1` 은 수신 객체의 개수가 다른 프로퍼티들을 표현하며 값을 얻기 위한 `get` 메서드를 지원
+- `KMutableProperty0` 과 `KMutableProperty1`은 각각 `KProperty0` 과 `KProperty1` 을 확장하며 `set` 메서드를 통해 프로퍼티 값을 변경할 수 있음
+- `KType` 의 실행 시점 표현을 얻기 위해 `typeOf<T>()` 함수 사용
+
+
+
+
 
