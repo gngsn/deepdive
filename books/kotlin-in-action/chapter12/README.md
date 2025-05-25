@@ -660,35 +660,36 @@ memberProperty.get(person)
 
 <br/>
 
-#### 프로퍼티 접근 인터페이스 계층 구조
+#### ✔️ 프로퍼티 접근 인터페이스 계층 구조
 
 실행 시점에 소스코드 요소에 접근하기 위해 사용할 수 있는 인터페이스의 계층 구조
 
 <br/><img src="./img/figure12-01.png" width="60%" /><br/>
 
-- `KAnnotatedElement`: 모든 선언에 어노테이션이 붙을 수 있음
-  - ```kotlin
-    package kotlin.reflect
+- `KAnnotatedElement`: 구현한 클래스들에 적용된 어노테이션 정보를 가져올 수 있음<br/>
+  ```kotlin
+  package kotlin.reflect
 
-    public interface KAnnotatedElement {
-        public val annotations: List<Annotation>
-    }
-    ```
+  public interface KAnnotatedElement {
+      public val annotations: List<Annotation>
+  }
+  ```
 - `KClass`: 클래스와 객체를 표현할 때 쓰임
 - `KProperty`: 모든 프로퍼티를 표현할 수 있음
   - 내부에 선언된 `Getter` 로 프로퍼티 접근자를 함수처럼 다룰 수 있음
 - `KMutableproperty`: `var` 로 정의한 변경 가능한 프로퍼티 표현
   - 선언된 `Setter` 인터페이스로 프로퍼티 접근자를 함수처럼 다룰 수 있음
 
+<br/>
 
-<pre><b><code>KProperty</code> 인터페이스</b>는 <b><code>Getter</code> 타입의 필드</b>를 가지며,
-<b><code>KMutableproperty</code> 인터페이스</b>는 <b><code>Setter</code>타입의 필드</b>를 가짐
-
-→ 프로퍼티 접근자를 함수처럼 다룰 수 있음
-e.g. 메서드에 붙어있는 어노테이션을 알아내기
-
-<code>Getter</code> 와 <code>Setter</code> 는 모두 <code>KFunction</code> 을 확장
-</pre>
+> [!TIP]
+> **`KProperty` 인터페이스**는 **`Getter` 타입의 필드**를 가지며,
+> **`KMutableproperty` 인터페이스**는 **`Setter` 타입의 필드**를 가짐
+> 
+> → 프로퍼티 접근자를 함수처럼 다룰 수 있음
+> e.g. 메서드에 붙어있는 어노테이션을 알아내기
+> 
+> `Getter` 와 `Setter`는 모두 `KFunction` 을 확장
 
 <br/>
 
@@ -727,16 +728,9 @@ private fun StringBuilder.serializeObject(obj: Any) {
 
 <br/>
 
-**Example.** 
+**Example.**
 
-<br/>
-<table>
-<tr>
-<th>어노테이션으로 프로퍼티 제외하기</th>
-<th>인자를 포함한 어노테이션 찾기</th>
-</tr>
-<tr>
-<td>
+#### ✔️ Example 1. 어노테이션으로 프로퍼티 제외하기
 
 `findAnnotation` 과 `filter` 표준 라이브러리 함수를 조합하면 `@JsonExclude` 어노테
 이션이 붙지 않은 프로퍼티만 남길 수 있음
@@ -746,18 +740,9 @@ val properties = KClass.memberProperties
     .filter { it.findAnnotation<JsonExclude>() == null }
 ```
 
-</td>
-<td>
+<br/>
 
-어노테이션를 찾은 후, 어노테이션에 전달한 인자도 알아야함
-
-```kotlin
-annotation class JsonName(val name: String)
-data class Person {
-  @JsonName("alias") val firstName: String,
-  val age: Int
-}
-```
+#### ✔️ Example 2. 인자를 포함한 어노테이션 찾기
 
 `@JsonName` 의 인자는 프로퍼티를 직렬화해서 JSON 에 넣을 때 사용할 이름
 
@@ -769,24 +754,20 @@ data class Person {
 }
 ```
 
-`findAnnotation`이 이 경우에도 도움이 됨
+- 어노테이션를 찾은 후, 어노테이션에 전달한 인자도 알아야함
+- `findAnnotation`이 이 경우에도 도움이 됨
 
 ```kotlin
-val jsonNameAnn = prop.findAnnotation<JsonName>()
+// 프로퍼티에 `@JsonName` 어노테이션이 없다면 `null` 값
+val jsonNameAnn = prop.findAnnotation<JsonName>()  
 val propName = jsonNameAnn?.name ?: prop.name
 ```
-
-프로퍼티에 `@JsonName` 어노테이션이 없다면 `jsonNameAnn` 이 `null` 값임
-
-</td>
-</tr>
-</table>
 
 <br/>
 
 <table><tr><td>
 
-##### 🧐 Data Class 필드에 어노테이션 붙이는 방법 ❓
+##### 🧐 Data Class 필드에 어노테이션이 적용되지 않는다 ❓
 
 ```kotlin
 annotation class JsonName(val name: String)
@@ -872,5 +853,59 @@ annotation class JsonName(val name: String)
 
 </td></tr></table>
 
+<br/>
+
+아래는 주어진 내용을 정리하고 각 개념에 맞는 예시 문장을 추가한 설명입니다. 마지막에는 전체 내용을 요약합니다.
+
+<br/>
+
+#### 📌 `@CustomSerializer`
+
+- 속성에 커스텀 직렬화기를 지정하기 위해 `@CustomSerializer` 사용
+- 어떤 `ValueSerializer` 클래스를 사용할지 명시
+
+```kotlin
+annotation class CustomSerializer(
+    val serializerClass: KClass<out ValueSerializer<*>>
+)
+```
+
+**사용 예시:**
+
+```kotlin
+data class Person(
+    val name: String,
+    @CustomSerializer(DateSerializer::class) val birthDate: Date
+)
+```
+
+<br/>
+
+#### 📌 2. `getSerializer()` 함수
+
+- `getSerializer()`는 Kotlin 리플렉션 API의 `KProperty`에 확장된 함수로, 해당 속성에 지정된 커스텀 직렬화기 인스턴스를 반환
+- 클래스인지 객체(`object`)인지에 따라 인스턴스를 반환하는 방식이 다름
+  - `Person::birthDate.getSerializer()`를 호출하면 `DateSerializer`의 인스턴스를 반환
+
+```kotlin
+fun KProperty<*>.getSerializer(): ValueSerializer<Any?>? {
+    val customSerializerAnn = findAnnotation<CustomSerializer>() ?: return null
+    val serializerClass = customSerializerAnn.serializerClass
+
+    val valueSerializer = serializerClass.objectInstance ?: serializerClass.createInstance()
+    @Suppress("UNCHECKED_CAST")
+    return valueSerializer as ValueSerializer<Any?>
+}
+```
+
+<br/>
+
+#### 📌 3. 객체(`object`)와 클래스의 구분
+
+- Kotlin에서 `object`는 싱글턴으로 정의되며, `objectInstance` 프로퍼티를 통해 인스턴스에 접근할 수 있음
+  - 일반 클래스는 `createInstance()`를 호출하여 새 인스턴스를 생성해야 함
+- `DateSerializer`가 `object` 타입 → `getSerializer()`가 `DateSerializer.objectInstance` 반환
+
+<br/>
 
 
