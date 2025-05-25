@@ -647,5 +647,230 @@ fun main() {
 val person = Person("Alice", 29)
 val memberProperty = Person::age    // KProperty1<Person, Int>
 
+/*
+  Property 의 타입 파라미터와 일치하는 타입의 객체만을 넘길 수 있음
+  e.g. memberProperty.get("Alice") 은 컴파일되지 않음
+  */
 memberProperty.get(person)
 ```
+
+- 함수의 로컬 변수에는 리플렉션으로 접근 불가
+- 함수 내 로컬 변수 `x` 정의 후, 변수 참조를 얻으려 시도하면(`::x`) 오류
+  - **오류**: 변수에 대한 참조는 아직 지원하지 않음<sup>"References to variables arent supported yet"</sup>
+
+<br/>
+
+#### 프로퍼티 접근 인터페이스 계층 구조
+
+실행 시점에 소스코드 요소에 접근하기 위해 사용할 수 있는 인터페이스의 계층 구조
+
+<br/><img src="./img/figure12-01.png" width="60%" /><br/>
+
+- `KAnnotatedElement`: 모든 선언에 어노테이션이 붙을 수 있음
+  - ```kotlin
+    package kotlin.reflect
+
+    public interface KAnnotatedElement {
+        public val annotations: List<Annotation>
+    }
+    ```
+- `KClass`: 클래스와 객체를 표현할 때 쓰임
+- `KProperty`: 모든 프로퍼티를 표현할 수 있음
+  - 내부에 선언된 `Getter` 로 프로퍼티 접근자를 함수처럼 다룰 수 있음
+- `KMutableproperty`: `var` 로 정의한 변경 가능한 프로퍼티 표현
+  - 선언된 `Setter` 인터페이스로 프로퍼티 접근자를 함수처럼 다룰 수 있음
+
+
+<pre><b><code>KProperty</code> 인터페이스</b>는 <b><code>Getter</code> 타입의 필드</b>를 가지며,
+<b><code>KMutableproperty</code> 인터페이스</b>는 <b><code>Setter</code>타입의 필드</b>를 가짐
+
+→ 프로퍼티 접근자를 함수처럼 다룰 수 있음
+e.g. 메서드에 붙어있는 어노테이션을 알아내기
+
+<code>Getter</code> 와 <code>Setter</code> 는 모두 <code>KFunction</code> 을 확장
+</pre>
+
+<br/>
+
+### 12.2.2 Implementing object serialization using reflection
+
+<small><i>리플렉션을 사용해 객체 직렬화 구현</i></small>
+
+```kotlin
+private fun StringBuilder.serializeObject(obj: Any) {
+    val kClass = obj::class as KClass<Any>
+    val properties = kClass.memberProperties
+ 
+    properties.joinToStringBuilder(
+        this, prefix = "{", postfix = "}") { prop -> 
+        serializeString(prop.name)
+        append(": ")
+        serializePropertyValue(prop.get(obj))
+    }
+}
+```
+
+- prop 변수 타입: `KProperty1<Any, *>`
+- prop.get(obj) 호출 시: `Any?`
+
+<br/>
+
+### 12.2.3 Customizing serialization with annotations
+
+<small><i>어노테이션을 활용해 직렬화 제어</i></small>
+
+- `KAnnotatedElement` 인터페이스에는 `annotations`라는 프로퍼티가 있는데, 소스코드상에서 타겟 요소에 적용된 모든 어노테이션 인스턴스의 컬렉션이 있음
+  - = `@Retention` 을 RUNTIME 으로 지정한 경우
+- `KProperty`는 `KAnnotatedElement`를 확장하므로 `property.annotations`를 통해 프로퍼티의 모든 어노테이션을 얻을 수 있음
+- **특정 어노테이션을 찾으려면?** `KAnnotatedElement` 에 대해 호출할 수 있는 `findAnnotation` 함수 사용 가능
+  - 타입 인자로 지정한 타입과 일치하는 어노테이션들을 돌려줌
+
+<br/>
+
+**Example.** 
+
+<br/>
+<table>
+<tr>
+<th>어노테이션으로 프로퍼티 제외하기</th>
+<th>인자를 포함한 어노테이션 찾기</th>
+</tr>
+<tr>
+<td>
+
+`findAnnotation` 과 `filter` 표준 라이브러리 함수를 조합하면 `@JsonExclude` 어노테
+이션이 붙지 않은 프로퍼티만 남길 수 있음
+
+```kotlin
+val properties = KClass.memberProperties
+    .filter { it.findAnnotation<JsonExclude>() == null }
+```
+
+</td>
+<td>
+
+어노테이션를 찾은 후, 어노테이션에 전달한 인자도 알아야함
+
+```kotlin
+annotation class JsonName(val name: String)
+data class Person {
+  @JsonName("alias") val firstName: String,
+  val age: Int
+}
+```
+
+`@JsonName` 의 인자는 프로퍼티를 직렬화해서 JSON 에 넣을 때 사용할 이름
+
+```kotlin
+annotation class JsonName(val name: String)
+data class Person {
+  @JsonName("alias") val firstName: String,
+  val age: Int
+}
+```
+
+`findAnnotation`이 이 경우에도 도움이 됨
+
+```kotlin
+val jsonNameAnn = prop.findAnnotation<JsonName>()
+val propName = jsonNameAnn?.name ?: prop.name
+```
+
+프로퍼티에 `@JsonName` 어노테이션이 없다면 `jsonNameAnn` 이 `null` 값임
+
+</td>
+</tr>
+</table>
+
+<br/>
+
+<table><tr><td>
+
+##### 🧐 Data Class 필드에 어노테이션 붙이는 방법 ❓
+
+```kotlin
+annotation class JsonName(val name: String)
+
+fun findNames(obj: Any) {
+    val kClass = obj::class as KClass<*>
+    val properties = kClass.memberProperties
+
+    properties.forEach { prop ->
+        val jsonName = prop.findAnnotation<JsonName>()
+        val propName = jsonName?.name ?: prop.name
+        println(propName)
+    }
+}
+```
+
+위와 같은 코드 작성 후,
+JsonName을 data class 필드에 아래와 같이 붙이면,
+`propName` 으로 `alias` 가 출력될 줄 알았던 예상과는 달리 `jsonName` 자체가 `null` 이 출력
+
+
+<table>
+<tr>
+<th>Kotlin Code</th>
+<th>Compiled Code</th>
+</tr>
+<tr>
+<td>
+
+```kotlin
+data class Coffee(
+    @JsonName("alias") val name: String,
+    val price: Int
+)
+```
+
+</td>
+<td>
+
+```kotlin
+public final data class Coffee public constructor(@com.gngsn.JsonName name: kotlin.String, price: kotlin.Int) {
+    public final val name: kotlin.String /* compiled code */
+    public final val price: kotlin.Int /* compiled code */
+    ...
+}
+```
+</td></tr></table>
+
+<br/>
+
+**실행 결과:**
+
+```kotlin
+findNames(Coffee("Americano", 6000)) // 출력: name
+```
+
+→ 예상된 결과인 `alias` 가 아닌 `name` 이 출력
+
+
+#### 시도 1
+
+```kotlin
+data class Coffee(
+    @field:JsonName("alias") val name: String,
+    val price: Int
+)
+```
+
+→ ❌ 동작 안함
+
+왤까 ....
+
+#### 시도 2
+
+`AnnotationTarget` 를 `PROPERTY` 로 지정
+
+```kotlin
+@Target(AnnotationTarget.PROPERTY)
+annotation class JsonName(val name: String)
+```
+
+**→ ✅ 실행 결과: `alias` 출력**
+
+</td></tr></table>
+
+
+

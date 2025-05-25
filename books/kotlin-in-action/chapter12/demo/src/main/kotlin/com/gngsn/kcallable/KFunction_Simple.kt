@@ -1,5 +1,9 @@
 package com.gngsn.kcallable
 
+import kotlin.reflect.KAnnotatedElement
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KProperty
+
 fun foo(x: Int) = println(x)
 class Person(val name: String, val age: Int)
 
