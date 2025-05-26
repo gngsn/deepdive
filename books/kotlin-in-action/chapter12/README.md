@@ -522,7 +522,7 @@ fun main() {
 
 KClass 인터페이스에 다양한 메서드 정의되어 있음
 
-```
+```kotlin
 interface KClass<T : Any> {
     val simpleName: String?
     val qualifiedName: String?
@@ -534,20 +534,23 @@ interface KClass<T : Any> {
 ```
 자세한 정보는 Kotlin KClass 공식 안내문서 [kotlinlang: kotlin-stdlib/kotlin.reflect/KClass](https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.reflect/-k-class/) 참조
 
-<pre>
-<code>simpleName</code> 과 <code>qualifiedName</code> 프로퍼티는 익명 객체에 대해 널 값을 반환함
-- 익명 객체 생성 시에는 여전히 클래스의 인스턴스지만 익명 클래스임
-- 이런 경우 <code>simpleName</code> 과 <code>qualifiedName</code> 모두 존재하지 않아, 필드 접근 시 <code>null</code> 반환
+<br/> 
 
-Example. 
-
-<code>val anonymousObject = object {
-    val x = 1
-}
-
-println(anonymousObject::class.simpleName) // null
-println(anonymousObject::class.qualifiedName) // null
-</code></pre>
+> [!TIP]
+> <code>simpleName</code> 과 <code>qualifiedName</code> 프로퍼티는 익명 객체에 대해 널 값을 반환함
+> - 익명 객체 생성 시에는 여전히 클래스의 인스턴스지만 익명 클래스임
+> - 이런 경우 <code>simpleName</code> 과 <code>qualifiedName</code> 모두 존재하지 않아, 필드 접근 시 <code>null</code> 반환
+>
+> **Example.**
+>
+> ```kotlin
+> val anonymousObject = object {
+>     val x = 1
+> }
+> 
+> println(anonymousObject::class.simpleName) // null
+> println(anonymousObject::class.qualifiedName) // null
+> ```
 
 <br/>
 
@@ -854,10 +857,6 @@ annotation class JsonName(val name: String)
 **→ ✅ 실행 결과: `alias` 출력**
 
 </td></tr></table>
-
-<br/>
-
-아래는 주어진 내용을 정리하고 각 개념에 맞는 예시 문장을 추가한 설명입니다. 마지막에는 전체 내용을 요약합니다.
 
 <br/>
 
