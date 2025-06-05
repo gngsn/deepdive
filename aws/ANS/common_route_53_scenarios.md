@@ -71,14 +71,25 @@ EC2 인스턴스의 DNS 이름을 값으로 하는 `CNAME` 레코드를 만든 �
   - `/application/` => ELB
   - `/images/*` => S3
 
-<br/><img src="./img/route53_scenario_ec2_img4.png" alt="Route 53 Scenario - CloudFront" width="80%" /><br/>
+<br/><img src="./img/route53_scenarios_img4.png" alt="Route 53 Scenario - CloudFront" width="80%" /><br/>
 
 <br/>
 
 ## Route 53 Scenarios – 5. API Gateway
 
-- API Gateway 지역적/엣지 최적화 DNS 이름을 가리키는 레코드 생성
-- Points to API Gateway Regional/Edge Optimized DNS name
+- API Gateway 지역적(Regional)/엣지(Edge) 최적화 DNS 이름을 가리키는 도메인 이름
 - **Example**:
-  - example.com => b123abcde4.execute-api.us-west-2.amazonaws.com (Alias)
+  - `example.com` => `b123abcde4.execute-api.us-west-2.amazonaws.com` (`Alias`)
 
+<br/><img src="./img/route53_scenarios_img5.png" alt="Route 53 Scenario - API Gateway" width="80%" /><br/>
+
+<br/>
+
+## Route 53 Scenarios – 6. RDS DB Instance
+
+- RDS DB 인스턴스의 DNS 이름을 가리키는 도메인 이름
+- `CNAME` 레코드만 생성 가능 (다른 레코드 타입은 지원하지 않음)
+- **예시**:
+  - `db.example.com` => `myexampledb.a1b2c3d4wxyz.us-west-2.rds.amazonaws.com` (`CNAME`)
+
+<br/><img src="./img/route53_scenarios_img6.png" alt="Route 53 Scenario - RDS DB Instance" width="80%" /><br/>
