@@ -93,3 +93,30 @@ EC2 인스턴스의 DNS 이름을 값으로 하는 `CNAME` 레코드를 만든 �
   - `db.example.com` => `myexampledb.a1b2c3d4wxyz.us-west-2.rds.amazonaws.com` (`CNAME`)
 
 <br/><img src="./img/route53_scenarios_img6.png" alt="Route 53 Scenario - RDS DB Instance" width="80%" /><br/>
+
+<br/>
+
+## Route 53 Scenarios – 7. S3 Bucket
+
+- 도메인 이름이 S3 웹사이트 엔드포인트를 가리키는 도메인 이름
+- S3 엔드포인트에 대한 `Alias` 레코드를 생성해야 함
+- ✅ **도메인 이름은 버킷 이름과 반드시 동일해야 함**
+- **예시**:
+  - `example.com` => `s3-website-us-west-2.amazonaws.com` (`Alias`)
+  - → 버킷 명이 `example.com`인 경우에만 동작
+
+<br/><img src="./img/route53_scenarios_img7.png" alt="Route 53 Scenario - S3 Bucket" width="80%" /><br/>
+
+<br/>
+
+## Route 53 Scenarios – 8. VPC Interface Endpoint
+
+- VPC 인터페이스 엔드포인트(AWS PrivateLink)를 가리키는 도메인 이름
+- **예시**:
+  - `example.com` => `vpce-1234-abcdev-us-east-1.vpce-svc-123345.us-east-1.vpce.amazonaws.com` (`Alias`)
+
+<br/><img src="./img/route53_scenarios_img8.png" alt="Route 53 Scenario - VPC Interface Endpoint" width="80%" /><br/>
+
+- VPC Interface Endpoint: Service Provider와 Service Consumer VPC를 연결하기 위한 VPC Interface Endpoint의 연결을 위해 클래식 프라이빗 링크 설정
+- VPC 인터페이스 엔드 포인트를 가리키는 Route 53 별칭을 만들 수 있음
+
