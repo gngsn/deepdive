@@ -190,7 +190,11 @@
 4. [Route 53 - TTL](./route_53_ttl.md)
 5. [Route 53 CNAME vs Alias](./route_53_cname_vs_alias.md)
 6. [Routing Policy](./routing_policy.md)
-
+7. [3rd Party Domains & Route 53](./3rd_party_domains_route_53.md)
+8. [Common Route 53 scenarios](./common_route_53_scenarios.md)
+9. [Route 53 - Subdomain Zones](./route_53_subdomain_zones.md)
+10. [Route 53 - DNSSEC](./route_53_dnssec.md)
+11. [Route 53 Resolvers & Hybrid DNS](./route_53_resolvers_hybrid_dns.md)
 
 
 <br>
