@@ -154,3 +154,110 @@ INNER JOIN Customer
 
   </td>
 </tr>
+
+<br>
+
+## 13.1.3 The structure of DSL
+
+<small><i>DSL 구조</i></small>
+
+- DSL과 일반 APT 사이에 잘 정의된 일반적인 경계는 없음
+- 다른 API 에는 존재하지 않지만 DSL 에만 존재하는 특징 → 구조 또는 문법
+
+1. **일반적인 API**:
+   - 여러 메서드들로 구성
+   - 메서드 호출 간에 중첩(nesting)이나 그룹화(grouping)와 같은 고유한 구조가 없음
+   - 다음 호출로 넘어갈 때 컨텍스트가 유지되지 않음
+   - 이러한 형태를 "command-query API"라고 부름
+
+2. **DSL**:
+   - 메서드 호출들이 DSL 문법에 의해 정의된 더 큰 구조 안에 존재
+   - 여러 메서드 호출을 조합하여 연산을 만들고 타입 검사기가 올바른 타입인지 검사
+
+<br>
+
+#### Example. Kotlin Gradle DSL
+
+<table>
+<tr>
+  <th>Command-query API</th>
+  <th>Kotlin Gradle DSL</th>
+</tr>
+<tr>
+  <td>
+  
+```kotlin
+project.dependencies.add("testImplementation", kotlin("test"))
+project.dependencies.add("implementation", "org.jetbrains.exposed:exposed-core:0.40.1")
+project.dependencies.add("implementation", "org.jetbrains.exposed:exposed-dao:0.40.1")
+```
+  
+  </td>
+  <td>
+
+```kotlin
+dependencies {
+    testImplementation(kotlin("test"))
+    implementation("org.jetbrains.exposed:exposed-core:0.40.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.40.1")
+}
+```
+
+- 람다 중첩 (nesting) 표현으로 구조 생성
+  
+  </td>
+</tr>
+</table>
+
+<br>
+
+## 13.1.4 Building HTML with an internal DSL
+
+<small><i>내부 DSL 로 HTML 만들기</i></small>
+
+HTML 페이지를 생성하는 DSL → [🔗 kotlinx.html](https://github.com/Kotlin/kotlinx.html)
+
+<table>
+<tr>
+  <th>HTML</th>
+  <th>kotlinx.html</th>
+</tr>
+<tr>
+  <td>
+  
+```html
+<table>
+  <tr>
+    <td>1</td>
+    <td>one</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>two</td>
+  </tr>
+</table>
+```  
+
+  </td>
+  <td>
+
+```kotlin
+import kotlinx.html.stream.createHTML
+import kotlinx.html.*
+ 
+fun createTable() = createHTML().table {
+    val numbers = mapOf(1 to "one", 2 to "two")
+    for ((num, string) in numbers) {
+        tr {
+            td { +"$num" }
+            td { +string }
+        }
+    }
+}
+```  
+  </td>
+</tr>
+</table>
+
+<br>
+
