@@ -63,7 +63,7 @@
 
 <br>
 
-## 13.1.1 Domain-specific languages
+### 13.1.1 Domain-specific languages
 
 <small><i>도메인 특화 언어</i></small>
 
@@ -101,7 +101,7 @@
 
 <br>
 
-## 13.1.2 Internal DSLs are seamlessly integrated into the rest of your program
+### 13.1.2 Internal DSLs are seamlessly integrated into the rest of your program
 
 <small><i>내부 DSL은 프로그램의 나머지 부분과 완벽하게 통합됨</i></small>
 
@@ -157,7 +157,7 @@ INNER JOIN Customer
 
 <br>
 
-## 13.1.3 The structure of DSL
+### 13.1.3 The structure of DSL
 
 <small><i>DSL 구조</i></small>
 
@@ -211,7 +211,7 @@ dependencies {
 
 <br>
 
-## 13.1.4 Building HTML with an internal DSL
+### 13.1.4 Building HTML with an internal DSL
 
 <small><i>내부 DSL 로 HTML 만들기</i></small>
 
@@ -260,4 +260,111 @@ fun createTable() = createHTML().table {
 </table>
 
 <br>
+
+## 13.2 Building structured APIs: Lambdas with receivers in DSLs
+
+<small><i>구조화된 API 구축: DSL 에서 수신 객체 지정 람다 사용</i></small>
+
+### 13.2.1 Lambdas with receivers and extension function types
+
+<small><i>수신 객체 지정 람다와 확장 함수 타입</i></small>
+
+<br>
+
+#### STEP 1. 람다를 인자로 받는 `buildString()` 정의
+
+```kotlin
+fun buildString(
+    builderAction: (StringBuilder) -> Unit   // 함수 타입을 받음
+): String {
+    val sb = StringBuilder()
+    builderAction(sb)                        // 람다 호출 시 sb 인스턴스 넘김
+    return sb.toString()
+}
+ 
+fun main() {
+    val s = buildString {
+        it.append("Hello, ")                 // it = StringBuilder 인스턴스
+        it.append("World!")
+    }
+    println(s)
+    // Hello, World!
+}
+```
+
+- 람다 본문에서 매번 `it`을 사용해 `StringBuilder` 인스턴스를 참조해야 함
+  - 혹은 매번 it 대신 원하는 파라미터 이름을 정의해야 함
+- 더 간단하게 호출하기를 원함 → 수신 객체 지정 람다로 변경 필요
+
+<br>
+
+#### STEP 2. 수신 객체 지정 람다를 파라미터로 받는 `buildString()`
+
+```kotlin
+fun buildString(
+    builderAction: StringBuilder.() -> Unit   // 수신 객체가 지정된 함수 타입의 파라미터
+): String {
+    val sb = StringBuilder()
+    sb.builderAction()                        // StringBuilder 인스턴스를 람다의 수신 객체로 사용
+    return sb.toString()
+}
+ 
+fun main() {
+    val s = buildString {
+        this.append("Hello, ")                // this = StringBuilder 인스턴스
+        append("World!")                      // this 생략
+    }
+    println(s)
+    // Hello, World!
+}
+```
+
+<br>
+
+#### 개선점
+
+- 람다 안에서 `it` 을 사용하지 않아도 됨
+  - `buildstring`에 **수신 객체 지정 람다**를 인자로 넘기기 때문
+  - `this.` 는 모호성을 해결해야 할 때만 사용
+
+- 일반 함수 타입 대신 확장 함수 타입을 사용하여 파라미터 타입을 선언
+  - STEP 1: `(StringBuilder) -> Unit` → STEP 2: `StringBuilder.() -> Unit`
+  
+> [!NOTE]
+> **확장 함수 타입 선언**
+> 
+> 이때 앞으로 빼낸 타입을 "수신 객체 타입(receiver type)"이라고 하며, 람다에 전달되는 이 타입의 값이 수신 객체가 됨
+> 
+> ```
+>           파라미터 타입
+>           —————————
+>    String.(Int, Int): Unit
+>    ——————             ————
+>  수신 객체 타입        파라미터 타입
+> ```
+
+<br>
+
+buildString 함수의 인자와 파라미터 사이의 **대응관계**
+
+<br/><img src="./img/figure13-01.png" width="60%" /><br/>
+
+- `buildString` 함수(수신 객체 지정 람다)의 인자는 확장 함수 타입의 파라미터 (`builderAction`)와 대응
+- 호출된 람다 본문 안에서는 수신 객체 (sb) 가 암시적 수신 객체 (this) 가 됨
+
+<br>
+
+#### 확장 함수 타입 선언
+
+
+
+
+<br>
+
+### 13.2.2 Building HTML with an internal DSL
+
+<small><i>내부 DSL 로 HTML 만들기</i></small>
+
+
+
 

@@ -8,13 +8,7 @@
 <br/><img src="./img/route53_subdomain_zones_img1.png" alt="Route 53 Subdomain Zones" width="80%" /><br/>
 
 ## Route 53 – Routing Traffic For Subdomains
-• Create a Hosted Zone for the Subdomain
-• Known as, either:
-    • “Delegation Responsibility for a Subdomain to a Hosted Zone”
-    • “Delegating a Subdomain to Another Name Servers”
-• Use cases:
-    • different subdomains managed by different teams
-    • Restrict access using IAM Permissions (you can’t use IAM to control access to Route 53 records)
+
 - 서브도메인에 대한 호스티드 존을 생성
 - "서브도메인에 대한 호스티드 존으로 책임 위임" 또는 "서브도메인을 다른 네임 서버로 위임"이라고도 함
 - 사용 사례:
@@ -26,8 +20,3 @@
 ## Using Route 53 as the DNS Service for a Subdomain without Migrating the Parent Domain
 
 <br/><img src="./img/route53_subdomain_zones_img3.png" alt="Route 53 Subdomain Zones" width="80%" /><br/>
-
-
-# Route 53 - DNSSEC
-
-# Route 53 Resolvers & Hybrid DNS
