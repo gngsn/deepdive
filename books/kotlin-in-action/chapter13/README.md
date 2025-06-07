@@ -269,6 +269,73 @@ fun createTable() = createHTML().table {
 
 <small><i>수신 객체 지정 람다와 확장 함수 타입</i></small>
 
+
+> [!NOTE]
+> ### 수신 객체 지정 람다 <sup>lambda with receiver</sup>
+> 
+> 람다 본문 안에서 수신 객체를 명시적으로 참조하는 람다
+> 수신 객체 지정 람다는 일반 람다와 똑같아 보임
+>
+> 객체 외부의 람다 코드 블록을 마치 해당 객체 내부에서 사용하는 것처럼 작성할 수 있게 해주는 장치
+> 
+> ```kotlin
+> block : T.() -> R
+> ```
+> ➡️ 객체 `T`를 receiver로 이용하여 객체 `R`을 반환하는 람다
+>
+> `T`를 receiver 라 부르고, receiver를 사용하는 람다를 **lambda with receiver**라고 함
+>
+> <br>
+>
+> #### 📌 Lambda with receiver vs. Lambda with parameter
+>
+> ✅ **Lambda with parameter**
+> 
+> ```kotlin
+> public inline fun <T> T.also(block: (T) -> Unit): T {
+>     block(this)
+>     return this
+> }
+> ```
+>
+> ✅ **Lambda with receiver**
+> 
+> ```kotlin
+> public inline fun <T> T.apply(block: T.() -> Unit): T {
+>     block()
+>     return this
+> }
+> ```
+>
+> <br>
+>
+> #### 📌 **Comparison**
+> 
+> ```kotlin
+> class person(var name: String)
+> ```
+> 
+> ✅ **Lambda with parameter**
+> 
+> ```kotlin
+> person.also {
+>     println("my name is ${it.name}")
+> }
+> ```
+>
+> ➡️ 해당 객체를 **객체 외부에서 접근**하는 것처럼 보임 → 해당 객체를 통해 어떠한 행위를 수행하는 코드에 적합
+> 
+> ✅ **Lambda with receiver**
+> 
+> ```kotlin
+> person.apply {
+>     println("my name is $name")
+> }
+> ```
+>
+> ➡️ 해당 객체를 **객체 내부에서 접근**하는 것처럼 보임 → 객체를 초기화 하는 코드 혹은 객체의 상태를 변경하는 코드에 적합
+> 
+
 <br>
 
 #### STEP 1. 람다를 인자로 받는 `buildString()` 정의
@@ -281,15 +348,16 @@ fun buildString(
     builderAction(sb)                        // 람다 호출 시 sb 인스턴스 넘김
     return sb.toString()
 }
- 
-fun main() {
-    val s = buildString {
-        it.append("Hello, ")                 // it = StringBuilder 인스턴스
-        it.append("World!")
-    }
-    println(s)
-    // Hello, World!
+```
+
+**Usage.**
+
+```kotlin
+val s = buildString {
+    it.append("Hello, ")        // it = StringBuilder 인스턴스
+    it.append("World!")
 }
+println(s)                      // Hello, World!
 ```
 
 - 람다 본문에서 매번 `it`을 사용해 `StringBuilder` 인스턴스를 참조해야 함
@@ -300,23 +368,26 @@ fun main() {
 
 #### STEP 2. 수신 객체 지정 람다를 파라미터로 받는 `buildString()`
 
-```kotlin
+```diff
 fun buildString(
-    builderAction: StringBuilder.() -> Unit   // 수신 객체가 지정된 함수 타입의 파라미터
+-    builderAction: (StringBuilder) -> Unit
++    builderAction: StringBuilder.() -> Unit   // 수신 객체가 지정된 함수 타입의 파라미터
 ): String {
     val sb = StringBuilder()
-    sb.builderAction()                        // StringBuilder 인스턴스를 람다의 수신 객체로 사용
+-   sb.builderAction()
++   sb.builderAction()                        // StringBuilder 인스턴스를 람다의 수신 객체로 사용
     return sb.toString()
 }
- 
-fun main() {
-    val s = buildString {
-        this.append("Hello, ")                // this = StringBuilder 인스턴스
-        append("World!")                      // this 생략
-    }
-    println(s)
-    // Hello, World!
+```
+
+**Usage.**
+
+```kotlin
+val s = buildString {
+    this.append("Hello, ")    // it → this (StringBuilder 인스턴스)
+    append("World!")          // this 생략
 }
+println(s)                    // Hello, World!
 ```
 
 <br>
@@ -349,14 +420,33 @@ buildString 함수의 인자와 파라미터 사이의 **대응관계**
 
 <br/><img src="./img/figure13-01.png" width="60%" /><br/>
 
-- `buildString` 함수(수신 객체 지정 람다)의 인자는 확장 함수 타입의 파라미터 (`builderAction`)와 대응
-- 호출된 람다 본문 안에서는 수신 객체 (sb) 가 암시적 수신 객체 (this) 가 됨
+- **`buildString` 함수**(수신 객체 지정 람다)의 인자는 **확장 함수 타입의 파라미터** (`builderAction`)와 대응
+- 호출된 람다 본문 안에서는 **수신 객체 (`sb`)** 가 **암시적 수신 객체 (`this`)** 가 됨
 
 <br>
 
-#### 확장 함수 타입 선언
+#### 2-1. 수신 객체 지정 람다를 변수에 저장
 
+확장 함수 타입의 값을 반환하는 `appendExcl` 함수 정의
 
+```kotlin
+val appendExcl: StringBuilder.() -> Unit = { this.append("!") }
+```
+
+**Usage.**
+ 
+```kotlin
+val stringBuilder = StringBuilder("Hi")
+
+// 1. appendExcl 함수를 확장 함수처럼 호출
+stringBuilder.appendExcl()                 
+println(stringBuilder)                // "Hi!"
+
+// 2. appendExcl 함수를 인자로 넘길 수도 있음
+println(buildString(appendExcl))      // "!"
+```
+
+수신 객체 지정 람다는 일반 람다와 똑같아 보임
 
 
 <br>
