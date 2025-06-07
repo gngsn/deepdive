@@ -446,8 +446,66 @@ println(stringBuilder)                // "Hi!"
 println(buildString(appendExcl))      // "!"
 ```
 
-수신 객체 지정 람다는 일반 람다와 똑같아 보임
+➡️ 수신 객체 지정 람다는 일반 람다와 똑같아 보임
 
+<br>
+
+#### STEP 3. 수신 객체 지정 람다를 인자로 받는 함수 정의
+
+```kotlin
+fun buildString(builderAction: StringBuilder.() -> Unit): String =
+        StringBuilder().apply(builderAction).toString()
+```
+
+<br>
+
+#### 📌 `apply` 함수 & `with` 함수
+
+<table>
+<tr>
+  <th>apply</th>
+  <th>with</th>
+</tr>
+<tr>
+  <td>
+  
+```kotlin
+inline fun <T> T.apply(block: T.() -> Unit): T {
+    block()
+    return this
+}
+```
+
+  </td>
+  <td>
+
+```kotlin
+inline fun <T, R> with(receiver: T, block: T.() -> R): R =
+    receiver.block()
+```
+  
+  </td>
+</tr>
+<tr>
+  <td>
+  
+- `apply` 함수는 수신 객체를 람다나 **함수의 암시적 수신 객체**로 사용
+- **수신 객체를 다시 반환**
+  
+  </td>
+  <td>
+  
+- `with` 함수는 **첫 번째 파라미터**로 받은 **수신 객체**를 **두 번째 파라미터**로 받은 **람다나 함수**의 **암시적 수신 객체**로 사용
+- 람다를 호출해 얻은 **결과를 반환**
+
+  </td>
+</tr>
+</table>
+
+<br>
+
+- 기본적으로 `apply` 와 `with` 는 모두 자신이 제공받은 수신 객체를 갖고 확장 함수 타입의 람다를 호출
+- 결과를 받아서 쓸 필요가 없다면 두 함수를 서로 바꿔 쓸 수 있음
 
 <br>
 
@@ -455,6 +513,133 @@ println(buildString(appendExcl))      // "!"
 
 <small><i>내부 DSL 로 HTML 만들기</i></small>
 
+HTML 빌더를 위한 태그 클래스 정의
+
+```kotlin
+open class Tag
+ 
+class TABLE : Tag {
+    fun tr(init: TR.() -> Unit)   // tr 함수는 TR 타입을 수신 객체로 받는 람다를 인자로 받음
+}
+ 
+class TR : Tag {
+    fun td(init: TD.() -> Unit)   // tㅇ 함수는 TD 타입을 수신 객체로 받는 람다를 인자로 받음
+}
+ 
+class TD : Tag
+```
+
+HTML 빌더 호출의 수신 객체를 명시한 코드
+
+```kotlin
+fun createSimpleTable() = createHTML().table {
+    this@table.tr {           // this@table 타입 = TABLE
+        this@tr.td {          // this@tr 타입 = TR
+            +"cell"           // 암시적 수신 객체로 this@td 을 사용할 수 있고 그 타입은 TD
+        }
+    }
+}
+```
+
+- 현재, 수신 객체 지정 람다가 중첩된 상태이며, 안쪽 람다에서 외부 람다에 정의된 수신 객체를 사용할 수 있음
+  - `td` 함수의 인자인 람다 안에서는 3 가지 수신 객체 (`this@table`, `this@tr`, `this@td`) 를 사용할 수 있음
+- 영역 안에 여러 수신 객체가 있으면 혼동이 올 수 있음
+
+이를 `@DslMarker` 어노테이션을 사용해 막을 수 있음
+
+<br>
+
+#### `@DslMarker`
+
+- 메타어노테이션
+- 내포된 람다에서 외부 람다의 수신 객체에 접근하지 못하게 제한할 수 있음
+- 즉, `@DslMarker` 어노테이션이 붙은 영역 안에서는 암시적 수신 객체가 결코 2개가 될 수 없음
+
+이후 코드는 [🔗 demo 코드](./demo/src/main/kotlin/com/gngsn/html/Tag.kt) 참고
+
+<br>
 
 
 
+### 13.2.3 Kotlin builders: Enabling abstraction and reuse
+
+<small><i>Kotlin 빌더: 추상화와 재사용 가능성 활성화</i></small>
+
+- 반복되는 내부 DSL 코드 조각을 새 함수로 묶어 재사용
+- 중복을 피하고 코드를 더 깔끔한 코드로 만들 수 있음
+
+**Example. ToC 목록 생성 코드**
+
+<table>
+<tr>
+  <th>Before Reuse</th>
+  <th>After Reuse</th>
+</tr>
+<tr>
+  <td>
+
+```kotlin
+fun buildBookList() = createHTML().body {
+    ul {
+        li { a("#1") { +"The Three-Body Problem" } }
+        li { a("#2") { +"The Dark Forest" } }
+        li { a("#3") { +"Death’s End" } }
+    }
+ 
+    h2 { id = "1"; +"The Three-Body Problem" }
+    p { +"The first book tackles..." }
+ 
+    h2 { id = "2"; +"The Dark Forest" }
+    p { +"The second book starts with..." }
+ 
+    h2 { id = "3"; +"Death’s End" }
+    p { +"The third book contains..." }
+}
+```
+
+  </td>
+  <td>
+  
+```kotlin
+fun buildBookList() = createHTML().body {
+    listWithToc {
+        item("The Three-Body Problem", "The first book tackles...")
+        item("The Dark Forest", "The second book starts with...")
+        item("Death’s End", "The third book contains...")
+    }
+}
+```
+
+</td>
+</tr>
+</table>
+
+<br>
+
+#### 빌더 클래스 정의
+
+```kotlin
+@HtmlTagMarker
+class LISTWITHTOC {
+    val entries = mutableListOf<Pair<String, String>>()
+    fun item(headline: String, body: String) {
+        entries += headline to body
+    }
+}
+
+fun BODY.listWithToc(block: LISTWITHTOC.() -> Unit) {
+    val listWithToc = LISTWITHTOC()
+    listWithToc.block()
+    ul {
+        for ((index, entry) in listWithToc.entries.withIndex()) {
+            li { a("#$index") { +entry.first } }
+        }
+    }
+    for ((index, entry) in listWithToc.entries.withIndex()) {
+        h2 { id = "$index"; +entry.first }
+        p { +entry.second }
+    }
+}
+```
+
+<br>
