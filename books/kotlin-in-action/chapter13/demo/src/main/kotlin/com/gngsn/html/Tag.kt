@@ -16,7 +16,6 @@ open class Tag(val name: String) {
         "<$name>${children.joinToString("")}</$name>"
 }
 
-fun table2(init: (TABLE) -> Unit) = init(TABLE())
 fun table(init: TABLE.() -> Unit) = TABLE().apply(init)
 
 class TABLE : Tag("table") {
