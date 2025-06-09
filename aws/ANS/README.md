@@ -195,6 +195,20 @@
 9. [Route 53 - Subdomain Zones](./route_53_subdomain_zones.md)
 10. [Route 53 - DNSSEC](./route_53_dnssec.md)
 11. [Route 53 Resolvers & Hybrid DNS](./route_53_resolvers_hybrid_dns.md)
+12. [Route 53 Logging](./route_53_logging.md)
+13. [Route 53 DNS Firewall](./route_53_dns_firewall.md)
+14. [Solution Architectures for DNS](./solution_architectures_for_dns.md)
+
+<br>
+
+## Section 21: Route 53 Logging
+
+1. [Route 53 Logging](./route_53_logging.md)
+2. [Route 53 DNS Firewall](./route_53_dns_firewall.md)
+211. Route 53 DNS Firewall
+3min
+Play
+212. Solution Architectures for DNS
 
 
 <br>
