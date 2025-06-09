@@ -10,7 +10,7 @@
   - **Fail-close**: DNS 방화벽에서 응답이 없으면 쿼리 차단 (**가용성보다 보안 우선**)
   - **Fail-open**: DNS 방화벽에서 응답이 없으면 쿼리 허용 (**보안보다 가용성 우선**)
 
-<br/><img src="./img/route_53_dns_firewall_img1.png" width="40%" /><br/>
+<br/><img src="./img/route_53_dns_firewall_img1.png" width="40%" /><br/><br/>
 
 ## Route 53 Solution Architecture Split-View DNS (Split-Horizon)
 - 내부와 외부에서 동일한 도메인 이름을 사용
@@ -19,7 +19,7 @@
   - 내부와 외부 사용자에게 **다른 콘텐츠를 제공**하거나,
   - **다른 인증 방식**을 요구해야 할 때
 
-<br/><img src="./img/route_53_dns_firewall_img2.png" width="80%" /><br/>
+<br/><img src="./img/route_53_dns_firewall_img2.png" width="80%" /><br/><br/>
 
 ## Solution Architecture – Multi-Account DNS Management with Route 53 Resolver
 
