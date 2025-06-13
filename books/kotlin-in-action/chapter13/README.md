@@ -643,3 +643,63 @@ fun BODY.listWithToc(block: LISTWITHTOC.() -> Unit) {
 ```
 
 <br>
+
+## 13.3 More flexible block nesting with the invoke convention
+
+<small><i>invoke 관례를 사용해 더 유연하게 블록 내포시키기</i></small>
+
+invoke 컨벤션을 사용하면 어떤 커스텀 타입의 객체를 함수처럼 호출할 수 있음
+
+<br>
+
+### 13.3.1 The invoke convention: Objects callable as functions
+
+<small><i>invoke 관례를 사용해 더 유연하게 블록 내포시키기</i></small>
+
+- `invoke` 메서드의 특정 요구사항은 없기 때문에, 원하는 파라미터 지정 가능
+  - e.g. 파라미터 개수, 타입, `invoke` 오버로딩
+
+<br>
+
+- 람다는 함수형 인터페이스(`Function1` 등)를 구현하는 클래스로 컴파일됨 (인라인하는 람다를 제외)
+- 실제로, 함수형 인터페이스는 이름이 나타내는 수 만큼의 파라미터를 받는 `invoke` 메서드가 들어있음
+
+```kotlin
+interface Function2<in P1, in P2, out R> {  // 두 개의 파라미터를 받는 함수형 인터페이스
+    operator fun invoke(p1: P1, p2: P2): R
+}
+```
+
+<br>
+
+### 13.3.2 The invoke convention in DSLs: Declaring dependencies in Gradle
+
+<small><i>DSL의 `invoke` 관례: 그레이들 의존관계 선언</i></small>
+
+<table>
+  <tr>
+    <td>
+    <pre><code>dependencies { 
+    testImplementation(kotlin("test"))
+    implementation("org.jetbrains.exposed:exposed-core:0.40.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.40.1")
+}
+</code></pre></td>
+    <td><pre><code>dependencies.implementation("org.jetbrains.exposed:exposed-core:0.40.1")
+ 
+dependencies {
+    implementation("org.jetbrains.exposed:exposed-core:0.40.1")
+}</code></pre></td>
+</tr>
+  <tr>
+    <td>DSL 사용자가 설정해야 할 항목이 많으면 → 내포된 블록 구조 사용</td>
+    <td>설정할 항목이 하나 → 간단한 함수 호출 구조를 사용 (코드 단순성 유지)</td>
+  </tr>
+</table>
+
+
+
+## 13.4 Kotlin DSLs in practice
+### 13.4.1 Chaining infix calls: The should function in test frameworks
+### 13.4.2 Defining extensions on primitive types: Handling dates
+### 13.4.3 Member extension functions: Internal DSL for SQL
