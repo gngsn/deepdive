@@ -250,11 +250,11 @@
 </details>
 
 <details>
-<summary><b>CHAPTER 12. Annotations and reflection</b></summary>
+<summary><b>CHAPTER 13. DSL construction</b></summary>
 
 <br>
 
-<a href="./chapter12">🔗 link</a>
+<a href="./chapter13">🔗 link</a>
 <br>
 
 **TL;DR**

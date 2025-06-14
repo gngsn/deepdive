@@ -644,17 +644,17 @@ fun BODY.listWithToc(block: LISTWITHTOC.() -> Unit) {
 
 <br>
 
-## 13.3 More flexible block nesting with the invoke convention
+## 13.3 More flexible block nesting with the `invoke` convention
 
-<small><i>invoke 관례를 사용해 더 유연하게 블록 내포시키기</i></small>
+<small><i>`invoke` 관례를 사용해 더 유연하게 블록 내포시키기</i></small>
 
-invoke 컨벤션을 사용하면 어떤 커스텀 타입의 객체를 함수처럼 호출할 수 있음
+`invoke` 컨벤션을 사용하면 어떤 커스텀 타입의 객체를 함수처럼 호출할 수 있음
 
 <br>
 
-### 13.3.1 The invoke convention: Objects callable as functions
+### 13.3.1 The `invoke` convention: Objects callable as functions
 
-<small><i>invoke 관례를 사용해 더 유연하게 블록 내포시키기</i></small>
+<small><i>`invoke` 관례를 사용해 더 유연하게 블록 내포시키기</i></small>
 
 - `invoke` 메서드의 특정 요구사항은 없기 때문에, 원하는 파라미터 지정 가능
   - e.g. 파라미터 개수, 타입, `invoke` 오버로딩
@@ -741,6 +741,8 @@ dependencies.invoke({
 
 <small><i>실전 코틀린 DSL</i></small>
 
+<br>
+
 ### 13.4.1 Chaining infix calls: The `should` function in test frameworks
 
 <small><i>중위 호출 연쇄시키기: 테스트 프레임워크의 `should` 함수</i></small>
@@ -761,7 +763,9 @@ fun testKPrefix() {
 }
 </code></pre>
 
-#### `should` 함수
+<br>
+
+#### ✔️ `should` 함수
 
 <pre><code lang="kotlin"><b>infix</b> fun &lt;T&gt; T.should(matcher: Matcher&lt;T&gt;) = matcher.test(this)
 </code></pre>
@@ -770,7 +774,7 @@ fun testKPrefix() {
 
 <br>
 
-#### `Matcher`
+#### ✔️ `Matcher`
 
 ```kotlin
 interface Matcher<T> {
@@ -781,7 +785,7 @@ interface Matcher<T> {
 
 <br>
 
-#### `startWith` 구현 코드
+#### ✔️ `startWith` 구현 코드
 
 ```kotlin
 fun startWith(prefix: String): Matcher<String> {
@@ -841,6 +845,7 @@ val Int.hours: Duration
 
 [🔗 `exposed` 프레임워크](https://github.com/JetBrains/Exposed)에서 제공하는 SOL 내부 DSL
 
+<br>
 
 #### `Country` 테이블 선언
 
@@ -854,6 +859,8 @@ object Country : Table() {
 
 - 데이터베이스 테이블과 대응
 - 이 테이블을 만들려면 트랜잭션과 함께 `Schemautils.create(Country)` 메서드 호출
+
+<br>
 
 <table>
 <tr>
@@ -880,6 +887,8 @@ CREATE TABLE IF NOT EXISTS Country (
 
 </td></tr></table>
 
+<br>
+
 칼럼의 속성을 지정하는 방법
 
 <table>
@@ -904,7 +913,9 @@ class Table {
 
 </td></tr></table>
 
-칼럼의 속성을 지정하는 방법
+<br>
+
+테이블 간 `Join`하는 방법
 
 <table>
 <tr>
@@ -916,7 +927,6 @@ class Table {
 <pre><code lang="kotlin">val result = (Country <b>innerJoin</b> Customer)
     .select { Country.name <b>eq</b> "USA" }          // → WHERE Country.name = "USA"
 result.forEach { println(it[Customer.name]) }</code></pre>
-
 
 </td><td>
 
