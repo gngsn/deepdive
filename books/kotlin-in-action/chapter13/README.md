@@ -676,30 +676,274 @@ interface Function2<in P1, in P2, out R> {  // 두 개의 파라미터를 받는
 
 <small><i>DSL의 `invoke` 관례: 그레이들 의존관계 선언</i></small>
 
+<br>
+
+아래 두 방식을 모두 지원하는 경우를 가정
+
 <table>
   <tr>
     <td>
-    <pre><code>dependencies { 
-    testImplementation(kotlin("test"))
+      <pre><code>dependencies.implementation("org.jetbrains.exposed:exposed-core:0.40.1")</code></pre>
+      설정할 항목이 많으면 내포된 블록 구조를 사용
+    </td>
+    <td>
+      <pre><code>dependencies {
     implementation("org.jetbrains.exposed:exposed-core:0.40.1")
-    implementation("org.jetbrains.exposed:exposed-dao:0.40.1")
-}
-</code></pre></td>
-    <td><pre><code>dependencies.implementation("org.jetbrains.exposed:exposed-core:0.40.1")
- 
-dependencies {
-    implementation("org.jetbrains.exposed:exposed-core:0.40.1")
-}</code></pre></td>
-</tr>
-  <tr>
-    <td>DSL 사용자가 설정해야 할 항목이 많으면 → 내포된 블록 구조 사용</td>
-    <td>설정할 항목이 하나 → 간단한 함수 호출 구조를 사용 (코드 단순성 유지)</td>
-  </tr>
+}</code></pre>
+설정할 항목이 하나뿐이면 간단히 함수 호출 구조를 사용
+</td></tr>
 </table>
 
+**구현 방법**
 
+- 좌측은 `dependencies` 변수에 대해 `implementation` 메서드를 호출
+- 우측은 `dependencies` 안에 람다를 받는 `invoke` 메서드를 정의할 수 있음
+
+<br>
+
+```kotlin
+class DependencyHandler {
+    fun implementation(coordinate: String) {
+        println("Added dependency on $coordinate")
+    }
+ 
+    operator fun invoke(
+        body: DependencyHandler.() -> Unit) {        // invoke를 정의해 DSL 스타일 API 제공
+        body()                                       // = this.body()
+    }
+}
+ 
+fun main() {
+    val dependencies = DependencyHandler()
+    dependencies.implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    
+    dependencies {
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+    }
+}
+```
+
+두 번째 호출은 아래와 같음
+
+```kotlin
+dependencies.invoke({
+    this.implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+})
+```
+
+람다의 타입은 **확장 함수 타입**(수신 객체를 지정한 함수 타입)이며, 수신 객체 타입은 `DependencyHandler` 임
+
+재정의한 `invoke` 메서드로 인해 DSL API 의 유연성이 훨씬 커짐
+
+<br>
 
 ## 13.4 Kotlin DSLs in practice
-### 13.4.1 Chaining infix calls: The should function in test frameworks
+
+<small><i>실전 코틀린 DSL</i></small>
+
+### 13.4.1 Chaining infix calls: The `should` function in test frameworks
+
+<small><i>중위 호출 연쇄시키기: 테스트 프레임워크의 `should` 함수</i></small>
+
+DSL을 깔끔하게 만들려면 코드에 쓰이는 기호의 수를 줄여야 함
+
+<br>
+
+#### Example.
+
+[🔗 Kotest](https://github.com/kotest/kotest) DSL에서 중위 호출 활용법
+
+
+<pre><code lang="kotlin">@Test
+fun testKPrefix() {
+    val s = "kotlin".uppercase()
+    s <b>should startWith("K")</b>
+}
+</code></pre>
+
+#### `should` 함수
+
+<pre><code lang="kotlin"><b>infix</b> fun &lt;T&gt; T.should(matcher: Matcher&lt;T&gt;) = matcher.test(this)
+</code></pre>
+
+`Should` 함수는 `Matcher` 의 인스턴스를 인자로 받음
+
+<br>
+
+#### `Matcher`
+
+```kotlin
+interface Matcher<T> {
+    fun test(value: T)
+}
+```
+`Matcher`는 값에 대한 단언문을 표현하는 제네릭 인터페이스
+
+<br>
+
+#### `startWith` 구현 코드
+
+```kotlin
+fun startWith(prefix: String): Matcher<String> {
+    return object : Matcher<String> {
+        override fun test(value: String) {
+            if(!value.startsWith(prefix)) {
+                throw AssertionError("$value does not start with $prefix")
+            }
+        }
+    }
+}
+```
+
+- `Matcher` 를 구현
+- 어떤 문자열이 주어진 문자열로 시작하는지 검사
+
+<br>
+
 ### 13.4.2 Defining extensions on primitive types: Handling dates
+
+<small><i>원시 타입에 대해 확장 함수 정의하기: 날짜 처리</i></small>
+
+[🔗 `kotlinx.datetime` 라이브러리](https://github.com/Kotlin/kotlinx-datetime)에서는 **날짜와 시간을 다루기 위한 DSL 제공**
+
+<table>
+<tr>
+  <th>사용 예시</th>
+  <th>구현 코드</th>
+</tr>
+<tr><td>
+<pre><code lang="kotlin">val now = Clock.System.now()
+val yesterday = now - <b>1.days</b>
+val later = now + <b>5.hours</b>
+</code></pre>
+
+</td><td>
+
+```kotlin
+import kotlin.time.DurationUnit
+ 
+val Int.days: Duration
+    get() = this.toDuration(DurationUnit.DAYS)    // this = 정수
+ 
+val Int.hours: Duration
+    get() = this.toDuration(DurationUnit.HOURS)   // 내장 함수 toDuration 로 위임
+```
+
+</td></tr></table>
+
+<br>
+
 ### 13.4.3 Member extension functions: Internal DSL for SQL
+
+<small><i>멤버 확장 함수: SQL 을 위한 내부 DSL</i></small>
+
+**Example.**
+
+[🔗 `exposed` 프레임워크](https://github.com/JetBrains/Exposed)에서 제공하는 SOL 내부 DSL
+
+
+#### `Country` 테이블 선언
+
+```kotlin
+object Country : Table() {
+    val id = integer("id").autoIncrement()
+    val name = varchar("name", 50)
+    override val primaryKey = PrimaryKey(id)
+}
+```
+
+- 데이터베이스 테이블과 대응
+- 이 테이블을 만들려면 트랜잭션과 함께 `Schemautils.create(Country)` 메서드 호출
+
+<table>
+<tr>
+  <th>Kotlin exposed 사용 코드</th>
+  <th>SQL 변환 코드</th>
+</tr>
+<tr><td>
+<pre><code lang="kotlin">fun main() {
+    val db = Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
+    transaction(db) {
+        SchemaUtils.create(Country)
+    }
+}</code></pre>
+
+</td><td>
+
+```kotlin
+CREATE TABLE IF NOT EXISTS Country (
+    id INT AUTO_INCREMENT NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    CONSTRAINT pk_Country PRIMARY KEY (id)
+)
+```
+
+</td></tr></table>
+
+칼럼의 속성을 지정하는 방법
+
+<table>
+<tr>
+  <th>Kotlin exposed 사용 코드</th>
+  <th>SQL 변환 코드</th>
+</tr>
+<tr><td>
+
+```kotlin
+val id = integer("id").autoIncrement()
+```
+
+</td><td>
+
+```kotlin
+class Table {
+    fun Column<Int>.autoIncrement(): Column<Int>    // 숫자 타입 컬럼에 한해 적용 가능
+    // ...
+}
+```
+
+</td></tr></table>
+
+칼럼의 속성을 지정하는 방법
+
+<table>
+<tr>
+  <th>`exposed`에서 테이블 조인</th>
+  <th>SQL 변환 코드</th>
+</tr>
+<tr><td>
+
+<pre><code lang="kotlin">val result = (Country <b>innerJoin</b> Customer)
+    .select { Country.name <b>eq</b> "USA" }          // → WHERE Country.name = "USA"
+result.forEach { println(it[Customer.name]) }</code></pre>
+
+
+</td><td>
+
+실제 `select` 와 `eq` 함수를 단순화한 코드
+
+```kotlin
+fun Table.select(where: SqlExpressionBuilder.() -> Op<Boolean>) : Query
+ 
+object SqlExpressionBuilder {
+    infix fun<T> Column<T>.eq(t: T) : Op<Boolean>
+    // ...
+}
+```
+
+</td></tr></table>
+
+<br>
+
+## Summary
+
+- 코틀린 내부 DSL: 여러 메서드 호출 구조를 쉽게 표현할 수 있게 해주는 API 설계 패턴
+  - 코틀린 내부 DSL을 사용하면 코드를 추상화하고 재활용할 수 있음
+- 람다 수신 객체<sup>Lambdas with receivers</sup>: 람다 본문 내에서 메소드를 어떻게 실행할지 재정의해서 중첩 구조를 쉽게 구조화함
+  - 수신 객체 지정 람다를 파라미터로 받은 경우 그 람다의 타입은 확장 함수타입
+  - 람다를 파라미터로 받아 사용하는 함수는 람다를 호출하면서 람다에게 수신 객체를 제공
+- 원시 타입에 대한 확장을 정의하면 상수를 가독성있게 다룰 수 있음 (e.g. 기간)
+- `invoke` 컨벤션을 사용하면 임의의 객체를 함수처럼 다룰 수 있음
+- [🔗 Kotest](https://github.com/kotest/kotest), [Exposed](https://github.com/JetBrains/Exposed) 는 각각 단위 테스트, 데이터베이스를 위한 단언문을 지원하는 내부 DSL 제공
+
+
