@@ -57,7 +57,9 @@
 
 <br/>
 
-## 14.2 코틀린의 동시성 처리 방법: 일시중단 함수와 코루틴
+## 14.2 Concurrency the Kotlin way: Suspending functions and coroutines
+
+<small><i>코틀린의 동시성 처리 방법: 일시중단 함수와 코루틴</i></small>
 
 - 비동기 + 넌블로킹 동시성 코드를 우아하게 작성할 수 있게 해줌
 - 경량: 전통적 스레드와 비교하면 훨씬 가볍게 작동
@@ -65,38 +67,13 @@
 
 <br>
 
-### 14.2.1 스레드와 코루틴 비교
+## 14.3 Comparing threads and coroutines
+
+<small><i>스레드와 코루틴 비교</i></small>
 
 코틀린 스레드는 자바와 100% 호환
 
-- 코루틴은 스레드보다 훨씬 가볍고, 생성 및 관리 비용이 저렴해 수만 개도 쉽게 실행 가능
-- 시스템 자원을 블록하지 않고 일시 중단 및 재개가 가능해 비동기 작업에 효율적
-- 구조화된 동시성(Structured Concurrency)으로 계층적 관리와 취소, 오류 처리가 용이함
-- 짧은 시간 동안 실행되는 세밀한 작업에도 적합함
-- 동시 작업 구성이 단순해지고, 오류 발생 시 관련 코루틴을 함께 취소할 수 있음
-
-<br>
-
-> **일시 중단 함수**: 스레드를 블록시키는 단점이 없이 순차적 코드처럼 보이는 동시성 코드를 작성할 수 있게 해줌
-
-<br>
-
-**Example. 스레드 시작**
-
-```kotlin
-import kotlin.concurrent.thread
- 
-fun main() {
-    println("I'm on ${Thread.currentThread().name}")            // I'm on main
-    thread {
-        println("And I'm on ${Thread.currentThread().name}")    // And I'm on Thread-0
-    }
-}
-```
-
-<br/>
-
-#### ✔️ 스레드
+#### ✅ 스레드
 
 : JVM에서 생성하는 각 스레드는 운영체제가 관리하는 시스템 스레드
 
@@ -112,9 +89,42 @@ fun main() {
 
 <br>
 
+**Example. 코틀린 스레드 시작**
+
+```kotlin
+import kotlin.concurrent.thread
+ 
+fun main() {
+    println("I'm on ${Thread.currentThread().name}")            // I'm on main
+    thread {
+        println("And I'm on ${Thread.currentThread().name}")    // And I'm on Thread-0
+    }
+}
+```
+
+<br>
+
 ✅ 스레드 생성은 신중하게 결정해야 하며, 짧은 시간 동안 잠깐 사용하는 것은 피하는 것이 좋음
 
 → 코틀린은 스레드에 대한 대안으로 코루틴이라는 추상화를 도입
+
+<br>
+
+#### ✅ 코루틴
+
+- 코루틴은 스레드보다 훨씬 가볍고, 생성 및 관리 비용이 저렴해 수만 개도 쉽게 실행 가능
+- 시스템 자원을 블록하지 않고 일시 중단 및 재개가 가능해 비동기 작업에 효율적
+- 구조화된 동시성<sup>Structured Concurrency</sup>으로 계층적 관리와 취소, 오류 처리가 용이함
+- 짧은 시간 동안 실행되는 세밀한 작업에도 적합함
+- 동시 작업 구성이 단순해지고, 오류 발생 시 관련 코루틴을 함께 취소할 수 있음
+
+<br><img src="./img/figure14-02.png" width="80%" /><br>
+
+<br>
+
+> **일시 중단 함수**
+> 
+> : 스레드를 블록시키는 단점이 없이 순차적 코드처럼 보이는 동시성 코드를 작성할 수 있게 해줌
 
 <br>
 
@@ -146,3 +156,236 @@ fun main() {
 - 룸은 기존의 자바 스레드와 I/O API에 맞춰 재구성됨
   - 빠른 로컬 계산과 네트워크로부터 예측할 수 없는 시간 동안 정보를 기다려야 하는 함수(코틀린 코루틴의 일시 중단 함수) 사이에 언어 수준에서의 구분이 없음 
   - 지역적 작업(UI, 캐시, 상태 갱신)이 원격 데이터 접근과 혼합된 대규모 코드베이스에서 코드를 이해하는 것이 더 어려워짐
+
+<br>
+
+## 14.4 Functions that can pause: Suspending functions
+
+<small><i>잠시 멈출 수 있는 함수: 일시 중단 함수</i></small>
+
+코틀린 코루틴의 핵심 특징 중 하나:
+- 다른 동시성 접근 방식 (e.g. 스레드, 반응형 스트림, 콜백 등)과 달리 대부분 코드를 크게 바꿀 필요가 없음
+- 코드는 여전히 순차적인 흐름으로 보임
+
+<br>
+
+### 14.4.1 일시 중단 함수를 사용한 코드는 순차적으로 보인다
+
+<br>
+
+#### 동시성 ❌
+
+```kotlin
+fun login(credentials: Credentials): UserID
+fun loadUserData(userID: UserID): UserData
+fun showData(data: UserData)
+ 
+// `login`과 `loadUserData` 함수는 네트워크 요청을 보내고, 네트워크 응답이 오면 값을 반환
+fun showUserInfo(credentials: Credentials) {
+    val userID = login(credentials)
+    val userData = loadUserData(userID)
+    showData(userData)
+}
+```
+
+`login`과 `loadUserData` 함수 모두 **블로킹(blocking)** 함수
+
+<br>
+
+- 코드의 대부분의 시간은 네트워크 작업 결과를 기다리는 데 소비
+- `showUserInfo` 함수가 실행 중인 스레드는 블로킹됨
+- 블로킹된 스레드는 자원을 낭비하게 됨
+  - 한 번에 처리 가능한 시스템 스레드 수는 오직 수천 개
+- 애플리케이션에 사용자 인터페이스가 있다면, 동시성을 사용하지 않고 이 함수를 호출할 경우 작업이 완료될 때까지 전체 UI가 멈춰버릴 수 있음
+
+<br>
+
+#### 동시성 ✅
+
+**코루틴을 사용한 논블로킹 방식**: `suspend` 변경자 추가
+
+<pre><code lang="kotlin"><b>suspend</b> fun login(credentials: Credentials): UserID
+<b>suspend</b> fun loadUserData(userID: UserID): UserData
+fun showData(data: UserData)
+ 
+<b>suspend</b> fun showUserInfo(credentials: Credentials) {
+    val userID = login(credentials)
+    val userData = loadUserData(userID)
+    showData(userData)
+}
+</code></pre>
+
+<br>
+
+- ✔️ `suspend` 변경자 사용
+  - 해당 함수가 실행을 **잠시 멈출 수 있다**는 의미
+  - 네트워크 응답을 기다리는 경우, 함수 실행을 일시 중단할 수 있음
+- ✔️ 코드 구조는 변경되지 않음
+
+<br><img src="./img/figure14-03.png" width="80%" /><br>
+
+- **일시 중단 함수**: 기다리는 함수가 실행을 블로킹하지 않음<sub>Suspension doesn’t block the underlying thread</sub>
+- 일시 중단은 **기저 스레드를 블로킹하지 않고, 다른 코드가 같은 스레드에서 실행될 수 있음**
+- 해당 함수가 일시 중단되고, 이 함수가 다시 실행될 수 있을 때까지 **다른 코드에게 실행을 양보**
+
+<br>
+
+> [!CAUTION]
+> 
+> 코루틴 사용 시 **사용하는 라이브러리의 구현도 코틀린 코루틴을 고려해 작성되어야 함**
+> 
+> 실제로 코틀린 생태계의 많은 라이브러리들이 코루틴과 함께 작동하는 API를 제공
+> 
+> e.g. 네트워크 요청 → **Ktor HTTP 클라이언트**, **Retrofit**, **OkHttp**
+
+<br>
+
+## 14.5 Comparing coroutines to other approaches
+
+<small><i>코루틴을 다른 접근 방식과 비교하기</i></small>
+
+**동시성 코드 사용 방식 비교**: **콜백(callback), 반응형 스트림(RxJava), 퓨처(Future)** 
+
+<br>
+
+### 콜백<sup>callback</sup>
+
+`login`과 `loadUserDataAsync` 함수의 시그니처를 수정해 콜백 파라미터를 추가할 수 있음
+
+<br>
+
+<pre><code lang="kotlin">fun loginAsync(credentials: Credentials, <b>callback: (UserID) -> Unit</b>)
+fun loadUserDataAsync(userID: UserID, <b>callback: (UserData) -> Unit</b>)
+fun showData(data: UserData)
+ 
+fun showUserInfo(credentials: Credentials) {
+    loginAsync(credentials) { userID ->
+        loadUserDataAsync(userID) { userData ->
+            showData(userData)
+        }
+    }
+}
+</code></pre>
+
+<br>
+
+- **콜백 안에 또 다른 콜백**이 중첩되는 구조가 되기 쉬움 → **콜백 지옥(callback hell)**
+  - 로직 규모 ⬆️ → 여러 중첩 콜백 ⬆️⬆️ → 코드 복잡성 ⬆️⬆️⬆️ + 가독성 ⬇️⬇️⬇️
+
+<br>
+
+### 퓨처<sup>Future</sup>
+
+`CompletableFuture` 사용
+
+<pre><code lang="kotlin">fun loginAsync(credentials: Credentials): <b>CompletableFuture</b><UserID>
+fun loadUserDataAsync(userID: UserID): <b>CompletableFuture</b><UserData>
+fun showData(data: UserData)
+ 
+fun showUserInfo(credentials: Credentials) {
+    loginAsync(credentials)
+        <b>.thenCompose</b> { loadUserDataAsync(it) }
+        <b>.thenAccept</b> { showData(it) }
+}
+</code></pre>
+
+- **장점**
+  - **콜백 지옥 해결**
+- **단점**
+  - **인지적 부가비용 필요**: 새로운 연산자를 익혀야 함 (e.g. `thenCompose`, `thenAccept`)
+  - **함수 시그니처 변경 필요**: 반환 타입을 `CompletableFuture`로 감싸야 함
+    - 기존 코드와 호환성이 떨어질 수 있음
+
+<br>
+
+### 반응형 스트림<sup>ex. RxJava</sup>
+
+<pre><code lang="kotlin">fun login(credentials: Credentials): <b>Single&lt;UserID&gt;</b>
+fun loadUserData(userID: UserID): <b>Single&lt;UserData&gt;</b>
+fun showData(data: UserData)
+ 
+fun showUserInfo(credentials: Credentials) {
+    login(credentials)
+        .<b>flatMap</b> { loadUserData(it) }
+        .<b>doOnSuccess</b> { showData(it) }
+        .<b>subscribe()</b>
+}
+</code></pre>
+
+- **장점**
+  - **콜백 지옥 해결**
+- **단점**
+  - **인지적 부가비용 필요**: 새로운 연산자를 익혀야 함 (e.g. `flatMap`, `doOnSuccess`, `subscribe` 연산자 등)
+  - **함수 시그니처 변경 필요**: 반환 타입을 `Single`로 감싸야 함
+    - 기존 코드와 호환성이 떨어질 수 있음
+
+
+### ✍🏻 동시성 접근 방식 비교
+
+| 항목           | 콜백 (Callback)               | 퓨처 (Future / CompletableFuture) | 반응형 스트림 (RxJava)                        | 코루틴 (Kotlin Coroutines)              |
+| ------------ | --------------------------- | ------------------------------- | --------------------------------------- | ------------------------------------ |
+| **코드 구조**    | 중첩이 많고 가독성이 떨어짐 (콜백 지옥 발생)  | 연산자 체이닝으로 비교적 깔끔함               | 함수형 체이닝 구조, 직관적이지 않을 수 있음               | 순차적 구조 유지, 가장 읽기 쉬움                  |
+| **함수 시그니처**  | 콜백 파라미터를 추가해야 함             | 반환 타입을 `Future`로 감싸야 함          | 반환 타입을 `Single`, `Observable` 등으로 감싸야 함 | `suspend` 키워드만 추가, 함수 구조 변화 최소화      |
+| **러닝 커브**    | 낮음 (개념이 단순)                 | 중간 (체이닝 연산자 익숙해져야 함)            | 높음 (연산자, backpressure 등 학습 필요)          | 낮음\~중간 (기본 개념은 쉽고, 고급 개념은 선택적)       |
+| **오류 처리**    | try-catch 사용 어려움, 분산된 에러 처리 | `handle`, `exceptionally` 필요    | `onErrorResumeNext` 등 별도 연산자 사용 필요      | 일반적인 try-catch 사용 가능                 |
+| **중단/취소**    | 명시적으로 관리해야 하며 어려움           | `cancel()` 지원, 하지만 다루기 복잡       | `dispose()` 필요, 누수 위험 존재                | `Job.cancel()`, 구조적 동시성으로 안전하게 관리 가능 |
+| **에코시스템/지원** | 거의 모든 언어에서 지원               | Java 표준 기능                      | RxJava, Reactor 등 다양한 라이브러리 존재          | 코틀린 생태계에서 광범위하게 지원됨                  |
+| **추론 가능성**   | 흐름 추적이 어려움                  | thenCompose 등이 익숙하지 않으면 추적 어려움  | 복잡한 체이닝 시 디버깅 어려움                       | 순차적 코드 덕분에 흐름 추적이 쉬움                 |
+
+<br>
+
+✅ 반응형 스트림이나 퓨처에도 적절한 활용 사례는 분명 존재
+
+**코틀린에는 자체 제공 동시성** 
+- `Deferred` 타입 → 코틀린 자체 정의 퓨처 스타일
+  - [🔗 kotlinlang: Deferred](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/)
+- `Flow` 타입 → 코루틴용 반응형 스트림 추상화 (16장, 17장 참고)
+  - [🔗 kotlinlang: Flow](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow/)
+
+<br>
+
+### 14.5.1 Calling a suspending function
+
+<small><i>일시 중단 함수 호출하기</i></small>
+
+일시 중단 함수는 **일시 중단 가능한 코드 블록 안에서만 호출할 수 있음**
+
+`suspend` 함수는 실행을 일시 중단할 수 있기 때문에, 일반 코드 어디서나 호출할 수 없음
+
+<br>
+
+> "어떤 함수가 실행을 일시 중단할 수 있다면, 그 함수를 호출하는 쪽도 잠재적으로 일시 중단될 수 있다."
+> 
+> "일시 중단이 전파된다"
+> 
+> 위와 같은 직관과 잘 맞음
+
+<br>
+
+일반 함수나 블로킹 코드에서 일시 중단 함수를 호출하려고 하면 **컴파일 오류 발생**
+
+```kotlin
+suspend fun mySuspendingFunction() {}
+ 
+fun main() {
+    mySuspendingFunction()     // Error: Suspend function mySuspendingFunction should be called only from a coroutine or another suspend function.
+}
+```
+
+→ **코루틴 빌더**를 사용
+
+- **코루틴 빌더**: **새로운 코루틴을 생성**하는 역할을 하며, `suspend` 함수를 호출할 수 있는 **일반적인 진입점**으로 사용됨
+
+
+
+
+
+
+
+
+
+
+
+
+
+
