@@ -376,69 +376,123 @@ fun main() {
 
 <small><i>코루틴의 세계로 들어가기: 코루틴빌더</i></small>
 
-- runBlocking은 블로킹 코드와 일시 중단 함수의 세계를 연결할 때 쓰인다.
-- launch는 블로킹하지 않는 새로운 코루틴을 시작할 때 쓰인다.
-- async는 비동기적으로 값을 계산할 때 쓰인다.
+- `runBlocking`: 블로킹 코드와 일시 중단 함수의 세계를 연결할 때
+- `launch`: 블로킹하지 않는 새로운 코루틴을 시작할 때
+- `async`: 비동기적으로 값을 계산할 때
 
 <br>
 
-### 14.6.1 From regular code into the realm of coroutines: The runBlocking function
+### 14.6.1 From regular code into the realm of coroutines: The `runBlocking` function
 
-<small><i>일반코드에서 코루틴의 세계로: runBlocking 함수</i></small>
+<small><i>일반코드에서 코루틴의 세계로: `runBlocking` 함수</i></small>
 
-일반 블로킹 코드를 일시 중단 함수의 세계로 연결하려면 runBlocking 코루틴 빌더 함수에게 코루틴 본문을 구성하는 코드 블록을 전달할 수 있다.
+[🔗 kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines)
 
-새 코루틴을 생성하고 실행하며, 해당 코루틴이 완료될 때까지 현재 스레드를 블록시킨다. 
-전달된 코드 블록 내에서는 일시 중단 함수를 호출할 수 있다. 
-다음 예제는 내장된 delay 함수를 사용해 코루틴을 500 밀리초 동안 일시 중단한 후 텍스트를
+**일반 블로킹 코드 -🔗-> 일시 중단 함수**
+: `runBlocking` 코루틴 빌더 함수에게 코루틴 코드 블록 전달
 
-// code
+- 새 코루틴을 생성하고 실행 
+- 해당 코루틴이 완료될 때까지 현재 스레드를 블록시킴
 
-코루틴 안에서는 추가적인 자식 코루틴을 얼마든지 시작할 수 있고, 이 자식 코루틴들은 다른 스레드를 더 이상 블록시키지 않는다.
-대신, 일시 중단될 때마다 하나의 스레드가 해방돼 다른 코루틴이 코드를 실행할 수 있게 된다. 이런 추가 자식 코루틴을 시작할 때 launch 코루틴 빌더를 사용할 수 있다.
+```kotlin
+import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
+ 
+suspend fun doSomethingSlowly() {
+    delay(500.milliseconds)          // 코루틴을 500ms 동안 일시 중단
+    println("I'm done")
+}
+ 
+fun main() = runBlocking {
+    doSomethingSlowly()
+}
+```
 
 <br>
 
-### 14.6.2 Creating start-and-forget coroutines: The launch function
+#### 왜 `runBlocking`을 사용할까?
 
-<small><i>발사 후 망각 코루틴 생성: launch 함수</i></small>
+- **`runBlocking`**는 일반 코루틴과 다르게 예외적으로 **하나의 스레드를 블로킹함**
+- 생성한 **`runBlocking`** 코루틴 내에서는 자식 코루틴을 자유롭게 시작할 수 있음
+- 자식 코루틴들은 다른 스레드를 더 이상 블록시키지 않고, 일시 중단될 때마다 하나의 스레드가 해방돼 다른 코루틴이 코드를 실행할 수 있게 됨
+- **추가 자식 코루틴을 시작**할 때 **`launch` 코루틴 빌더를 사용**할 수 있음
 
-launch 함수는 새로운 자식 코루틴을 시작하는데 쓰인다. 
-이는 일반적으로 '발사 후 망각' 시나리오에 사용되며, 
-어떤 코드를 실행하되 그 결과 값을 기다리지 않는 경우에 적합. 
+<br>
 
-runBlocking이 오직 하나의 스레드만 블록한다는 주장을 테스트해보자.
-코드가 언제 어디서 실행되는지 더 명확히 알기 위해 print 대신에 간단한 로그 함수를 사용해보자.
-이 함수는 호출되는 스레드와 타임스탬프를 추가한 더 많은 정보를 제공한다.
+### 14.6.2 Creating start-and-forget coroutines: The `launch` function
 
-이 예시에서 모든 코루틴은 한 스레드, 즉 main 스레드에서 실행됨
+<small><i>발사 후 망각 코루틴 생성: `launch` 함수</i></small>
 
-그림 14.8 첫번째 (부모) 코루틴 (coroutine#1)은 2가지 코루틴을 더 시작해 launch.
-coroutine#2는 일시 중단 지점에 이를 때까지 실행.
-그리고 메인 스레드를 블록시키지 않고 일시 중단되면서, 메인 스레드를 coroutine#3의 작업에 사용하게 놓아준다.
-나중에 coroutine#2는 다시 실행을 재개한다.
-이 코드는 3개의 코루틴이 시작된다.  
-첫 번째는 runBlocking에 의해 시작된 부모 코루틴(로그에는 coroutine#1로 표시)이고,  
-두 번째와 세 번째는 두 번의 launch 호출에 의해 시작된 자식 코루틴이다(각각 coroutine#2, coroutine#3으로 표시).  
-coroutine#2가 delay 함수를 호출하면 코루틴이 일시 중단된다. 이를 일시 중단 지점(suspension point)이라고 한다.  
-이때 coroutine#2는 지정된 시간 동안 일시 중단되고, 메인 스레드는 다른 코루틴이 실행될 수 있도록 해방된다.  
-그 결과 coroutine#3이 작업을 시작할 수 있다. coroutine#3은 로그 호출 하나만 포함하고 있기 때문에 빠르게 끝난다.  
-지정된 10밀리초 후 coroutine#2가 작업을 재개하고, 프로그램 전체가 완료된다.
+- `launch` 함수는 새로운 자식 코루틴을 시작하는데 쓰임
+  - 일반적으로 '발사 후 망각' 시나리오에 사용
+- 어떤 코드를 실행하되 그 결과 값을 기다리지 않는 경우에 적합. 
 
-#### 일시 중단된 코루틴은 어디로 가는가?
+<br>
 
-코루틴이 제대로 동작할 수 있도록 하는 주요 작업은 컴파일러가 수행한다.  
-컴파일러는 코루틴을 일시 중단하고 재개하며, 스케줄링에 필요한 지원 코드를 생성한다.  
-일시 중단 함수의 코드는 컴파일 시점에 변환되고, 실행 시점에 코루틴이 일시 중단될 때 해당 시점의 상태 정보가 메모리에 저장된다.  
-이 정보를 바탕으로 나중에 실행을 복구하고 재개할 수 있다.
+**Example. `runBlocking`이 오직 하나의 스레드만 블록**
 
-병렬성 없이 교차 실행되는 경우임을 알 수 있다.
+```kotlin
+fun main() = runBlocking {
+    log("The first, parent, coroutine starts")                            // ❶
+    launch {
+        log("The second coroutine starts and is ready to be suspended")   // ❸
+        delay(100.milliseconds)                                           // Suspension point
+        log("The second coroutine is resumed")                            // ❹
+    }
+    launch {
+        log("The third coroutine can run in the meantime")                // ❻
+    }
+    log("The first coroutine has launched two more coroutines")           // ❷
+}
+```
 
-코루틴을 여러 스레드에서 병렬로 실행하고 싶다면 코드를 거의 변경하지 않고도 다중 스레드 디스패처를 사용할 수 있다.
+**총 3개의 코루틴**
 
-launch를 사용해 새로운 기본 코루틴을 시작할 수 있다. 하지만 launch는 동시 계산을 수행할 수는 있지만, 코루틴 내부에서 값을 반환하는 것이 간단하지 않다.  
-launch는 값을 반환하기보다는 파일이나 데이터베이스에 쓰는 작업처럼 부수 효과를 일으키는 '시작 후 신경 쓰지 않아도 되는' 작업에 더 적합하다.  
-launch 함수는 Job 타입의 객체를 반환하는데, 이를 시작된 코루틴에 대한 핸들로 생각할 수 있다.  
-Job 객체를 사용하면 코루틴 실행을 제어할 수 있다. 예를 들어, 취소를 촉발시킬 수 있다(코루틴 취소는 15장에서 더 자세히 다룬다).  
-계산 결과를 반환해야 하는 경우에는 다른 프로그래밍 언어에서 이미 익숙한 이름을 가진 코루틴 빌더 함수를 쓴다. 바로 async이다.
+- 첫 번째는 `runBlocking`에 의해 시작된 부모 코루틴(`coroutine#1`)
+- 두 번째와 세 번째는 두 번의 `launch` 호출에 의해 시작된 자식 코루틴 (각각 `coroutine#2`, `coroutine#3`)
+  - `coroutine#2`가 `delay` 함수를 호출하면 코루틴이 일시 중단됨
+  - `coroutine#2`는 지정된 시간 동안 일시 중단되고, 메인 스레드는 다른 코루틴이 실행될 수 있도록 해방됨
 
+
+<b>
+
+**Output:**
+
+```bash
+[main @coroutine#1] The first, parent, coroutine starts
+[main @coroutine#1] The first coroutine has launched two more coroutines
+[main @coroutine#2] The second coroutine starts and is ready to be suspended
+[main @coroutine#3] The third coroutine can run in the meantime
+[main @coroutine#2] The second coroutine is resumed
+```
+
+모든 코루틴은 한 스레드 - `main` 스레드 - 에서 실행됨
+
+<br><img src="figures/14-4.png" alt="코루틴의 실행 흐름"><br/>
+
+- 첫번째 (부모) 코루틴 (`main@coroutine#1`)은 2가지 하위 코루틴을 시작(`launch`).
+- `coroutine#2`는 일시 중단 지점에 이를 때까지 실행
+  - 메인 스레드를 블록시키지 않고 일시 중단
+  - 메인 스레드를 `coroutine#3`의 작업에 사용하게 놓아줌
+- 나중에 `coroutine#2`는 다시 실행을 재개
+
+<br>
+
+> [!note]
+> 
+> #### 일시 중단된 코루틴은 어디로 가는가?
+> 
+> - 코루틴이 제대로 동작할 수 있도록 하는 주요 작업은 컴파일러가 수행
+> - 컴파일러는 코루틴을 일시 중단하고 재개하며, 스케줄링에 필요한 지원 코드를 생성
+> - **일시 중단 함수 코드는 컴파일 시점에 변환**되고, 실행 시점에 코루틴이 일시 중단될 때 **해당 시점의 상태 정보가 메모리에 저장**됨
+> - 이 정보로 코루틴이 나중에 다시 실행될 때 상태를 복구하고 재개할 수 있음
+
+<br>
+
+- 코루틴을 여러 스레드에서 병렬로 실행하고 싶다면, 다중 스레드 디스패처를 사용할 수 있음
+  - 코드 변경 거의 없음
+
+
+- `launch`는 동시 계산을 수행할 수는 있지만, 코루틴 내부에서 값을 반환하는 것이 간단하지 않음
+- `launch` 함수는 `Job` 타입의 객체를 반환
+- `Job` 객체를 사용하면 코루틴 실행을 제어할 수 있음 (e.g. 코루틴 취소<sup>Coroutine Cancellation</sup>)
