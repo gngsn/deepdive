@@ -459,40 +459,106 @@ fun main() = runBlocking {
 **Output:**
 
 ```bash
-[main @coroutine#1] The first, parent, coroutine starts
-[main @coroutine#1] The first coroutine has launched two more coroutines
-[main @coroutine#2] The second coroutine starts and is ready to be suspended
-[main @coroutine#3] The third coroutine can run in the meantime
-[main @coroutine#2] The second coroutine is resumed
+0ms   [main @coroutine#1] Starting the async computation
+4ms   [main @coroutine#1] Waiting for the deferred value to be available
+8ms   [main @coroutine#2] Waiting a bit before calculating 2 + 2
+9ms   [main @coroutine#3] Waiting a bit before calculating 4 + 4
+213ms [main @coroutine#1] The first result: 4
+415ms [main @coroutine#1] The second result: 8
 ```
 
-모든 코루틴은 한 스레드 - `main` 스레드 - 에서 실행됨
+차례대로 200ms와 400ms를 걸리게한 태스크 실행에 총 약 400밀리초가 걸렸음
+≈ 가장 오래 걸린 계산 시간과 같음
 
-<br><img src="figures/14-4.png" alt="코루틴의 실행 흐름"><br/>
+`async`를 호출할 때마다 새 코루틴을 시작해서 두 계산이 동시에 일어나게 한 것
 
-- 첫번째 (부모) 코루틴 (`main@coroutine#1`)은 2가지 하위 코루틴을 시작(`launch`).
-- `coroutine#2`는 일시 중단 지점에 이를 때까지 실행
-  - 메인 스레드를 블록시키지 않고 일시 중단
-  - 메인 스레드를 `coroutine#3`의 작업에 사용하게 놓아줌
-- 나중에 `coroutine#2`는 다시 실행을 재개
+`launch`와 마찬가지로 `async`를 호출한다고 해서 코루틴이 일시 중단되는 것은 아님
+`await`을 호출하면 그 `Deferred`에서 결과값이 사용 가능해질 때까지 루트 코루틴이 일시 중단
+
+<br><img src="figures/14-5.png" alt="코루틴의 실행 흐름"><br>
+
+- 한 스레드에서 실행되어도 `async`를 사용하면 여러 값을 동시에 계산할 수 있음
+- `Coroutine 1`은 2가지 비동기 로직을 시작하고 각 값이 사용 가능해질 때까지 일시 중단됨
+- 두 코루틴(`Coroutine 2`, `Coroutine 3`)은 결과를 `Coroutine 1`에 돌려주기 전까지 내부적으로 잠시 동안 일시 중단됨
+
+
+- `Deferred` 객체 = 아직 사용할 수 없는 값
+  - 즉, 그 값을 (비동기적이거나 병렬적으로) 계산하거나 어디서 읽어와야만 함
+  - `Deferred`는 미래에 언젠가는 값을 알게 될 것이라는 약속, 연기된 계산 결과 값을 나타냄. 
+    - `Deferred` 타입과 `Future`나 `Promise` 등의 개념은 동일
+- 독립적인 작업을 **동시에 실행**하고 그 **결과를 기다릴 때**만 `async`를 사용하면 됨
+  - 일시 중단 함수를 순차 호출할 때는 `async`와 `await`를 사용할 필요가 없음
+  - 결과를 기다리지 않아도 된다면 `async`를 사용할 필요가 없음. 일시 중단 함수 호출이면 충분
+
+
+#### 코루틴 빌더 요약
+
+| 빌더          | 반환값           | 쓰임새                                     |
+| ------------- | ---------------- | ------------------------------------------ |
+| `runBlocking` | 람다가 계산한 값 | 블로킹 코드와 넌블로킹 코드 사이를 연결    |
+| `launch`      | `Job`            | 발사 후 망각 코루틴 시작(부수 효과가 있음) |
+| `async`       | `Deferred<T>`    | 값을 비동기로 계산 (값을 기다릴 수 있음)   |
+
+
+## 14.7 어디서코드를실행할지정하기: 디스패처
+
+
+**코루틴 디스패처**
+- 코루틴을 실행할 스레드를 결정
+  - 본질적으로 코루틴은 특정 스레드에 고정되지 않음
+- 코루틴을 특정 스레드로 제한하거나 스레드풀에 분산 가능
+- 코루틴이 한 스레드에서만 실행될지 여러 스레드에서 실행될지 결정할 수 있음
+  - **코루틴 디스패처**를 통해 코루틴은 한 스레드에서 실행을 일시 중단하고, 디스패처가 지시하는 대로 다른 스레드에서 실행을 재개할 수 있음
 
 <br>
 
-> [!note]
-> 
-> #### 일시 중단된 코루틴은 어디로 가는가?
-> 
-> - 코루틴이 제대로 동작할 수 있도록 하는 주요 작업은 컴파일러가 수행
-> - 컴파일러는 코루틴을 일시 중단하고 재개하며, 스케줄링에 필요한 지원 코드를 생성
-> - **일시 중단 함수 코드는 컴파일 시점에 변환**되고, 실행 시점에 코루틴이 일시 중단될 때 **해당 시점의 상태 정보가 메모리에 저장**됨
-> - 이 정보로 코루틴이 나중에 다시 실행될 때 상태를 복구하고 재개할 수 있음
+#### 스레드풀?
+
+- **스레드풀**(thread pool): 스레드 집합을 관리하고, 집합에 속한 스레드들 위에서 작업(코루틴) 실행을 허용
+- 작업이 실행될 때마다 새 스레드를 할당하는 대신, 스레드풀은 일정한 수의 스레드를 유지하면서 내부 논리와 구현에 따라 들어오는 작업을 분배
+- 스레드를 새로 생성해 할당하고 시작하는 작업은 비용이 많이 들기 때문
 
 <br>
 
-- 코루틴을 여러 스레드에서 병렬로 실행하고 싶다면, 다중 스레드 디스패처를 사용할 수 있음
-  - 코드 변경 거의 없음
+### 14.7.1 디스패처 선택
 
+기본적으로 부모 코루틴에서 디스패처를 상속받으므로 명시적으로 디스패처를 지정할 필요는 없음
 
-- `launch`는 동시 계산을 수행할 수는 있지만, 코루틴 내부에서 값을 반환하는 것이 간단하지 않음
-- `launch` 함수는 `Job` 타입의 객체를 반환
-- `Job` 객체를 사용하면 코루틴 실행을 제어할 수 있음 (e.g. 코루틴 취소<sup>Coroutine Cancellation</sup>)
+하지만 선택할 수 있는 디스패처들이 있음
+
+이 디스패처들은 
+- 코루틴을 기본 환경에서 실행할 때 (e.g. Dispatchers.Default)
+- UI 프레임워크와 함께 작업할 때 (e.g. Dispatchers.Main)
+- 스레드를 블로킹하는 API를 사용할 때 (e.g. Dispatchers.IO) 
+
+<br>
+
+#### ✔️ 다중 스레드를 사용하는 범용 디스패처: `Dispatchers.Default`
+
+가장 일반적인 디스패처.
+
+디폴트 디스패처는 CPU 코어 수만큼의 스레드로 구성된 스레드풀을 기반으로 함.
+
+즉, 기본 디스패처에서 코루틴을 스케줄링하면 여러 스레드에서 코루틴이 분산돼 실행되며, 멀티코어 시스템에서는 병렬로 실행될 수 있음.
+
+<br>
+
+#### ✔️ UI 스레드에서 실행: `Dispatchers.Main`
+
+UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>, 안드로이드 등)를 사용할 때는 특정 작업을 메인(UI) 스레드에서 실행.
+
+<br>
+
+#### ✔️ 블로킹되는 IO 작업 처리: `Dispatchers.IO`
+
+서드파티 라이브러리를 사용할 때 코루틴을 염두에 두고 설계된 API를 선택할 수 없는 경우가 있음.
+
+가령, 데이터베이스 시스템과 상호작용하는 블로킹 API를 사용해야 하는 경우
+기본 디스패처에서 이 기능을 호출하면 문제가 발생할 수 있음
+
+*e.g. 기본 디스패처의 스레드 수는 CPU 코어 수와 동일하기 때문에, 예를 들어 듀얼코어 기계에서 2개의 스레드를 블로킹하는 작업을 호출하면 기본 스레드 풀이 소진돼 다른 코루틴은 완료될 때까지 실행되지 못함*
+
+`Dispatchers.IO`는 이를 위해 설계되어, 이 디스패처에서 실행된 코루틴은 자동으로 확장되는 스레드풀에서 실행됨
+CPU 집약적이지 않은 작업에 적합
+(예: 블로킹 API의 응답 대기)
+
