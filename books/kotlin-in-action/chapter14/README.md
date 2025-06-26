@@ -453,7 +453,6 @@ fun main() = runBlocking {
   - `coroutine#2`가 `delay` 함수를 호출하면 코루틴이 일시 중단됨
   - `coroutine#2`는 지정된 시간 동안 일시 중단되고, 메인 스레드는 다른 코루틴이 실행될 수 있도록 해방됨
 
-
 <b>
 
 **Output:**
@@ -558,7 +557,26 @@ UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>,
 
 *e.g. 기본 디스패처의 스레드 수는 CPU 코어 수와 동일하기 때문에, 예를 들어 듀얼코어 기계에서 2개의 스레드를 블로킹하는 작업을 호출하면 기본 스레드 풀이 소진돼 다른 코루틴은 완료될 때까지 실행되지 못함*
 
-`Dispatchers.IO`는 이를 위해 설계되어, 이 디스패처에서 실행된 코루틴은 자동으로 확장되는 스레드풀에서 실행됨
-CPU 집약적이지 않은 작업에 적합
-(예: 블로킹 API의 응답 대기)
+- `Dispatchers.IO`는 이를 위해 설계되어, 이 디스패처에서 실행된 코루틴은 자동으로 확장되는 스레드풀에서 실행됨
+- CPU 집약적이지 않은 작업에 적합
+  - e.g. 블로킹 API의 응답 대기
 
+<br>
+
+#### 특수 디스패처와 커스텀 디스패처
+
+
+특정 요구사항을 충족하기 위해, 코루틴 라이브러리는 다음을 지원:
+- **`Unconfined` 디스패처**: 특정 스레드에 제약되지 않고 코루틴이 실행되게 함
+  - [🔗 Coroutine Context and Dispatchers](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
+- **`limitedParallelism` 함수**: 디스패처에 대한 병렬성 제약을 사용자 정의해야 하는 경우
+  - [🔗 limitedParallelism](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
+
+
+| Dispatcher               | 스레드 개수                                           | 사용                                                                                                                                 |
+| ------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `Dispatchers.Default`    | Number of CPU cores                                   | 일반적인 연산. CPU 집약적인 작업                                                                                                     |
+| `Dispatchers.Main`       | 1                                                     | UI 프레임워크 컨텍스트 내에서만, UI-집약적 작업 (“UI 스레드”)                                                                        |
+| `Dispatchers.IO`         | 64 threads (auto-scaling) 혹은 CPU 코어 수 (더 큰 것) | Offloading blocking IO tasks (블로킹 IO 작업, 네트워크 작업, 파일 작업)                                                              |
+| `Dispatchers.Unconfined` | 1 thread, whatever is available                       | Advanced cases where immediate scheduling is required (non-general-purpose) 즉시 스케줄링해야 하는 특별한 경우(일반적인 용도는 아님) |
+| `limitedParallelism(n)`  | n threads                                             | Custom scenarios                                                                                                                     |
