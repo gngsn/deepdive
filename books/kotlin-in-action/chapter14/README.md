@@ -498,9 +498,11 @@ fun main() = runBlocking {
 | `launch`      | `Job`            | 발사 후 망각 코루틴 시작(부수 효과가 있음) |
 | `async`       | `Deferred<T>`    | 값을 비동기로 계산 (값을 기다릴 수 있음)   |
 
+<br/>
 
-## 14.7 어디서코드를실행할지정하기: 디스패처
+## 14.7 Deciding where your code should run: Dispatchers
 
+<small><i>발사 후 망각 코루틴 생성: `launch` 함수</i></small>
 
 **코루틴 디스패처**
 - 코루틴을 실행할 스레드를 결정
@@ -519,7 +521,9 @@ fun main() = runBlocking {
 
 <br>
 
-### 14.7.1 디스패처 선택
+### 14.7.1 Choosing a dispatcher
+
+<small><i>디스패처 선택</i></small>
 
 기본적으로 부모 코루틴에서 디스패처를 상속받으므로 명시적으로 디스패처를 지정할 필요는 없음
 
@@ -565,7 +569,6 @@ UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>,
 
 #### 특수 디스패처와 커스텀 디스패처
 
-
 특정 요구사항을 충족하기 위해, 코루틴 라이브러리는 다음을 지원:
 - **`Unconfined` 디스패처**: 특정 스레드에 제약되지 않고 코루틴이 실행되게 함
   - [🔗 Coroutine Context and Dispatchers](https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html)
@@ -581,23 +584,29 @@ UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>,
 | `Dispatchers.Unconfined` | 1 thread, whatever is available                       | Advanced cases where immediate scheduling is required (non-general-purpose) 즉시 스케줄링해야 하는 특별한 경우(일반적인 용도는 아님) |
 | `limitedParallelism(n)`  | n threads                                             | Custom scenarios                                                                                                                     |
 
+<br><img src="./img/figure14-04.png" width="70%" /><br><br>
 
-UI 스레드에서 작업해야 하거나, 
-블로킹 API에서 코루틴을 써야 하거나, 
-다른 특별한 경우 등의 이유가 없다면 항상 `Dispatchers.Default`를 코루틴 디스패처로 사용
+<br>
+
+- 다른 특별한 경우 등의 이유가 없다면,
+  - UI 스레드에서 작업해야 하거나, 
+  - 블로킹 API에서 코루틴을 써야 하거나, 
+- `Dispatchers.Default`를 코루틴 디스패처로 사용
 
 <br>
 
 - 새 코루틴을 시작할 때 반드시 디스패처를 지정할 필요는 없음
 - 코드의 시작점: 부모 코루틴의 디스패처에서 실행됨 (15장 참고)
 
-
 <br>
 
-### 14.7.2 코루틴 빌더에 디스패처 전달
+### 14.7.2 Passing a dispatcher to a coroutine builder
 
-- 코루틴을 특정 디스패처에서 실행하기 위해 코루틴 빌더 함수에게 디스패처를 인자로 전달할 수 있음
-- `runBlocking`, `launch`, `async` 같은 모든 코루틴 빌더 함수는 코루틴 디스패처를 명시적으로 지정할 수 있게 함
+<small><i>코루틴 빌더에 디스패처 전달</i></small>
+
+코루틴을 특정 디스패처에서 실행하기 위해 **코루틴 빌더 함수**에게 디스패처를 인자로 전달할 수 있음
+
+`runBlocking`, `launch`, `async` 같은 모든 코루틴 빌더 함수는 코루틴 디스패처를 명시적으로 지정할 수 있게 함
 
 <br/>
 
@@ -612,9 +621,6 @@ runBlocking {
 }
 ```
 
-코드 출력을 살펴보면 첫 번째 `log` 호출은 메인 스레드에서 실행되고, 
-두 번째 호출(`coroutine#2`에서 실행됨)은 기본 디스패처 스레드풀에 속한 스레드에서 실행되는 것을 확인할 수 있음.
-
 <br>
 
 **Output:**
@@ -624,9 +630,15 @@ runBlocking {
 33 [DefaultDispatcher-worker-1 @coroutine#2] Doing some background work
 ```
 
+- 첫 번째 `log` 호출 → 메인 스레드에서 실행
+- 두 번째 `log` 호출 → `coroutine#2`에서 실행됨
+  - 기본 디스패처 스레드풀에 속한 스레드에서 실행되는 것을 확인할 수 있음
+
 <br>
 
-## 14.7.3 withContext를 사용해 코루틴 안에서 디스패처 바꾸기
+## 14.7.3 Using `withContext` to switch the dispatcher within a coroutine
+
+<small><i>`withContext`를 사용해 코루틴 안에서 디스패처 바꾸기</i></small>
 
 이미 실행 중인 코루틴에서 디스패처를 바꿀 때는 `withContext` 함수에 다른 디스패처를 전달
 
@@ -634,7 +646,7 @@ runBlocking {
 
 **Example.**
 
-다음 코드에서는 백그라운드 작업을 수행하는 새 코루틴을 시작하고, 
+백그라운드 작업을 수행하는 새 코루틴을 시작하고, 
 결과가 준비되면 코루틴을 `Dispatchers.Main`으로 전환해 (가상의) UI 작업을 수행
 
 ```kotlin
@@ -646,6 +658,55 @@ launch(Dispatchers.Default) {                    // Dispatchers.Default 로 시�
 }
 ```
 
-`withContext`를 호출하면 원래 디폴트 디스패처에서 시작되고 실행 중이던 코루틴 실행이 지정한 디스패처의 작업자 스레드로 옮겨감 
+1. 처음에는 **디폴트 디스패처**에서 시작
+2. `withContext`를 호출로
+3. 실행 중이던 코루틴 실행이 지정한 디스패처의 작업자 스레드로 옮겨감
+
+<br><img src="./img/figure14-05.png" width="70%" /><br>
 
 <br>
+
+## 14.7.4 Coroutines and dispatchers aren’t a magical fix for thread-safety concerns
+
+<small><i>코루틴과 디스패처는 스레드 안전성 문제에 대한 마법 같은 해결책이 아니다</i></small>
+
+**다중 스레드 디스패처**는 코루틴을 **여러 스레드에 분산시켜 실행**
+
+전형적인 스레드 안전성 문제가 발생할지 고민할 필요가 있음
+
+- **한 코루틴은 항상 순차적으로 실행됨**
+  - 즉, 어느 단일 코루틴의 어떤 부분도 병렬로 실행되지 않음
+- 👉🏻 단일 코루틴에 연관된 데이터가 전형적인 동기화 문제를 일으키지 않는다는 의미
+
+<br>
+
+#### 병렬로 실행될 수 있는 코루틴들
+
+여러 코루틴이 동일한 데이터를 읽거나 변경하는 경우에는 단순하지 않음
+
+코루틴 하나를 시작해 카운터 x를 10,000번 증가시킨다.
+
+
+```kotlin
+fun main() {
+    runBlocking {
+        launch(Dispatchers.Default) {    ❶
+            var x = 0
+            repeat(10_000) {
+                x++
+            }
+            println(x)
+        }
+    }
+}
+ 
+// 10,000
+```
+
+카운터값이 예상보다 낮음
+여러 코루틴이 같은 데이터를 수정(카운터 증가)하고 있기 때문에 다중 스레드 디스패처에서 실행되면 일부 증가 작업이 서로의 결과를 덮어쓰는 상황이 발생할 수 있음
+
+**해결 접근 방식**
+- 코루틴은 Mutex 잠금을 제공
+- 이를 통해 코드 임계영역(critical section)이 한 번에 하나의 코루틴만 실행되게 보장할 수 있음
+
