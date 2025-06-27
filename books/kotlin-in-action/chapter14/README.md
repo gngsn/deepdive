@@ -580,3 +580,72 @@ UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>,
 | `Dispatchers.IO`         | 64 threads (auto-scaling) 혹은 CPU 코어 수 (더 큰 것) | Offloading blocking IO tasks (블로킹 IO 작업, 네트워크 작업, 파일 작업)                                                              |
 | `Dispatchers.Unconfined` | 1 thread, whatever is available                       | Advanced cases where immediate scheduling is required (non-general-purpose) 즉시 스케줄링해야 하는 특별한 경우(일반적인 용도는 아님) |
 | `limitedParallelism(n)`  | n threads                                             | Custom scenarios                                                                                                                     |
+
+
+UI 스레드에서 작업해야 하거나, 
+블로킹 API에서 코루틴을 써야 하거나, 
+다른 특별한 경우 등의 이유가 없다면 항상 `Dispatchers.Default`를 코루틴 디스패처로 사용
+
+<br>
+
+- 새 코루틴을 시작할 때 반드시 디스패처를 지정할 필요는 없음
+- 코드의 시작점: 부모 코루틴의 디스패처에서 실행됨 (15장 참고)
+
+
+<br>
+
+### 14.7.2 코루틴 빌더에 디스패처 전달
+
+- 코루틴을 특정 디스패처에서 실행하기 위해 코루틴 빌더 함수에게 디스패처를 인자로 전달할 수 있음
+- `runBlocking`, `launch`, `async` 같은 모든 코루틴 빌더 함수는 코루틴 디스패처를 명시적으로 지정할 수 있게 함
+
+<br/>
+
+**Example. `launch` 함수에 디스패처를 인자로 전달해 기본 디스패처에서 코루틴을 시작**
+
+```kotlin
+runBlocking {
+    log("Doing some work")
+    launch(Dispatchers.Default) {            // 코루틴 빌더에 디스패처를 전달
+        log("Doing some background work")
+    }
+}
+```
+
+코드 출력을 살펴보면 첫 번째 `log` 호출은 메인 스레드에서 실행되고, 
+두 번째 호출(`coroutine#2`에서 실행됨)은 기본 디스패처 스레드풀에 속한 스레드에서 실행되는 것을 확인할 수 있음.
+
+<br>
+
+**Output:**
+
+```bash
+26 [main @coroutine#1] Doing some work
+33 [DefaultDispatcher-worker-1 @coroutine#2] Doing some background work
+```
+
+<br>
+
+## 14.7.3 withContext를 사용해 코루틴 안에서 디스패처 바꾸기
+
+이미 실행 중인 코루틴에서 디스패처를 바꿀 때는 `withContext` 함수에 다른 디스패처를 전달
+
+<br>
+
+**Example.**
+
+다음 코드에서는 백그라운드 작업을 수행하는 새 코루틴을 시작하고, 
+결과가 준비되면 코루틴을 `Dispatchers.Main`으로 전환해 (가상의) UI 작업을 수행
+
+```kotlin
+launch(Dispatchers.Default) {                    // Dispatchers.Default 로 시작
+    val result = performBackgroundOperation()
+    withContext(Dispatchers.Main) {              // 결과를 갱신하고자 메인으로 변경
+        updateUI(result)
+    }
+}
+```
+
+`withContext`를 호출하면 원래 디폴트 디스패처에서 시작되고 실행 중이던 코루틴 실행이 지정한 디스패처의 작업자 스레드로 옮겨감 
+
+<br>
