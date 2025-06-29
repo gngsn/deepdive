@@ -412,7 +412,7 @@ fun main() = runBlocking {
 
 #### 왜 `runBlocking`을 사용할까?
 
-- **`runBlocking`**는 일반 코루틴과 다르게 예외적으로 **하나의 스레드를 블로킹함**
+- **`runBlocking`** 는 일반 코루틴과 다르게 예외적으로 **하나의 스레드를 블로킹함**
 - 생성한 **`runBlocking`** 코루틴 내에서는 자식 코루틴을 자유롭게 시작할 수 있음
 - 자식 코루틴들은 다른 스레드를 더 이상 블록시키지 않고, 일시 중단될 때마다 하나의 스레드가 해방돼 다른 코루틴이 코드를 실행할 수 있게 됨
 - **추가 자식 코루틴을 시작**할 때 **`launch` 코루틴 빌더를 사용**할 수 있음
@@ -446,6 +446,19 @@ fun main() = runBlocking {
 }
 ```
 
+<br>
+
+**Output:**
+
+
+```bash
+36 [main @coroutine#1] The first, parent, coroutine starts
+40 [main @coroutine#1] The first coroutine has launched two more coroutines
+42 [main @coroutine#2] The second coroutine starts and is ready to be suspended
+47 [main @coroutine#3] The third coroutine can run in the meantime
+149 [main @coroutine#2] The second coroutine is resumed
+```
+
 **총 3개의 코루틴**
 
 - 첫 번째는 `runBlocking`에 의해 시작된 부모 코루틴(`coroutine#1`)
@@ -453,7 +466,36 @@ fun main() = runBlocking {
   - `coroutine#2`가 `delay` 함수를 호출하면 코루틴이 일시 중단됨
   - `coroutine#2`는 지정된 시간 동안 일시 중단되고, 메인 스레드는 다른 코루틴이 실행될 수 있도록 해방됨
 
-<b>
+
+<br><img src="./img/figure14-04.png" width="80%" alt="코루틴의 실행 흐름"><br>
+
+<br>
+
+### 14.6.3 Awaitable computations: The `async` builder
+
+<small><i>대기가 가능한 연산: `async` 빌더</i></small>
+
+비동기 계산 수행 시 사용
+
+**Example.**
+
+```kotlin
+suspend fun slowlyAddNumbers(a: Int, b: Int): Int {
+    log("Waiting a bit before calculating $a + $b")
+    delay(100.milliseconds * a)
+    return a + b
+}
+ 
+ 
+fun main() = runBlocking {
+    log("Starting the async computation")
+    val myFirstDeferred = async { slowlyAddNumbers(2, 2) }    ❶
+    val mySecondDeferred = async { slowlyAddNumbers(4, 4) }   ❶
+    log("Waiting for the deferred value to be available")
+    log("The first result: ${myFirstDeferred.await()}")       ❷
+    log("The second result: ${mySecondDeferred.await()}")     ❷
+}
+```
 
 **Output:**
 
@@ -466,20 +508,21 @@ fun main() = runBlocking {
 415ms [main @coroutine#1] The second result: 8
 ```
 
-차례대로 200ms와 400ms를 걸리게한 태스크 실행에 총 약 400밀리초가 걸렸음
+<br>
+
+차례대로 `200ms`와 `400ms`를 걸리게한 태스크 실행에 총 약 400밀리초가 걸렸음
+
 ≈ 가장 오래 걸린 계산 시간과 같음
 
-`async`를 호출할 때마다 새 코루틴을 시작해서 두 계산이 동시에 일어나게 한 것
-
-`launch`와 마찬가지로 `async`를 호출한다고 해서 코루틴이 일시 중단되는 것은 아님
-`await`을 호출하면 그 `Deferred`에서 결과값이 사용 가능해질 때까지 루트 코루틴이 일시 중단
-
-<br><img src="figures/14-5.png" alt="코루틴의 실행 흐름"><br>
+- `async`를 호출할 때마다 새 코루틴을 시작해서 두 계산이 동시에 일어나게 한 것
+- `launch`와 마찬가지로 `async`를 호출한다고 해서 코루틴이 일시 중단되는 것은 아님
+- `await`을 호출하면 그 `Deferred`에서 결과값이 사용 가능해질 때까지 루트 코루틴이 일시 중단
 
 - 한 스레드에서 실행되어도 `async`를 사용하면 여러 값을 동시에 계산할 수 있음
 - `Coroutine 1`은 2가지 비동기 로직을 시작하고 각 값이 사용 가능해질 때까지 일시 중단됨
 - 두 코루틴(`Coroutine 2`, `Coroutine 3`)은 결과를 `Coroutine 1`에 돌려주기 전까지 내부적으로 잠시 동안 일시 중단됨
 
+<br><img src="./img/figure14-05.png" width="80%" /><br><br>
 
 - `Deferred` 객체 = 아직 사용할 수 없는 값
   - 즉, 그 값을 (비동기적이거나 병렬적으로) 계산하거나 어디서 읽어와야만 함
@@ -489,6 +532,7 @@ fun main() = runBlocking {
   - 일시 중단 함수를 순차 호출할 때는 `async`와 `await`를 사용할 필요가 없음
   - 결과를 기다리지 않아도 된다면 `async`를 사용할 필요가 없음. 일시 중단 함수 호출이면 충분
 
+<br>
 
 #### 코루틴 빌더 요약
 
@@ -530,25 +574,25 @@ fun main() = runBlocking {
 하지만 선택할 수 있는 디스패처들이 있음
 
 이 디스패처들은 
-- 코루틴을 기본 환경에서 실행할 때 (e.g. Dispatchers.Default)
-- UI 프레임워크와 함께 작업할 때 (e.g. Dispatchers.Main)
-- 스레드를 블로킹하는 API를 사용할 때 (e.g. Dispatchers.IO) 
+- 코루틴을 기본 환경에서 실행할 때 (e.g. `Dispatchers.Default`)
+- UI 프레임워크와 함께 작업할 때 (e.g. `Dispatchers.Main`)
+- 스레드를 블로킹하는 API를 사용할 때 (e.g. `Dispatchers.IO`) 
 
 <br>
 
 #### ✔️ 다중 스레드를 사용하는 범용 디스패처: `Dispatchers.Default`
 
-가장 일반적인 디스패처.
+가장 일반적인 디스패처
 
-디폴트 디스패처는 CPU 코어 수만큼의 스레드로 구성된 스레드풀을 기반으로 함.
+디폴트 디스패처는 CPU 코어 수만큼의 스레드로 구성된 스레드풀을 기반으로 함
 
-즉, 기본 디스패처에서 코루틴을 스케줄링하면 여러 스레드에서 코루틴이 분산돼 실행되며, 멀티코어 시스템에서는 병렬로 실행될 수 있음.
+즉, 기본 디스패처에서 코루틴을 스케줄링하면 여러 스레드에서 코루틴이 분산돼 실행되며, 멀티코어 시스템에서는 병렬로 실행될 수 있음
 
 <br>
 
 #### ✔️ UI 스레드에서 실행: `Dispatchers.Main`
 
-UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>, 안드로이드 등)를 사용할 때는 특정 작업을 메인(UI) 스레드에서 실행.
+UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>, 안드로이드 등)를 사용할 때는 특정 작업을 메인(UI) 스레드에서 실행
 
 <br>
 
@@ -581,12 +625,12 @@ UI 프레임워크 (e.g. 자바FX<sup>JavaFX</sup>, AWT, 스윙<sup>Swing</sup>,
 | `Dispatchers.Default`    | Number of CPU cores                                   | 일반적인 연산. CPU 집약적인 작업                                                                                                     |
 | `Dispatchers.Main`       | 1                                                     | UI 프레임워크 컨텍스트 내에서만, UI-집약적 작업 (“UI 스레드”)                                                                        |
 | `Dispatchers.IO`         | 64 threads (auto-scaling) 혹은 CPU 코어 수 (더 큰 것) | Offloading blocking IO tasks (블로킹 IO 작업, 네트워크 작업, 파일 작업)                                                              |
-| `Dispatchers.Unconfined` | 1 thread, whatever is available                       | Advanced cases where immediate scheduling is required (non-general-purpose) 즉시 스케줄링해야 하는 특별한 경우(일반적인 용도는 아님) |
+| `Dispatchers.Unconfined` | 1 thread, whatever is available                       | 즉시 스케줄링해야 하는 특별한 경우(일반적인 용도는 아님) |
 | `limitedParallelism(n)`  | n threads                                             | Custom scenarios                                                                                                                     |
 
-<br><img src="./img/figure14-04.png" width="70%" /><br><br>
-
 <br>
+<br><img src="./img/figure14-06.png" width="60%" /><br><br>
+
 
 - 다른 특별한 경우 등의 이유가 없다면,
   - UI 스레드에서 작업해야 하거나, 
@@ -672,7 +716,7 @@ launch(Dispatchers.Default) {                    // Dispatchers.Default 로 시�
 
 **다중 스레드 디스패처**는 코루틴을 **여러 스레드에 분산시켜 실행**
 
-전형적인 스레드 안전성 문제가 발생할지 고민할 필요가 있음
+코루틴을 사용할 때는 스레드를 사용할 때와 같은 동시성 문제가 발생
 
 - **한 코루틴은 항상 순차적으로 실행됨**
   - 즉, 어느 단일 코루틴의 어떤 부분도 병렬로 실행되지 않음
@@ -684,7 +728,7 @@ launch(Dispatchers.Default) {                    // Dispatchers.Default 로 시�
 
 여러 코루틴이 동일한 데이터를 읽거나 변경하는 경우에는 단순하지 않음
 
-코루틴 하나를 시작해 카운터 x를 10,000번 증가시킨다.
+코루틴 하나를 시작해 카운터 x를 10,000번 증가시킴
 
 
 ```kotlin
@@ -708,5 +752,14 @@ fun main() {
 
 **해결 접근 방식**
 - 코루틴은 Mutex 잠금을 제공
-- 이를 통해 코드 임계영역(critical section)이 한 번에 하나의 코루틴만 실행되게 보장할 수 있음
+  - 코드 임계영역(critical section)이 한 번에 하나의 코루틴만 실행되게 보장
+- `AtomicInteger` 혹은 `ConcurrentHashMap` 사용 
+  - 같은 병렬 변수를 위해 설계된 원자적이고 스레드 안전한 데이터 구조를 사용
+- 코루틴 또는 `withContext`를 사용해서 임계영역만을 단일 스레드 디스패처에서 실행하도록 제한하는 방법
+  - 성능 특성 고려 필요
 
+<br>
+
+## 14.8 Coroutines carry additional information in their coroutine context
+
+<small><i>코루틴은 코루틴 컨텍스트에 추가적인 정보를 담고 있다</i></small>
