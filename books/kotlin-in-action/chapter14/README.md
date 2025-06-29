@@ -751,11 +751,31 @@ fun main() {
 여러 코루틴이 같은 데이터를 수정(카운터 증가)하고 있기 때문에 다중 스레드 디스패처에서 실행되면 일부 증가 작업이 서로의 결과를 덮어쓰는 상황이 발생할 수 있음
 
 **해결 접근 방식**
-- 코루틴은 Mutex 잠금을 제공
+1. 코루틴은 Mutex 잠금을 제공
   - 코드 임계영역(critical section)이 한 번에 하나의 코루틴만 실행되게 보장
-- `AtomicInteger` 혹은 `ConcurrentHashMap` 사용 
+
+```kotlin
+runBlocking {
+    val mutex = Mutex()
+    var x = 0
+    repeat(10_000) {
+        launch(Dispatchers.Default) {
+            mutex.withLock {
+                x++
+            }
+        }
+    }
+    delay(1.seconds)
+    println(x)
+}
+// 10000
+```
+
+
+2. `AtomicInteger` 혹은 `ConcurrentHashMap` 사용 
   - 같은 병렬 변수를 위해 설계된 원자적이고 스레드 안전한 데이터 구조를 사용
-- 코루틴 또는 `withContext`를 사용해서 임계영역만을 단일 스레드 디스패처에서 실행하도록 제한하는 방법
+
+3. 코루틴 또는 `withContext`를 사용해서 임계영역만을 단일 스레드 디스패처에서 실행하도록 제한하는 방법
   - 성능 특성 고려 필요
 
 <br>
@@ -763,3 +783,87 @@ fun main() {
 ## 14.8 Coroutines carry additional information in their coroutine context
 
 <small><i>코루틴은 코루틴 컨텍스트에 추가적인 정보를 담고 있다</i></small>
+
+코루틴 빌더 함수와 `withContext` 함수에서 다른 디스패처를 인자로 전달했는데,
+실제로는 `coroutineDispatcher`가 아니라, 실제 이 파라미터는 `CoroutineContext`
+
+
+- `CoroutineContext`: 코루틴 콘텍스트. 각 코루틴은 추가적인 문맥 정보를 담음
+  - 코루틴이 어떤 스레드에서 실행될지를 결정하는 **디스패처**
+  - 보통 코루틴의 생명주기와 (예외 상황에서)취소를 관리하는 **`Job` 객체**
+  - **메타데이터** - `CoroutineName` or `CoroutineExceptionHandler` 
+
+<br>
+
+코루틴 컨텍스트를 확인하려면 어떤 일시 중단 함수 안에서든 `coroutineContext` 속성에 접근하면 됨
+
+```kotlin
+import kotlin.coroutines.coroutineContext
+ 
+suspend fun introspect() {
+    log(coroutineContext)
+}
+ 
+fun main() {
+    runBlocking {
+        introspect()
+    }
+}
+ 
+// 25 [main @coroutine#1] [CoroutineId(1),
+    "coroutine#1":BlockingCoroutine{Active}@610694f1,
+    BlockingEventLoop@43814d18]
+```
+
+- 이 속성은 실제로는 코틀린 코드에 정의된 것이 아니라 컴파일러 고유의 기능
+- 실제 구현은 코틀린 컴파일러에 의해 특별히 처리
+
+<br>
+
+#### `coroutineContext` 객체 결합
+
+코루틴 빌더나 `withContext` 함수에 인자를 전달하면 자식 코루틴의 컨텍스트에서 해당 요소를 덮어씀
+
+여러 파라미터를 한 번에 덮어쓰려면 `+` 연산자를 사용해 `coroutineContext` 객체를 결합할 수 있음
+
+예를 들어 `runBlocking` 코루틴을 `10` 디스패처에서 실행하면서 이름을 `"Coroutine"`으로 설정할 수 있음
+
+```kotlin
+fun main() {
+    runBlocking(Dispatchers.IO + CoroutineName("Coolroutine")) {
+        introspect()
+    }
+}
+ 
+// 27 [DefaultDispatcher-worker-1 @Coolroutine#1]
+   [CoroutineName(Coolroutine), CoroutineId(1),
+    "Coolroutine#1":BlockingCoroutine{Active}@d115c9f, Dispatchers.IO]
+```
+
+<br><img src="./img/figure14-09.png" width="80%" /><br>
+
+<br>
+
+## 요약
+- **동시성**: 여러 작업을 동시에 처리하는 것
+  - 여러 작업의 여러 부분이 서로 번갈아 실행되는 방식
+- **병렬성**: 물리적으로 동시에 실행되면서 현대 멀티코어 시스템을 효과적으로 활용하는 것
+- **코루틴**: 스레드 위에서 동시 실행을 위해 동작하는 경량 추상화
+- **일시 중단 함수**: 실행을 잠시 멈출 수 있는 함수. 코틀린의 핵심 동시성 기본 요소.
+  - 다른 일시 중단 함수나 코루틴 안에서 일시 중단 함수를 호출할 수 있음
+  - 일시 중단 함수는 코드의 형태를 유지
+    - 코드는 여전히 순차적으로 보임
+    - 반응형 스트림, 콜백, 퓨처 같은 다른 접근 방식에 비해 큰 장점
+- **코루틴**은 일시 중단 가능한 계산의 인스턴스
+- 코루틴은 **스레드를 블로킹하는 문제를 피함**
+  - 스레드 블로킹이 문제가 되는 이유는 스레드 생성에 비용이 많이 들고, 시스템 자원이 제한적이기 때문
+- 코루틴 빌더: 새로운 코루틴을 생성 → `runBlocking`, `launch`, `async`
+- **디스패처**는 코루틴이 실행될 스레드나 스레드 풀을 결정
+  - `Dispatchers.Default`: 일반적인 용도
+  - `Dispatchers.Main`: UI 스레드에서 작업
+  - `Dispatchers.IO`: 블로킹되는 I/O 작업을 호출할 때 사용
+  - **다중스레드 디스패처**는 여러 코루틴이 병렬로 같은 데이터를 변경할 때 주의가 필요
+    - 다중스레드 디스패처 예시: `Dispatchers.Default` 나 `Dispatchers.IO` 와 같은 대부분의 디스패처
+- 코루틴을 생성할 때 **디스패처를 지정**하거나 **`withContext`를 사용해 디스패처를 변경**할 수 있음
+- 코루틴 콘텍스트에는 코루틴과 연관된 추가 정보가 들어있음
+  - e.g. 코루틴 디스패처
