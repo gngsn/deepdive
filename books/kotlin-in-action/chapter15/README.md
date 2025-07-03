@@ -74,5 +74,95 @@ fun main() {
 
 <br><br>
 
+## 15.1.2 Associating coroutine scopes with components: CoroutineScope
+
+<small><i>구성요소와 코루틴 스코프 연결: CoroutineScope</i></small>
+
+`coroutineScope` 함수가 작업을 분해하는데 사용되는 반면 
+구체적 생명주기를 정의하고, 동시처리나 코루틴의 시작과 종료를 관리하는 클래스를 만들고 싶을 때도 있음. 
+
+→ `CoroutineScope` 생성자 함수를 사용해 새로운 독자적 인코루틴 스코프를 생성
+
+- `coroutineScope`와는 달리 이 함수는 실행을 일시중단하지 않음
+- 단순히 새로운 코루틴을 시작을 위한 새로운 코루틴 스코프를 생성
+
+- `CoroutineScope`는 코루틴 콘텍스트 하나의 파라미터를 받음
+  - e.g. 해당 범위에서 시작된 코루틴이 사용할 디스패처를 지정할 수 있음.
+- 기본적으로 `CoroutineScope`를 디스패처만으로 호출하면 새로운 Job이 자동으로 생성됨
+하지만 대부분의 실무에서는 `CoroutineScope`와 함께 `SupervisorJob`을 사용하는 것이 좋음
+
+
+**✔️ `SupervisorJob`**
+: 동일한 영역과 관련된 다른 코루틴을 취소하지 않고, 처리되지 않은 예외를 전파하지 않게 해주는 특수한 Job
+
+
+```kotlin
+class ComponentWithScope(dispatcher: CoroutineDispatcher = 
+➥ Dispatchers.Default) {
+ 
+    private val scope = CoroutineScope(dispatcher + SupervisorJob())
+ 
+    fun start() {
+        log("Starting!")
+        scope.launch {
+            while(true) {
+                delay(500.milliseconds)
+                log("Component working!")
+            }
+        }
+        scope.launch {
+            log("Doing a one-off task...")
+            delay(500.milliseconds)
+            log("Task done!")
+        }
+    }
+ 
+    fun stop() {
+        log("Stopping!")
+        scope.cancel()
+    }
+}
+```
+
+자체 생명주기를 따르며 코루틴을 시작하고 관리할 수 있는 클래스를 만듦 
+이 클래스는 생성자인자로 코루틴 디스패처를 받고, `CoroutineScope` 함수를 사용해 클래스와 연관된 새로운 코루틴 스코프를 생성
+
+- `start` 함수: 계속 실행되는 코루틴 하나와 작업을 수행하는 코루틴 하나를 시작
+- `stop` 함수: 클래스와 연관된 범위를 취소하며, 이로 인해 이전에 시작된 코루틴들도 함께 취소됨
+
+이 `Component` 클래스의 인스턴스를 생성하고 `start`를 호출하면 컴포넌트 내부에서 코루틴이 시작
+그 후 `stop`을 호출하면 컴포넌트의 생명주기가 종료됨
+
+```kotlin
+fun main() {
+    val c = ComponentWithScope()
+    c.start()
+    Thread.sleep(2000)
+    c.stop()
+}
+// 22 [main] Starting!
+// 37 [DefaultDispatcher-worker-2 @coroutine#2] Doing a one-off task...
+// 544 [DefaultDispatcher-worker-1 @coroutine#2] Task done!
+// 544 [DefaultDispatcher-worker-2 @coroutine#1] Component working!
+// 1050 [DefaultDispatcher-worker-1 @coroutine#1] Component working!
+// 1555 [DefaultDispatcher-worker-1 @coroutine#1] Component working!
+// 2039 [main] Stopping!
+```
+
+생명주기를 관리해야 하는 컴포넌트를 다루는 프레임워크에서는 내부적으로 CoroutineScope 함수를 많이 사용한다. 
+
+<br>
+
+#### CoroutineScope와 CoroutineScope 
+
+비슷한 이름이지만 `coroutineScope` 함수와 `CoroutineScope` 함수의 목적은 서로 다름
+
+- `coroutineScope`는 작업을 동시성으로 실행하기 위해 분해할 때 사용. 여러 코루틴을 시작하고, 그들이 모두 완료될 때까지 기다리며, 결과를 계산할 수도 있음. `coroutineScope`는 자식들이 모두 완료될 때까지 기다리기 때문에 일시중단 함수임.
+
+
+- `CoroutineScope`는 코루틴을 클래스의 생명주기와 연관시키는 영역을 생성할 때 쓰임. 이 함수는 영역을 생성하지만 추가 작업을 기다리지 않고 즉시 반환됨. 반환된 코루틴 스코프를 나중에 취소<sup>Cancellation</sup> 할 수 있음
+
+
+실무에서는 일시중단 함수인 `coroutineScope`가 `CoroutineScope` 생성자 함수보다 더 많이 사용됨. `coroutineScope`는 일시중단 함수의 본문에서 자주 호출되며, `CoroutineScope` 생성자는 클래스 프로퍼티로 코루틴 스코프를 저장할 때 주로 사용됨
 
 
