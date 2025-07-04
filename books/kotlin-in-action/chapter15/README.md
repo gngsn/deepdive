@@ -91,10 +91,12 @@ fun main() {
 - 기본적으로 `CoroutineScope`를 디스패처만으로 호출하면 새로운 Job이 자동으로 생성됨
 하지만 대부분의 실무에서는 `CoroutineScope`와 함께 `SupervisorJob`을 사용하는 것이 좋음
 
+<br>
 
 **✔️ `SupervisorJob`**
 : 동일한 영역과 관련된 다른 코루틴을 취소하지 않고, 처리되지 않은 예외를 전파하지 않게 해주는 특수한 Job
 
+<br>
 
 ```kotlin
 class ComponentWithScope(dispatcher: CoroutineDispatcher = 
@@ -125,6 +127,7 @@ class ComponentWithScope(dispatcher: CoroutineDispatcher =
 ```
 
 자체 생명주기를 따르며 코루틴을 시작하고 관리할 수 있는 클래스를 만듦 
+
 이 클래스는 생성자인자로 코루틴 디스패처를 받고, `CoroutineScope` 함수를 사용해 클래스와 연관된 새로운 코루틴 스코프를 생성
 
 - `start` 함수: 계속 실행되는 코루틴 하나와 작업을 수행하는 코루틴 하나를 시작
@@ -140,6 +143,11 @@ fun main() {
     Thread.sleep(2000)
     c.stop()
 }
+```
+
+**Output:**
+
+```bash
 // 22 [main] Starting!
 // 37 [DefaultDispatcher-worker-2 @coroutine#2] Doing a one-off task...
 // 544 [DefaultDispatcher-worker-1 @coroutine#2] Task done!
@@ -149,20 +157,79 @@ fun main() {
 // 2039 [main] Stopping!
 ```
 
-생명주기를 관리해야 하는 컴포넌트를 다루는 프레임워크에서는 내부적으로 CoroutineScope 함수를 많이 사용한다. 
+생명주기를 관리해야 하는 컴포넌트를 다루는 프레임워크에서는 내부적으로 `CoroutineScope` 함수를 많이 사용
 
 <br>
 
-#### CoroutineScope와 CoroutineScope 
+#### `coroutineScope`와 `CoroutineScope` 생성자 함수
 
-비슷한 이름이지만 `coroutineScope` 함수와 `CoroutineScope` 함수의 목적은 서로 다름
+비슷해 보이지만 목적이 서로 다름
 
-- `coroutineScope`는 작업을 동시성으로 실행하기 위해 분해할 때 사용. 여러 코루틴을 시작하고, 그들이 모두 완료될 때까지 기다리며, 결과를 계산할 수도 있음. `coroutineScope`는 자식들이 모두 완료될 때까지 기다리기 때문에 일시중단 함수임.
+- **`coroutineScope`**: 작업을 동시성으로 실행하기 위해 분해할 때 사용
+  - 여러 코루틴을 시작하고, 그들이 모두 완료될 때까지 기다리며, 결과를 계산할 수도 있음
+  - `coroutineScope`는 자식들이 모두 완료될 때까지 기다리기 때문에 일시중단 함수임
+
+- **`CoroutineScope`**: 코루틴을 클래스의 생명주기와 연관시키는 영역을 생성할 때 쓰임
+  - 이 함수는 영역을 생성하지만 추가 작업을 기다리지 않고 즉시 반환됨
+  - 반환된 코루틴 스코프를 나중에 취소<sup>Cancellation</sup> 할 수 있음
 
 
-- `CoroutineScope`는 코루틴을 클래스의 생명주기와 연관시키는 영역을 생성할 때 쓰임. 이 함수는 영역을 생성하지만 추가 작업을 기다리지 않고 즉시 반환됨. 반환된 코루틴 스코프를 나중에 취소<sup>Cancellation</sup> 할 수 있음
+실무에서는 일시중단 함수인 `coroutineScope`가 더 많이 사용됨
+- `coroutineScope` → 일시중단 함수의 본문에서 자주 호출되며, 
+- `CoroutineScope` 생성자 → 클래스 프로퍼티로 코루틴 스코프를 저장할 때 주로 사용됨
 
+<br>
 
-실무에서는 일시중단 함수인 `coroutineScope`가 `CoroutineScope` 생성자 함수보다 더 많이 사용됨. `coroutineScope`는 일시중단 함수의 본문에서 자주 호출되며, `CoroutineScope` 생성자는 클래스 프로퍼티로 코루틴 스코프를 저장할 때 주로 사용됨
+## 15.1.3 The danger of `GlobalScope`
 
+<small><i>`GlobalScope`의 위험성</i></small>
+
+**`GlobalScope`**: 특수한 코루틴 스코프 인스턴스인
+
+- 전역 수준에 존재하는 코루틴 스코프
+- 🚨 `GlobalScope`를 사용하면 구조화된 동시성이 제공하는 모든 이점을 포기해야함
+
+- 전역범위에서 시작된 코루틴은 자동으로 취소되지 않음
+- 생명주기에 대한 개념 없음
+- 리소스 누수가 발생하거나 불필요한 작업을 계속 수행하면서 계산 자원을 낭비하게 될 가능성이 큼
+
+<br>
+
+**Example.** `GlobalScope`는 구조화된 동시성 계층을 깨뜨림
+
+```kotlin
+fun main() {
+    runBlocking {
+        GlobalScope.launch {           // 일반 애플리케이션에서 사용하지 말 것
+            delay(1000.milliseconds)
+            launch {
+                delay(250.milliseconds)
+                log("Grandchild done")
+            }
+            log("Child 1 done!")
+        }
+        GlobalScope.launch {
+            delay(500.milliseconds)
+            log("Child 2 done!")
+        }
+        log("Parent done!")
+    }
+}
+```
+
+**Output:**
+
+```bash
+// 28 [main @coroutine#1] Parent done!
+```
+
+`GlobalScope`를 사용함으로써 구조화된 동시성에서 자동으로 설정되는 계층구조가 깨져서 즉시 종료
+
+- `coroutine#2` 부터 `coroutine#4`는 `runBlocking`과 연관된 `coroutine#1`과의 부모관계에서 벗어나있음
+- 따라서 부모 코루틴이 없으므로 프로그램은 자식들이 완료되기 전에 종료
+- 이 이유로, `GlobalScope`는 특수한 주석(`DelicateCoroutinesApi`)과 함께 선언됨
+
+-> 대신 코루틴 빌더나 `coroutineScope` 함수를 사용 권장
+
+<br><img src="./img/figure15-03.png" alt="GlobalScope의 위험성"><br>
 
