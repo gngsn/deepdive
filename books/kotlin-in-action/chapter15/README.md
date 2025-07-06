@@ -541,3 +541,250 @@ fun main() = runBlocking {
 ```
 
 <br><br>
+
+### 15.2.4 Cancelled coroutines throw `CancellationExceptions` in special places
+
+<small><i>취소된 코루틴은 특별한 지점에서 `CancellationException`을 던진다</i></small>
+
+- 취소 메커니즘은 `CancellationException`이라는 특수한 예외를 특별한 지점에서 던지는 방식으로 작동함
+- 우선적으로는 일시중단 지점이 이런 지점
+- 취소된 코루틴은 일시중단 지점에서 `CancellationException`을 던짐
+- 일시중단 지점은 코루틴의 실행을 일시중단할 수 있는 지점
+- 일반적으로 코루틴 라이브러리 안의 모든 일시중단 함수는 `CancellationException`이 던져질 수 있는 지점을 도입
+
+```kotlin
+coroutineScope {
+    log("A")
+    delay(500.milliseconds)   // 취소 가능 지점
+    log("B")
+    log("C")
+}
+```
+
+- 영역이 취소 여부에 따라 `A` 나 `A B C` 가 출력
+  - `A B`이 출력될 가능성은 없음. `B`와 `C` 사이에 취소 지점이 없기 때문
+
+> [!WARNING]
+> 
+> ⚠️ 코루틴은 예외를 사용해 코루틴 계층에서 취소를 전파하기 때문에 이 예외를 삼켜버리거나 직접 처리하지 않도록 주의해야 함
+
+<br>
+
+`UnsupportedOperationException`을 던질 수 있는 코드를 반복해서 실행
+
+```kotlin
+suspend fun doWork() {
+    delay(500.milliseconds)                             // CancellationException을 던지는데
+    throw UnsupportedOperationException("Didn't work!")
+}
+ 
+fun main() {
+    runBlocking {
+        withTimeoutOrNull(2.seconds) {
+            while (true) {
+                try {
+                    doWork()
+                } catch (e: Exception) {                // 여기서 취소를 막아버림
+                    println("Oops: ${e.message}")
+                }
+            }
+        }
+    }
+}
+```
+
+`delay` 호출이 `CancellationException`을 던지는데, `catch` 구문에서 모든 종류의 예외를 잡기 때문에 코드 무한 반복
+
+**수정**
+
+- **방법1**: 예외를 다시 던짐: `if (e is CancellationException) throw e`
+- **방법2**: `UnsupportedOperationException`만 잡아야 함
+
+<br><br>
+
+### 15.2.5 Cancellation is cooperative
+
+<small><i>취소는 협력적이다</i></small>
+
+일시 중단 함수는 스스로 취소 가능하게 로직을 제공해야 함
+
+- 취소는 함수 안의 일시 중단 지점에서 `CancellationException`을 던짐
+- `doCpuHeavyWork` 함수는 `suspend` 함수지만, 실제로는 일시 중단 지점을 포함하지 않음
+- **일시 중단 지점을 추가해야 예상한 대로 Cancel 됨**
+- 코드가 **취소 가능한 다른 함수를 호출**하면, 자동으로 취소 가능 지점이 도입
+  - 예를 들어 `doCpuHeavyWork` 함수 본문에 `delay` 호출을 추가하면 해당 함수는 취소 가능한 지점을 갖게 됨
+- 대신 코틀린 코루틴에는 코드를 취소 가능하게 만드는 유틸리티 함수들이 있음: `ensureActive` 와 `yield` 함수, `isActive` 속성 등
+
+<br>
+
+### 15.2.6 Checking whether a coroutine has been cancelled
+
+<small><i>코루틴이 취소됐는지 확인</i></small>
+
+코루틴이 취소됐는지 확인할 때는 `CoroutineScope` 의 `isActive` 속성 혹은 `ensureActive` 확인
+
+**`isActive`**
+
+```kotlin
+import kotlinx.coroutines.isActive
+...
+
+val myJob = launch {
+    repeat(5) {
+        doCpuHeavyWork()
+        if(!isActive) return@launch
+    }
+}
+```
+
+**`ensureActive`**
+
+```kotlin
+import kotlinx.coroutines.ensureActive
+...
+
+val myJob = launch {
+    repeat(5) {
+        doCpuHeavyWork()
+        ensureActive()
+    }
+}
+```
+
+<br>
+
+### 15.2.7 Letting other coroutines play: The `yield` function
+
+<small><i>다른 코루틴에게 기회를 주기: `yield` 함수</i></small>
+
+코드 안에서 취소 가능한 지점을 제공할 뿐만 아니라, 현재 점유된 디스패처에서 다른 코루틴이 작업할 수 있도록 해줌
+
+```kotlin
+import kotlinx.coroutines.*
+ 
+suspend fun doCpuHeavyWork(): Int {
+    var counter = 0
+    val startTime = System.currentTimeMillis()
+    while (System.currentTimeMillis() < startTime + 500) {
+        counter++
+        yield()             // 여러 코루틴이 번갈아가며 실행될 수 있음
+    }
+    return counter
+}
+ 
+fun main() = runBlocking {
+    launch {
+        repeat(3) {
+            doCpuHeavyWork()
+        }
+    }
+    launch {
+        repeat(3) {
+            doCpuHeavyWork()
+        }
+    }
+}
+```
+
+`yield` 가 없을 때:
+
+- `doCpuHeavyWork` 함수에 일시 중단 지점이 없음
+  - → 코루틴 본문에 일시 중단 지점이 없음
+  - → 첫 번째 코루틴의 실행이 일시 중단될 기회가 없어 두 번째 코루틴이 실행되지 못함
+- `isActive` 를 확인하거나 `ensureActive` 를 호출해도 동일
+  - 취소 여부만 확인. 실제로 코루틴을 일시 중단시키지는 않음
+
+`yield` 가 있을 때:
+
+- `yield` 함수는 취소 예외를 던질 수 있는 지점 제공 + 대기 중인 다른 코루틴이 있으면 디스패처가 제어를 다른 코루틴에게 넘길 수 있게 해줌
+- 여러 코루틴이 번갈아가며 실행될 수 있음
+
+일시 중단 지점과 취소 지점이 없는 경우 `isActive`, `ensureActive` 를
+확인하는 것과 `yield` 를 호출하는 것의 차이
+
+<br><img src="./img/figure15-06.png" alt="시간 제한이 초과된 후 자동으로 취소 호출" width="70%"><br>
+
+<br>
+
+**협력적 취소를 가능하게 하는 메커니즘**
+
+| 함수 / 프로퍼티      | 사용 사례                                                         |
+| -------------- | ---------------------------------------------------------- |
+| `isActive`     | 취소가 요청됐는지 확인 (작업을 중단하기 전에 정리 작업을 수행하기 위함)                  |
+| `ensureActive` | '취소 지점' 을 도입. 취소 시 `CancellationException` 을 던져 즉시 작업을 중단    |
+| `yield()`      | CPU 집약적인 작업이 기저 스레드 (또는 스레드 풀) 를 소모하는 것을 방지하기 위해 계산 자원을 양도 |
+
+<br>
+
+### 15.2.8 Keep cancellation in mind when acquiring resources
+
+<small><i>리소스를 얻을 때 취소를 염두에 두기</i></small>
+
+데이터베이스 연결, IO 등과 같은 리소스를 사용 → 사용 후 이를 명시적으로 닫아야 적절하게 해제됨
+
+- 취소는 다른 예외와 마찬가지로 코드의 조기 반환을 유발 가능
+- 코루틴 기반 코드는 항상 취소 시에도 견고하게 작동하도록 설계돼야 함
+- 취소가 발생하면 `CancellationException` 이 발생하기 때문에, `finally` 블록을 활용해서 해제
+
+```kotlin 
+val dbTask = launch {
+    val db = DatabaseConnection()
+    try {
+        delay(500.milliseconds)
+        db.write("I love coroutines!")
+    } finally {
+        db.close()
+    }
+}
+```
+
+- `AutoClosable` 인터페이스를 구현하는 경우, `.use` 함수를 사용해 간결하게 처리 가능
+
+```kotlin
+val dbTask = launch {
+    DatabaseConnection().use {
+        delay(500.milliseconds)
+        it.write("I love coroutines!")
+    }
+}
+```
+
+<br>
+
+### 15.2.8 Keep cancellation in mind when acquiring resources
+
+<small><i>프레임워크가 여러 분 대신 취소를 할 수 있다</i></small>
+
+- 실제 애플리케이션에서는 프레임워크 가 코루틴 스코프를 제공하고, 취소를 자동으로 처리
+  - e.g. 안드로이드 플랫폼, 케이토 네트워크 프레임워크
+- 개발자는 적절한 코루틴 스코프를 선택하고 코드가 실제로 취소될 수 있도록 설계해야 함
+
+<br>
+
+## Summary
+
+- **구조화된 동시성**: 코루틴의 작업을 제어할 수 있게 해주며, 코루틴이 취소되지 않고 계속 실행되는 것을 방지
+- **일시 중단 함수 `coroutineScope` vs. `CoroutineScope` 생성자 함수**
+  - 둘 다 새로운 코루틴 스코프를 생성할 수 있음
+  - `coroutineScope`: 작업을 병렬로 분해하기 위한 함수
+    - 여러 코루틴을 시작하고 결과를 계산한 후 그 결과를 반환
+  - `CoroutineScope`: 클래스의 생명 주기와 코루틴을 연관시키는 스코프를 생성
+    - 일반적으로 `SupervisorJob` 과 함께 사용됨
+- `GlobalScope`: 특별한 코루틴 스코프
+  - 구조화된 동시성을 깨뜨리기 때문에 애플리케이션 코드에서는 사용하지 말아야 함
+- **코루틴 컨텍스트**
+  - 개별 코루틴이 어떻게 실행되는지 관리
+  - 코루틴 계층을 따라 상속됨
+- 코루틴과 코루틴 스코프 간의 부모-자식 계층 구조는 코루틴 컨텍스트에 있는 `Job` 객체를 통해 설정됨
+- **일시 중단 지점**: 코루틴이 일시 중단될 수 있고, 다른 코루틴이 작업을 시작할 수 있는 지점
+- **취소**
+  - 일시 중단 지점에서 `CancellationException` 을 던지는 방식으로 구현됨
+  - 취소는 정상적인 상황이므로 코드는 이를 처리할 수 있게 설계해야 함
+  - **취소 예외**처리: 절대 무시(잡아내고 처리하지 않음)되면 안됨
+    - 예외를 다시 던지든지 아니면 아예 잡아내지 않는 것이 좋음
+- `cancel` 이나 `withTimeoutOrNull` 같은 함수를 사용해 직접 취소를 호출할 수 있음
+  - 기존의 여러 프레임워크도 코루틴을 자동으로 취소할 수 있음
+- 함수에 `suspend` 변경자를 추가하는 것만으로는 취소를 지원할 수 없음
+- `ensureActive`, `yield` 함수, `isActive` 속성: 코틀린 코루틴은 취소 가능한 일시 중단 함수를 작성하는 데 필요한 유틸리티 제공
+- 프레임워크는 `CoroutineScope` 를 사용해 코루틴을 애플리케이션의 생명 주기와 연결하는 데 도움을 줌
+  - e.g. 화면에 `ViewModel` 이 표시되는 동안이나 요청 핸들러가 실행되는 동안
