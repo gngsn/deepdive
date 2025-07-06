@@ -445,39 +445,65 @@ fun main() {
 
 <small><i>시간 제한이 초과된 후 자동으로 취소 호출</i></small>
 
-코루틴을 수동으로 취소하는 것 외에도 라이브러리가 특정 조건에서 자동으로 코루틴을 취소하게 할 수 있음
+라이브러리가 특정 조건에서 자동으로 코루틴을 취소하게 할 수 있음
 
-코루틴 라이브러리는 코루틴의 취소를 자동으로 촉발할 수 있는 몇 가지 함수를 제공
+**`withTimeout` 과 `withTimeoutOrNull` 함수**
+: 코루틴의 취소를 자동 트리거하는 함수 (코루틴 라이브러리 제공)
 
-`withTimeout` 과 `withTimeoutOrNull` 함수
+- 특정 시간 제한이 초과된 후 자동으로 코루틴을 취소할 수 있음
+- **예외 처리**
+  - `withTimeout` 함수는 타임아웃이 되면 예외(`TimeoutCancellationException`)를 발생시킴
+  - `withTimeoutOrNull` 함수는 타임아웃이 발생하면 `null`을 반환
 
-특정 시간 제한이 초과된 후 자동으로 코루틴을 취소할 수 있음
-
-`withTimeout` 함수는 타임아웃이 되면 예외(`TimeoutCancellationException`)를 발생시킴
-
-타임아웃을 처리하려면 `withTimeout` 호출을 `try` 블록으로 감싸고, 발생한 `TimeoutCancellationException`을 잡아내야 함
-비슷하게 `withTimeoutOrNull` 함수는 타임아웃이 발생하면 `null`을 반환
-
+<br><br>
 
 > [!NOTE]
-> `withTimeout`이 발생시키는 `TimeoutCancellationException`을 잊지 말고 잡아라. 15.2.4절에서 보겠지만 이 예외의 상위 타입인 `CancellationException`은 코루틴을 취소하기 위한 특별한 표식으로 사용된다. 즉, `TimeoutCancellationException`을 잡지 않으면 호출한 코루틴이 의도와 다르게 취소될 수 있다. 이 문제를 완전히 피하려면 `withTimeoutOrNull` 함수를 사용하는 편이 좋다.
+> `withTimeout`이 발생시키는 `TimeoutCancellationException`을 반드시 잡아야 함
+> 
+> 상위 예외 타입인 `CancellationException`은 코루틴을 취소하기 위한 특별한 표식으로 사용됨
+> 
+> 즉, `TimeoutCancellationException`을 잡지 않으면 호출한 코루틴이 의도와 다르게 취소될 수 있음
+> 
+> 이 문제를 완전히 피하려면 `withTimeoutOrNull` 함수를 사용하는 편이 좋음
 
+<br>
 
 **Example.**
 
-500밀리초로 타임아웃을 짧게 설정해 호출하면 타임아웃이 발생.
+500밀리초로 타임아웃을 짧게 설정해 호출하면 타임아웃이 발생
 
 이후 `calculateSomething` 함수는 취소되고 `null`이 반환
 
 두번째 호출에서는 함수가 완료되기에 충분한 시간을 제공해 실제로 계산된 값을 반환 받을 수 있다.
 
 ```kotlin
+import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
+ 
+suspend fun calculateSomething(): Int {
+    delay(3.seconds)
+    return 2 + 2
+}
+ 
+fun main() = runBlocking {
+    val quickResult = withTimeoutOrNull(500.milliseconds) {
+        calculateSomething()
+    }
+    println(quickResult)
+    // null
+    val slowResult = withTimeoutOrNull(5.seconds) {
+        calculateSomething()
+    }
+    println(slowResult)
+    // 4
+}
 ```
 
-<br><img src="./img/figure15-05.png" alt="시간 제한이 초과된 후 자동으로 취소 호출"><br>
+- `withTimeoutOrNull`을 사용하면 일시중단 함수의 실행 시간을 제한할 수 있음
+- 함수가 주어진 시간 내에 값을 반환하면 그 즉시 값을 반환하고, 시간이 초과되면 함수는 취소되고 `null`을 반환
 
-`withTimeoutOrNull`을 사용하면 일시중단 함수의 실행 시간을 제한할 수 있음
-함수가 주어진 시간 내에 값을 반환하면 그 즉시 값을 반환하고, 시간이 초과되면 함수는 취소되고 `null`을 반환
+<br><img src="./img/figure15-05.png" alt="시간 제한이 초과된 후 자동으로 취소 호출" width="60%"><br>
 
 <br>
 
@@ -485,28 +511,33 @@ fun main() {
 
 <small><i>취소는 모든 자식 코루틴에게 전파된다</i></small>
 
-코루틴을 취소하면 해당 코루틴의 모든 자식 코 루틴도 자동으로 취소된다.
-다음 리스트처럼 여러 계층에 걸쳐 코루틴이 중첩돼 있는 경우에도 가장 바깥쪽 코루틴을 취소하면 고손자(손자의손자) 코루틴까지도 모두 적절히 취소된다.
+코루틴을 취소하면 해당 코루틴의 모든 자식 코 루틴도 자동으로 취소됨
+
+- 여러 계층에 걸쳐 코루틴이 중첩돼 있는 경우에도 가장 바깥쪽 코루틴을 취소하면 증손자(손자의 손자)
+- 코루틴까지도 모두 적절히 취소됨
 
 ```kotlin
+fun main() = runBlocking {
+    val job = launch {
+        launch {
+            launch {
+                launch {
+                    log("I'm started")
+                    delay(500.milliseconds)
+                    log("I'm done!")
+                }
+            }
+        }
+    }
+    delay(200.milliseconds)
+    job.cancel()
+}
 ```
 
+**Output:**
+
+```bash
+0 [main @coroutine#5] I'm started 
+```
 
 <br><br>
-
-### 15.2.4 Cancelled coroutines throw `CancellationExceptions` in special places
-
-<small><i>취소된 코루틴은 특별한 지점에서 `CancellationException`을 던진다</i></small>
-
-취소 메커니즘은 `CancellationException`이라는 특수한 예외를 특별한 지점에서 던지는 방식으로 작동한다. 
-우선적으로는 일시중단 지점이 이런 지점이다. 취소된 코루틴은 일시중단 지점에서 `CancellationException`을 던진다. 14장에서
-잠깐 본 것처럼 일시중단 지점은 코루틴의 실행을 일시중단할 수 있는 지점이다. 일반적으로 코루틴 라이브러리 안의 모든 일시중단 함수는 `CancellationException`
-이 던져질 수 있는 지점을 도입한다. 다음 코드에서는 영역이 취소됐는지 여부에 따라 A'나' A B C'가 출력되며, 'A B'는 절대 출력되지 않는다. 이는 B'와 C' 사이에 취소 지점이 없기 때문이다.
-
-코루틴은 예외를 사용해 코루틴 계층에서 취소를 전파하기 때문에 이 예외를 실수로 삼켜버리거나 직접 처리하지 않도록 주의해야 한다. 다음 코드를 보자. 이 코드는 `UnsupportedOperationException`을 던질 수 있는 코드를 반복해서 실행한다.
-
-
-2초 후 `withTimeoutOrNull` 함수는 자식 코루틴 스코프의 취소를 요청한다. 이로 인해 다음 `delay` 호출이 `CancellationException`을 던지게 된다. 하지만 `catch` 구문에서 모든 종류의 예외를 잡기 때문에 이 코드는 무한히 반복된다. 이 문제를 해결하려면 `if (e is CancellationException) throw e`와 같이 예외를 다시 던지거나 처음부터 `UnsupportedOperationException`만 잡아야 한다. 둘 중 어느 쪽으로 변경하든 변경한 코드는 예상한 대로 취소된다.
-
-15.2.5 Cancellation is cooperative
-
