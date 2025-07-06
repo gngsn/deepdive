@@ -319,7 +319,7 @@ fun main() {
 - ✅ **부모 코루틴의 디스패처**
 
 <br>
-<br><img src="./img/figure15-04.png" alt="코루틴 콘텍스트와 구조화된 동시성" width="60%><br>
+<br><img src="./img/figure15-04.png" alt="코루틴 콘텍스트와 구조화된 동시성" width="60%"><br>
 
 - 1️⃣ `runBlocking`은 특수한 디스패처인 `BlockingEventLoop`로 시작되며, 
 - 2️⃣ 인자로 받은 값에 의해 `Dispatchers.Default`로 덮어 씌워짐. 
@@ -339,7 +339,7 @@ fun main() {
 
 ```kotlin
 import kotlinx.coroutines.job
- 
+
 fun main() = runBlocking(CoroutineName("A")) {
     log("A's job: ${coroutineContext.job}")
     launch(CoroutineName("B")) {
@@ -480,3 +480,33 @@ fun main() {
 함수가 주어진 시간 내에 값을 반환하면 그 즉시 값을 반환하고, 시간이 초과되면 함수는 취소되고 `null`을 반환
 
 <br>
+
+### 15.2.3 Cancellation cascades through all children
+
+<small><i>취소는 모든 자식 코루틴에게 전파된다</i></small>
+
+코루틴을 취소하면 해당 코루틴의 모든 자식 코 루틴도 자동으로 취소된다.
+다음 리스트처럼 여러 계층에 걸쳐 코루틴이 중첩돼 있는 경우에도 가장 바깥쪽 코루틴을 취소하면 고손자(손자의손자) 코루틴까지도 모두 적절히 취소된다.
+
+```kotlin
+```
+
+
+<br><br>
+
+### 15.2.4 Cancelled coroutines throw `CancellationExceptions` in special places
+
+<small><i>취소된 코루틴은 특별한 지점에서 `CancellationException`을 던진다</i></small>
+
+취소 메커니즘은 `CancellationException`이라는 특수한 예외를 특별한 지점에서 던지는 방식으로 작동한다. 
+우선적으로는 일시중단 지점이 이런 지점이다. 취소된 코루틴은 일시중단 지점에서 `CancellationException`을 던진다. 14장에서
+잠깐 본 것처럼 일시중단 지점은 코루틴의 실행을 일시중단할 수 있는 지점이다. 일반적으로 코루틴 라이브러리 안의 모든 일시중단 함수는 `CancellationException`
+이 던져질 수 있는 지점을 도입한다. 다음 코드에서는 영역이 취소됐는지 여부에 따라 A'나' A B C'가 출력되며, 'A B'는 절대 출력되지 않는다. 이는 B'와 C' 사이에 취소 지점이 없기 때문이다.
+
+코루틴은 예외를 사용해 코루틴 계층에서 취소를 전파하기 때문에 이 예외를 실수로 삼켜버리거나 직접 처리하지 않도록 주의해야 한다. 다음 코드를 보자. 이 코드는 `UnsupportedOperationException`을 던질 수 있는 코드를 반복해서 실행한다.
+
+
+2초 후 `withTimeoutOrNull` 함수는 자식 코루틴 스코프의 취소를 요청한다. 이로 인해 다음 `delay` 호출이 `CancellationException`을 던지게 된다. 하지만 `catch` 구문에서 모든 종류의 예외를 잡기 때문에 이 코드는 무한히 반복된다. 이 문제를 해결하려면 `if (e is CancellationException) throw e`와 같이 예외를 다시 던지거나 처음부터 `UnsupportedOperationException`만 잡아야 한다. 둘 중 어느 쪽으로 변경하든 변경한 코드는 예상한 대로 취소된다.
+
+15.2.5 Cancellation is cooperative
+
