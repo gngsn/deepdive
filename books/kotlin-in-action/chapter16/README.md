@@ -464,3 +464,227 @@ val randomNumbers = channelFlow {     // 새 채널 플로우 생성
 공유 플로우를 사용하는 코드를 상태플로우로 변환할 수 있음
 
 <br>
+
+### 16.3.1 Shared flows broadcast values to subscribers
+
+<small><i>공유 플로우는 값을 구독자에게 브로드캐스트한다</i></small>
+
+공유 플로우는 구독자<sub>공유 플로우의 수집자</sub>가 존재하는지 여부에 상관없이 배출이 발생하는 브로드캐스트 방식으로 동작
+
+<br><br><img src="./img/figure16-5.png" alt="핫 플로우의 수집자" width="70%"><br><br>
+
+공유 플로우는 보통 컨테이너 클래스 안에 선언됨
+
+<br><br>
+
+**Example. `RadioStation` 클래스**
+
+[Backing Property](https://kotlinlang.org/docs/properties.html#backing-properties)를 활용한 공유 플로우 정의
+
+```kotlin
+class RadioStation {
+    private val _messageFlow = MutableSharedFlow<Int>()  // 새 가변 공유 플로우
+    val messageFlow = _messageFlow.asSharedFlow()        // 전역 읽기 전용 공유 플로우
+ 
+    fun beginBroadcasting(scope: CoroutineScope) {
+        scope.launch {
+            while(true) {
+                delay(500.milliseconds)
+                val number = Random.nextInt(0..10)
+                log("Emitting $number!")
+                _messageFlow.emit(number)                // 가변 공유 플로우에 값 배출
+            }
+        }
+    }
+}
+```
+
+<br>
+
+- `SharedFlow` 같은 핫 플로우를 만드는 방식이 콜드 플로우와 다름
+- 플로우 빌더를 사용하는 대신 가변적인 플로우에 대한 참조를 얻음
+
+→ 배출이 구독자 유무와 관계없이 발생하므로, 개발자가 실제 배출을 수행하는 코루틴을 시작할 책임이 있음
+
+다르게 해석하면, 여러 코루틴에서 가변 공유 플로우에 값을 배출할 수 있음
+
+<br>
+
+#### 핫 플로우 이름을 붙일 때 밑줄 쓰기
+
+공유 플로우(와 상태 플로우)에서 비공개 변수 이름에는 밑줄을 사용하고, 공개 변수에는 밑줄을 사용하지 않는 패턴을 따르는 이유?
+
+- 현재(*2025-07-13*) 코틀린에서는 `private`과 `public` 프로퍼티에 대해 서로 다른 타입을 지정하는 기능을 지원하지 않음
+- 캡슐화와 정보 은닉이라는 관심사에 따른 것
+- 클래스의 소비자는 보통 플로우를 구독하기만 할 뿐, 원소를 배출하지 않아야 함
+
+[📄 KEEP-0430-explicit-backing-fields](https://github.com/Kotlin/KEEP/blob/main/proposals/KEEP-0430-explicit-backing-fields.md)
+
+<br>
+
+`Radiostation` 클래스의 인스턴스를 생성하고 `beginBroadcasting` 함수를 호출하면, 구독자가 없어도 브로드캐스트가 즉시 시작됨
+
+```kotlin
+fun main() = runBlocking {
+    RadioStation().beginBroadcasting(this)    // runBlocking의 코루틴 스코프에서 코루틴 시작
+}
+```
+
+**Output:**
+ 
+```kotlin
+0 [main] Emitting 6!
+513 [main] Emitting 3!
+1017 [main] Emitting 6!
+1519 [main] Emitting 10!
+...
+```
+
+구독자를 추가하는 방법은 `collect`를 호출 (콜드 플로우와 동일)
+
+배출이 발생할 때마다 제공한 람다가 실행됨
+
+단, 구독자는 구독을 시작한 이후에 배출된 값만 수신함
+
+```kotlin
+fun main(): Unit = runBlocking {
+    val radioStation = RadioStation()
+    radioStation.beginBroadcasting(this)
+    delay(600.milliseconds)
+    radioStation.messageFlow.collect {
+        log("A collecting $it!")
+    }
+}
+```
+
+**Output:**
+
+```kotlin
+0 [main] Emitting 9!            // 🚨 첫 번째 값이 구독자에 의해 수집되지 않음 (약 500밀리초 후에 배출된 값)
+516 [main] Emitting 2!
+519 [main] A collecting 2!
+1023 [main] Emitting 5!
+...
+```
+
+공유 플로우는 브로드캐스트 방식으로 작동하기 때문에, 구독자를 추가해서 이미 존재하는 `messageFlow`의 배출을 수신할 수 있음
+
+**Example.** `runBlocking` 블록 안에 `launch`로 같은 플로우를 구독하는 두 번째 코루틴을 추가
+
+```kotlin
+launch {
+    radioStation.messageFlow.collect {
+        log("B collecting $it!")
+    }
+}
+```
+
+**같은 공유 플로우를 구독하는 모든 구독자와 똑같은 값을 수신**
+
+<br>
+
+#### Replaying values for subscribers
+
+<small><i>`replay` 파라미터 (구독자를 위한 값 재생)</i></small>
+
+**`replay` 파라미터**: 구독자가 처음 구독 시 항상 최신 값 N 개를 사용할 수 있게 함
+
+공유 플로우 구독자는 구독을 시작한 이후에 배출된 값만 수신
+
+구독자가 구독 이전에 배출된 원소도 수신을 원한다면?
+
+→ `MutableSharedFlow`를 생성할 때 `replay` 파라미터를 사용해 새 구독자를 위해 제공할 값의 캐시를 설정할 수 있음
+
+```kotlin
+// 마지막 5개의 값을 재생하도록 `messageFlow`를 설정
+private val _messageFlow = MutableSharedFlow<Int>(replay = 5)
+```
+
+600밀리초가 지난 다음에 수집자를 시작해도, 구독 직전 발생한 최대 5개의 값을 수신할 수 있음
+
+(예제에서는 구독자는 구독 시작 전인 560밀리초에 배출된 값을 수신)
+
+<br>
+
+#### From cold flow to shared flow with `shareIn`
+
+<small><i>`SharedIn` 으로 콜드 플로우를 공유 플로우로 전환</i></small>
+
+온도 센서에서 50밀리초 간격으로 수집되는 값의 스트림을 제공하는 함수
+
+```kotlin
+fun querySensor(): Int = Random.nextInt(-10..30)
+ 
+fun getTemperatures(): Flow<Int> {
+    return flow {
+        while(true) {
+            emit(querySensor())
+            delay(500.milliseconds)
+        }
+    }
+}
+```
+
+이 함수를 여러 번 호출할 때 각 수집자는 센서에 독립적으로 질의
+
+```kotlin
+fun celsiusToFahrenheit(celsius: Int) =
+    celsius * 9.0 / 5.0 + 32.0
+ 
+fun main() {
+    val temps = getTemperatures()
+    runBlocking {
+        launch {
+            temps.collect {           // 플로우 수집 1 - 섭씨 출력
+                log("$it Celsius")
+            }
+        }
+        launch {
+            temps.collect {           // 플로우 수집 2 - 화씨로 변환 후 출력
+                log("${celsiusToFahrenheit(it)} Fahrenheit")
+            }
+        }
+    }
+}
+```
+
+- 불필요한 외부 시스템 연산을 피하고 싶을 때가 자주 있음
+  - (e.g. 센서와 상호작용하거나 네트워크 요청을 보내거나 데이터베이스 쿼리를 실행할 때)
+- 이 때, 반환된 플로우를 두 수집자가 **모두 같은 원소를 받아야 함**
+
+`shareIn` 함수를 사용하면 주어진 콜드 플로우를 한 플로우인 공유 플로우로 변환할 수 있음
+
+⚠️ 플로우 코드가 실행되게 하므로 `shareIn`을 코루틴 안에서 호출해야 함
+
+→ 이를 위해 `ShareIn`은 `Coroutinescope` 타입의 `scope` 파라미터를 받아서 코루틴을 실행
+
+
+```kotlin
+fun main() {
+    val temps = getTemperatures()
+    runBlocking {
+        val sharedTemps = temps.shareIn(this, SharingStarted.Lazily)
+        launch {
+            sharedTemps.collect {
+                log("$it Celsius")
+            }
+        }
+        launch {
+            sharedTemps.collect {
+                log("${celsiusToFahrenheit(it)} Fahrenheit")
+            }
+        }
+    }
+}
+```
+
+**Output:**
+
+```kotlin
+...
+497 [main] 29 Celsius
+497 [main] 84.2 Fahrenheit
+1003 [main] 6 Celsius
+1003 [main] 42.8 Fahrenheit
+...
+```
