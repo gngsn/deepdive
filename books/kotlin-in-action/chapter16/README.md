@@ -688,3 +688,127 @@ fun main() {
 1003 [main] 42.8 Fahrenheit
 ...
 ```
+
+<br>
+
+#### `shareIn` 정의
+
+```kotlin
+public fun <T> Flow<T>.shareIn(
+    scope: CoroutineScope,
+    started: SharingStarted,
+    replay: Int = 0
+): SharedFlow<T> {
+    val config = configureSharing(replay)
+    val shared = MutableSharedFlow<T>(
+        replay = replay,
+        extraBufferCapacity = config.extraBufferCapacity,
+        onBufferOverflow = config.onBufferOverflow
+    )
+    @Suppress("UNCHECKED_CAST")
+    val job = scope.launchSharing(config.context, config.upstream, shared, started, NO_VALUE as T)
+    return ReadonlySharedFlow(shared, job)
+}
+```
+
+두 번째 파라미터 `started`는 플로우가 실제로 언제 시작돼야 하는지를 정의
+
+- `Eagerly`: 플로우 수집을 즉시 시작
+- `Lazily`: 첫 번째 구독자가 나타나야만 수집 시작
+- `WhileSubscribed`: 첫 번째 구독자가 나타나야 수집을 시작하고, 마지막 구독자가 사라지면 플로우 수집을 취소
+
+<br>
+
+**`shareIn`는 코루틴 스코프를 통해 구조적 동시성에 참여**
+
+즉, 애플리케이션이 더 이상 공유 플로우에서 정보를 필요로 하지 않을 때, 공유 플로우를 둘러싼 코루틴 스코프가 취소될 때 공유 플로우 내부 로직도 자동으로 취소됨
+
+<br>
+
+시간이 지남에 따라 여러 값을 계산하는 작업을 단순한 콜드 플로우로 노출하고, 
+필요할 때 이 콜드 플로우를 핫 플로우로 변환하는 패턴이 자주 사용됨
+
+<br>
+
+### 16.3.2 Keeping track of state in your system: State flow
+
+<small><i>시스템 상태 추적: 상태 플로우</i></small>
+
+- **상태 플로우**: 변수의 상태 변화를 쉽게 추적할 수 있는 공유 플로우의 특별한 버전
+- 동시 시스템에서 '상태 추적'은 자주 요구
+  - 즉, 시간이 지남에 따라 변할 수 있는 값을 다룸
+
+**특징**
+- 생성자에게 초기값을 제공 필수
+  - 시간이 지남에 따라 변경될 수 있는 값을 나타내므로 
+- 값을 배출하는 `emit`을 사용하는 대신, 값을 갱신하는 `update` 함수 사용
+- 현재 상태를 **`value` 속성**으로 접근
+  - 일시 중단 없이 값을 안전하게 읽을 수 있게 해줌  
+
+<br>
+
+**상태 플로우 관련 주제들**:
+- 상태 플로우를 생성하고 구독자에게 노출시키는 방법  
+- 상태 플로우의 값을 (병렬로 접근해도) 안전하게 갱신하는 방법  
+- 값이 실제로 변경될 때만 상태 플로우가 값을 배출하게 하는 **동등성 기반 통합**<sup>quality-based conflation</sup> 개념  
+- 콜드 플로우를 상태 플로우로 변환하는 방법
+
+<br>
+
+#### 상태 플로우 생성 방법
+
+클래스의 `private` 속성으로 `MutableStateFlow`를 생성하고, 같은 변수의 읽기 전용 `StateFlow` 버전을 노출 (공유 플로우 생성 방식과 비슷)
+
+```kotlin
+class ViewCounter {
+    private val _counter = MutableStateFlow(0)
+    val counter = _counter.asStateFlow()
+ 
+    fun increment() {
+        _counter.update { it + 1 }
+    }
+}
+```
+
+**호출**
+
+```kotlin
+fun main() {
+    val vc = ViewCounter()
+    vc.increment()
+    println(vc.counter.value)       // 1
+}
+```
+
+<br>
+
+#### 원자적 계산 지원: `update` 함수로 안전하게 상태 플로우에 쓰기
+
+`value` 속성이 실제로는 가변 속성이긴 하지만,
+코루틴들이 여러 스레드에서 실행되기 때문에,
+`++` 연산자를 사용하면 원자적이지 않아 동시성 문제 발생
+
+```kotlin
+// 카운터의 최종 값은 10,000보다 훨씬 낮음
+fun increment() {
+    _counter.value++
+}
+```
+
+상태 플로우는 **원자적으로 값을 갱신할 수 있는 `update` 함수 제공**
+
+이 함수는 이전 값을 기반으로 새 값을 어떻게 계산해야 하는지 정하는 람다 표현식을 인자로 받음
+
+#### 상태 플로우는 값이 실제로 달라졌을 때만 값을 배출한다: 동등성 기반 통합
+
+공유 플로우처럼 상태 플로우도 `collect` 함수를 호출해 시간에 따라 값을 구독할 수 있음
+
+스위치를 왼쪽이나 오른쪽으로 돌리는 함수를 노출하는 방향 선택자를 정의
+
+<br><br><img src="./img/figure16-6.png" width="60%" /><br><br>
+
+LEFT라는 인자를 2번 연속으로 전달했음에도 구독자가 한 번만 호출됨
+
+→ 실제로 달라졌을 때만 구독자에게 값을 배출함
+
+<br>
