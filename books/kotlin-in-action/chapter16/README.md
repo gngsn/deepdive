@@ -1,6 +1,6 @@
 # 16. Flow
 
-<small><i>플로우는 연속적인 값의 스트림을 모델링한다</i></small>
+<small><i>플로우</i></small>
 
 <br>
 
