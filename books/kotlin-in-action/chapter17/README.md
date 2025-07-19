@@ -165,8 +165,8 @@ fun process(flow: Flow<Int>) = runBlocking {
 <table>
     <tr>
         <th></th>
-        <th>Call - 1</th>
-        <th>Call - 2</th>
+        <th>원소 있을 때</th>
+        <th>원소 없을 때</th>
     </tr>
     <tr>
         <th>Code</th>
@@ -194,20 +194,22 @@ runBlocking {
         <td>
 
 ```kotlin
-// Starting!
-// On 1!
-// On 2!
-// On 3!
-// Done!
+Starting!        // onStart
+On 1!            // onEach
+On 2!            // onEach
+On 3!            // onEach
+Done!            // onCompletion
 ```
 </td>
         <td>
+
 ```kotlin
-// Starting!
-// Nothing - emitting default value!
-// On 0!
-// Done!
+Starting!                           // onStart
+Nothing - emitting default value!   // onEmpty
+On 0!                               // onEmpty
+Done!                               // onCompletion
 ```
+
 </td>
 </table>
 
@@ -313,7 +315,7 @@ fun main() {
 
 <br>
 
-#### `buffer` 연산자는 설정의 유연성
+#### `buffer` 연산자는 설정의 유연성을 줌
 
 `onBufferOverflow` 파라미터를 통해 버퍼 용량이 초과 시 처리 방식을 지정할 수 있음 
 - **`SUSPEND`**: 생산자 대기
@@ -545,12 +547,17 @@ fun main() = runBlocking {
 
 ## Summary
 
-- 중간 연산자는 플로우를 다른 플로우로 변환
-  - 중간 연산자는 업스트림 플로우에 대해 작동하며 다운스트림 플로우를 반환
-  - 중간 연산자는 콜드 상태이며 최종 연산자가 호출될 때까지 실행되지 않음
+- **중간 연산자**
+  - 기존 플로우를 **다른 플로우로 변환**
+  - **업스트림 플로우에 대해 작동**하며 **다운스트림 플로우를 반환**
+  - **콜드 상태** → 최종 연산자가 호출될 때까지 실행되지 않음
+- 플로우는 다양한 중간 연산자 제공 
+  - `transform`: 변환을 수행
+  - `collect`: 플로우가 실행되는 컨텍스트를 관리
+  - 특정 단계에서 코드를 실행 → `onStart`, `onCompletion` 등
 - 시퀀스에 사용할 수 있는 중간 연산자 상당수를 플로우에도 직접 사용할 수 있음
-- 플로우에는 변환을 수행하거나(transform), 플로우가 실행되는 컨텍스트를 관리하거나(collect), 특정 단계에서 코드를 실행(onStart, onCompletion 등)하는 다른 중간 연산자도 추가 제공함
-- collect와 같은 최종 연산자는 플로우의 코드를 실행
+- 최종 연산자는 플로우의 코드를 실행
+  - e.g. `collect` 연산자
   - 핫 플로우의 경우 `collect`는 플로우에 대한 구독을 처리
-- 플로우 빌더 안에서 플로우를 수집하고 변환된 원소를 배출하는 방식으로 자신만의 중간 연산자를 만들 수 있음
+- **커스텀 연산자**: 플로우 빌더 안에서 플로우를 수집하고 변환된 원소를 배출하는 방식으로 자신만의 중간 연산자를 만들 수 있음
 
