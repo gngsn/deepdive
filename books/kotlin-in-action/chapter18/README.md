@@ -152,3 +152,138 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ouch!
 > 모든 '형제' 작업을 취소하는 기능은 코틀린 코루틴의 큰 장점임
 > 
 > 보통 언어 레벨에서 제공되지 않고, 프로그래머가 직접 구현해야 함 
+
+<br>
+
+같은 스코프 안에서 동시성 계산을 함께 수행하고 공통의 결과를 반환하는 코루틴 그룹에게 아주 유용
+- 스코프 내의 하나의 코루틴이 잡을 수 없는 예외로 인해 실패한다는 건, 공통의 결과를 계산할 방법이 더 이상 없음
+- 다른 형제 코루틴이 불필요해진 작업을 계속 수행하거나 자원을 계속 잡고 있는 것을 막기 위해 이들을 취소함
+
+- 불필요한 작업을 피하고 자원을 해제하게 됨
+
+
+**Example.**
+
+```kotlin
+import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+ 
+fun main(): Unit = runBlocking {
+    // 첫번째 코루틴: Heartbeat 역할의 코루틴. 단순히 루프 돌면서 메시지 출력
+    launch {
+        try {
+            while (true) {
+                println("Heartbeat!")
+                delay(500.milliseconds)
+            }
+        } catch (e: Exception) {
+            println("Heartbeat terminated: $e")
+            throw e
+        }
+    }
+    // 두번째 코루틴: 1초 후 예외를 던짐. 이때, 예외를 잡아내지는 않음
+    launch {
+        delay(1.seconds)
+        throw UnsupportedOperationException("Ow!")
+    }
+}
+```
+
+**Output:**
+
+```
+Heartbeat!
+Heartbeat!
+Heartbeat terminated: kotlinx.coroutines.JobCancellationException: Parent job is Cancelling; job=BlockingCoroutine{Cancelling}@1517365b
+Exception in thread "main" java.lang.UnsupportedOperationException: Ow!
+```
+
+<br>
+
+- 기본적으로, 모든 코루틴 빌더 <sub>예제의 `runBlocking`</sub>는 일반적인, 비감독<sup>nonsupervisor</sup> 코루틴을 생성
+  - 때문에 하나의 코루틴이 잡히지 않은 예외로 종료되면, 다른 자식 코루틴들도 취소됨
+- 오류 전파 동작은 모든 코루틴에게도 적용 
+  - 예를 들어, launch로 시작된 코루틴 뿐만 아니라 `async`로 시작된 코루틴도 동일하게 동작
+
+<br>
+
+### 18.2.2 Structured concurrency only affects exceptions thrown across coroutine boundaries
+
+<small><i>구조적 동시성은 코루틴 경계를 넘어 던져진 예외에만 영향을 미침</i></small>
+
+- 형제 코루틴 취소와 예외 전파는 코루틴 스코프를 넘는 예외에만 적용됨
+- 스코프를 넘는 예외를 던지지 않으면 형제 코루틴이 취소되지 않음
+- 코루틴 내부의 `try-catch` 블록은 정상적으로 예외를 처리함
+- 처리되지 않은 예외가 코루틴 계층 위로 전파되면 형제 코루틴도 취소됨
+  - → 구조적 동시성 패러다임을 강제하는 데 도움
+- 단, 처리되지 않은 예외 하나로 전체 애플리케이션이 종료되면 안 됨
+
+<br>
+
+### 18.2.3 Supervisors prevent parents and siblings from being cancelled
+
+<small><i>슈퍼바이저는 부모와 형제의 취소를 방지함</i></small>
+
+
+**슈퍼바이저 특징**
+
+- 일반적인 `Job`과 달리, 자식의 실패를 부모에게 전파하지 않음
+- 자식 코루틴이 실패해도 부모와 다른 자식 코루틴이 계속 실행됨
+- 슈퍼바이저는 코루틴 계층의 최상위에서 자주 사용됨
+
+<br><img src="./img/fig18-2.png" width="60%">
+
+
+**`SupervisorJob`**
+
+- 슈퍼바이저를 사용하려면 코루틴에 `SupervisorJob`을 연결해야 함
+- `SupervisorJob`은 예외를 부모에게 전파하지 않고, 다른 자식 작업의 실패에도 영향을 받지 않음.
+- 슈퍼바이저도 구조적 동시성에 참여하며, 취소될 수 있고 취소 예외는 정상적으로 전파됨.
+- 슈퍼바이저의 동작을 확인하려면 `SupervisorScope` 함수를 사용해 스코프를 만들 수 있음.
+- `SupervisorScope`는 자식 코루틴 중 하나가 실패해도 형제 코루틴이 종료되지 않음.
+  - 부모와 형제 코루틴은 계속 작동하며, 예외는 더 이상 전파되지 않음.
+
+
+하트 비트 코루틴이 계속 실행되도록 하려면 `launch` 호출을 `SupervisorScope`로 감싸면 됨.
+
+
+**Example.**
+
+```kotlin
+import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+ 
+fun main(): Unit = runBlocking {
+    // 첫번째 코루틴: Heartbeat 역할의 코루틴. 단순히 루프 돌면서 메시지 출력
+    launch {
+        try {
+            while (true) {
+                println("Heartbeat!")
+                delay(500.milliseconds)
+            }
+        } catch (e: Exception) {
+            println("Heartbeat terminated: $e")
+            throw e
+        }
+    }
+    // 두번째 코루틴: 1초 후 예외를 던짐. 이때, 예외를 잡아내지는 않음
+    launch {
+        delay(1.seconds)
+        throw UnsupportedOperationException("Ow!")
+    }
+}
+```
+
+**Output:**
+
+```
+Heartbeat!
+Heartbeat!
+Heartbeat terminated: kotlinx.coroutines.JobCancellationException: Parent job is Cancelling; job=BlockingCoroutine{Cancelling}@1517365b
+Exception in thread "main" java.lang.UnsupportedOperationException: Ow!
+```
+
+<br><img src="./img/figure18-additional.png" alt="https://stackoverflow.com/questions/60899369/kotlin-coroutines-job-hierarchy-explanation" />
+
