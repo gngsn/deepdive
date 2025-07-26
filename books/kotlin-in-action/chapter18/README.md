@@ -28,8 +28,6 @@
 <tr><td>
 
 ```kotlin
-import kotlinx.coroutines.*
- 
 fun main(): Unit = runBlocking {
     try {
         launch {
@@ -40,9 +38,12 @@ fun main(): Unit = runBlocking {
     }
 }
 // Exception in thread "main" java.lang.UnsupportedOperationException: Ouch!
-//  at MyExampleKt$main$1$1.invokeSuspend(MyExample.kt:6)
-//       ...
+//    at com.gngsn.example1.MainKt$main$1$1.invokeSuspend(Main.kt:9)
+// ...
 ```
+
+[🔗 section01 - example1](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter18/demo/src/main/kotlin/com/gngsn/section01/example1/Main.kt)
+
 
 </td>
 <td>
@@ -50,8 +51,6 @@ fun main(): Unit = runBlocking {
 올바른 예외 처리 → `launch`에 전달되는 람다 블록 안에 `try-catch` 블록을 넣어야 함
 
 ```kotlin
-import kotlinx.coroutines.*
- 
 fun main(): Unit = runBlocking {
     launch {
         try {
@@ -63,6 +62,8 @@ fun main(): Unit = runBlocking {
 }
 // Handled java.lang.UnsupportedOperationException: Ouch!
 ```
+
+[🔗 section01 - example2](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter18/demo/src/main/kotlin/com/gngsn/section01/example2/Main.kt)
 
 </td>
 </table>
@@ -85,12 +86,14 @@ runBlocking {
 }
 ```
 
+[🔗 section01 - example3](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter18/demo/src/main/kotlin/com/gngsn/section01/example3/Main.kt)
+
 **Output:**
 
 ```
 Handled: java.lang.UnsupportedOperationException: Ouch!
 Exception in thread "main" java.lang.UnsupportedOperationException: Ouch!
-    at MyExampleKt$main$1$myDeferred$1.invokeSuspend(MyExample.kt:6)
+	at com.gngsn.section01.example3.MainKt$main$1$myDeferredInt$1.invokeSuspend(Main.kt:9)
      ...
 ```
 
@@ -140,7 +143,7 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ouch!
 - 같은 예외를 발생시키면서 자신의 실행을 완료시킨다.
 - 자신의 상위 계층으로 예외를 전파한다.
 
-<br><img src="./img/fig18-1.png" width="60%">
+<br><img src="./img/figure18-1.png" width="60%">
 
 - 자식 코루틴이 잡히지 않는 예외로 실패하면 부모에게 통지
 - 다시 부모는 형제 코루틴들을 모두 취소하고 예외를 코루틴 계층의 상위로 전달
@@ -165,11 +168,7 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ouch!
 **Example.**
 
 ```kotlin
-import kotlinx.coroutines.*
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
- 
-fun main(): Unit = runBlocking {
+runBlocking {
     // 첫번째 코루틴: Heartbeat 역할의 코루틴. 단순히 루프 돌면서 메시지 출력
     launch {
         try {
@@ -190,13 +189,19 @@ fun main(): Unit = runBlocking {
 }
 ```
 
+[🔗 section02 - example1](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter18/demo/src/main/kotlin/com/gngsn/section02/example1/Main.kt)
+
+
 **Output:**
 
 ```
 Heartbeat!
 Heartbeat!
-Heartbeat terminated: kotlinx.coroutines.JobCancellationException: Parent job is Cancelling; job=BlockingCoroutine{Cancelling}@1517365b
+Heartbeat!
+Heartbeat terminated: kotlinx.coroutines.JobCancellationException: Parent job is Cancelling; job=BlockingCoroutine{Cancelling}@b065c63
 Exception in thread "main" java.lang.UnsupportedOperationException: Ow!
+	at com.gngsn.section02.example1.MainKt$main$1$2.invokeSuspend(Main.kt:25)
+    ...
 ```
 
 <br>
@@ -232,7 +237,7 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ow!
 - 자식 코루틴이 실패해도 부모와 다른 자식 코루틴이 계속 실행됨
 - 슈퍼바이저는 코루틴 계층의 최상위에서 자주 사용됨
 
-<br><img src="./img/fig18-2.png" width="60%">
+<br><img src="./img/figure18-2.png" width="60%">
 
 
 **`SupervisorJob`**
@@ -287,3 +292,117 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ow!
 
 <br><img src="./img/figure18-additional.png" alt="https://stackoverflow.com/questions/60899369/kotlin-coroutines-job-hierarchy-explanation" />
 
+
+- 예외 이후에도 계속 실행되는 이유: `SupervisorJob`이 자식 코루틴에서 발생한 예외를 전체에 전파하지 않기 때문
+- 코루틴 프레임워크는 종종 슈퍼바이저 역할의 코루틴 스코프를 기본 제공
+- 케이토의 Application 스코프는 개별 요청보다 오래 실행되는 코루틴을 시작할 때 사용할 수 있음
+  - 이 코루틴은 애플리케이션이 실행되는 동안 계속 살아있을 수 있음
+- Application 스코프는 슈퍼바이저 역할을 하며, 한 코루틴에서 예외가 발생해도 전체 애플리케이션이 중단되지 않음
+- 케이토의 `PipelineContext`는 요청 핸들러와 같은 수명의 코루틴을 관리함
+- `PipelineContext` 내 여러 코루틴이 함께 요청에 대한 응답을 계산함
+- 한 코루틴이 예외로 실패하면 관련된 다른 코루틴도 함께 취소됨
+- 슈퍼바이저는 주로 애플리케이션 전체 수명이나 UI 표시 시간 등 오랫동안 실행되는 부분에 사용됨
+- 세부 작업 함수에서는 슈퍼바이저를 잘 사용하지 않으며, 이는 오류 전파 시 불필요한 작업 취소가 바람직하기 때문
+
+<br>
+
+## 18.3 `CoroutineExceptionHandler`: The last resort for processing exceptions
+
+<small><i>`CoroutineExceptionHandler`: 예외 처리를 위한 마지막 수단</i></small>
+
+
+- 자식 코루틴에서 처리되지 않은 예외는 부모 코루틴으로 전파됨
+- 이때, 예외가 슈퍼바이저나 계층의 최상위 루트 코루틴에 도달하면 더 이상 전파되지 않음
+  - 이 시점에서 예외는 `CoroutineExceptionHandler`에 전달됨
+  - `CoroutineExceptionHandler`는 코루틴 콘텍스트의 일부
+- 콘텍스트에 예외 핸들러가 없으면 예외는 시스템 전역 예외 핸들러로 이동
+
+- 순수 JVM과 안드로이드 프로젝트의 시스템 전역 예외 핸들러는 다름
+  - JVM에서는 예외 스택트레이스를 콘솔에 출력하고, 안드로이드에서는 앱을 종료시킴
+- `CoroutineExceptionHandler`를 코루틴 콘텍스트에 추가하면 예외 처리 동작을 커스텀할 수 있음
+- 코틀린 프레임워크는 자체적으로 코루틴 예외 핸들러를 제공할 수 있음
+
+
+**Example.**
+
+```kotlin
+val exceptionHandler = CoroutineExceptionHandler { context, exception ->
+    println("[ERROR] $exception")
+}
+```
+
+`CoroutineExceptionHandler`를 코루틴 콘텍스트의 원소로 추가할 수 있음
+
+
+**Example:**
+
+```kotlin
+class ComponentWithScope(dispatcher: CoroutineDispatcher = Dispatchers.Default) {
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+       println("[ERROR] ${e.message}")
+    }
+ 
+    private val scope = CoroutineScope(
+        // SupervisorJob(): 자식의 실패가 부모의 실패로 이어지지 않도록 함
+        // exceptionHandler: 사용자 정의 예외 핸들러를 코루틴 콘텍스트의 요소로 지정
+        SupervisorJob() + dispatcher + exceptionHandler
+    )
+ 
+    fun action() = scope.launch {
+        // 예외를 던지는 코루틴
+        throw UnsupportedOperationException("Ouch!")
+    }
+}
+```
+ 
+**Usage:**
+ 
+```kotlin
+fun main() = runBlocking {
+    val supervisor = ComponentWithScope()
+    supervisor.action()
+    delay(1.seconds)            
+}
+
+// [ERROR] Ouch!     ← 예외가 커스텀 예외 핸들러에 의해 처리
+```
+
+- 슈퍼바이저의 직접적인 자식 코루틴은 커스텀 예외 핸들러나 디폴트 핸들러에 예외를 직접 전달해 처리
+- 코루틴 예외 핸들러는 계층의 최상위 코루틴이 `launch` 빌더로 시작된 경우에만 호출됨
+- 코루틴은 처리되지 않은 예외를 부모에게 위임하며, 이 위임은 계층의 최상위까지 계속됨
+- 루트 코루틴이 아닌 코루틴의 콘텍스트에 설치된 핸들러는 사용되지 않음
+  - 즉, 중간에 있는 `CoroutineExceptionHandler` 같은 건 존재하지 않음
+- `GlobalScope.launch`로 루트 코루틴을 생성하고 커스텀 예외 핸들러를 콘텍스트에 제공할 수 있음
+- 중간 예외 핸들러를 `launch` 코루틴에 제공해도, 계층 최상위의 핸들러만 실행되고 중간 핸들러는 사용되지 않음
+
+<br>
+
+```kotlin
+private val topLevelHandler = CoroutineExceptionHandler { _, e ->
+    println("[TOP] ${e.message}")
+}
+ 
+private val intermediateHandler = CoroutineExceptionHandler { _, e ->
+    println("[INTERMEDIATE] ${e.message}")
+}
+ 
+@OptIn(DelicateCoroutinesApi::class)    // 미묘한 API를 명시적으로 사용하게 한다
+fun main() {
+    GlobalScope.launch(topLevelHandler) {
+        launch(intermediateHandler) {
+            throw UnsupportedOperationException("Ouch!")
+        }
+    }
+    Thread.sleep(1000)
+}
+// [TOP] Ouch!
+```
+
+- 예외가 여전히 부모 코루틴에게 전파될 수 있기 때문
+
+<br><img src="./img/figure18-3.png" width="60%"><br>
+
+- 중간의 `launch` 호출에 코루틴 예외 핸들러가 있음에도 루트 코루틴이 아니기 때문에 예외가 계속해서 코루틴 계층을 따라 전파됨
+- 그 결과 최상위 코루틴인 `GlobalScope.launch`의 예외 핸들러만 호출됨
+
+<br>
