@@ -406,3 +406,83 @@ fun main() {
 - 그 결과 최상위 코루틴인 `GlobalScope.launch`의 예외 핸들러만 호출됨
 
 <br>
+
+### 18.3.1 Differences when using `CoroutineExceptionHandler` with `launch` or `async`
+
+<small><i>`CoroutineExceptionHandler`를 `launch`와 `async`에 적용할 때의 차이점</i></small>
+
+
+
+`coroutineExceptionHandler`(기본 핸들러든 커스텀 핸들러든)를 살펴볼 때 예외 핸들러는 계층의 최상위 코루틴이 `launch`로 생성된 경우에만 호출된다는 점에 유의해야 함
+최상위 코루틴이 `async`로 생성된 경우에는 `CoroutineExceptionHandler`가 호출되지 않는다는 뜻
+
+
+```kotlin
+import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.seconds
+ 
+class ComponentWithScope(dispatcher: CoroutineDispatcher = 
+➥ Dispatchers.Default) {
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        println("[ERROR] ${e.message}")
+    }
+ 
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher + 
+    ➥ exceptionHandler)
+ 
+    fun action() = scope.launch {
+        async {
+            throw UnsupportedOperationException("Ouch!")
+        }
+    }
+}
+ 
+fun main() = runBlocking {
+    val supervisor = ComponentWithScope()
+    supervisor.action()
+    delay(1.seconds)
+}
+ 
+// [ERROR] Ouch!
+```
+
+
+바깥의 코루틴 (최상위 코루틴)을 `async`로 시작하도록 구현을 변경하면 코루틴 예외 핸들러가 호출되지 않는 것 을 확인할 수 있음
+
+```kotlin
+import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.seconds
+ 
+class ComponentWithScope(dispatcher: CoroutineDispatcher = 
+➥ Dispatchers.Default) {
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        println("[ERROR] ${e.message}")
+    }
+ 
+ 
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher + 
+    ➥ exceptionHandler)
+ 
+ 
+    fun action() = scope.async {     ❶
+        launch {
+            throw UnsupportedOperationException("Ouch!")
+        }
+    }
+}
+
+fun main() = runBlocking {
+    val supervisor = ComponentWithScope()
+    supervisor.action()
+    delay(1.seconds)
+}
+// No output is printed
+```
+
+- 최상위 `async` 코루틴의 예외는 `await()`를 호출하는 소비자가 처리
+- 코루틴 예외 핸들러는 이 예외를 무시할 수 있음
+- 소비자는 await를 `try-catch`로 감싸 예외를 처리할 수 있음
+- `try-catch`는 코루틴 취소에는 영향을 주지 않음
+- `Scope`에 `SupervisorJob`이 없으면, 처리되지 않은 예외가 다른 자식 코루틴도 모두 취소시킴
+
+
