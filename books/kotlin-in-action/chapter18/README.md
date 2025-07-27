@@ -422,7 +422,7 @@ import kotlinx.coroutines.*
 import kotlin.time.Duration.Companion.seconds
  
 class ComponentWithScope(dispatcher: CoroutineDispatcher = 
-➥ Dispatchers.Default) {
+  Dispatchers.Default) {
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
         println("[ERROR] ${e.message}")
     }
@@ -454,14 +454,14 @@ import kotlinx.coroutines.*
 import kotlin.time.Duration.Companion.seconds
  
 class ComponentWithScope(dispatcher: CoroutineDispatcher = 
-➥ Dispatchers.Default) {
+  Dispatchers.Default) {
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
         println("[ERROR] ${e.message}")
     }
  
  
     private val scope = CoroutineScope(SupervisorJob() + dispatcher + 
-    ➥ exceptionHandler)
+      exceptionHandler)
  
  
     fun action() = scope.async {     ❶
@@ -484,5 +484,267 @@ fun main() = runBlocking {
 - 소비자는 await를 `try-catch`로 감싸 예외를 처리할 수 있음
 - `try-catch`는 코루틴 취소에는 영향을 주지 않음
 - `Scope`에 `SupervisorJob`이 없으면, 처리되지 않은 예외가 다른 자식 코루틴도 모두 취소시킴
+
+<br>
+
+## 18.4 Handling errors in flows
+
+<small><i>플로우에서 예외 처리</i></small>
+
+플로우도 예외를 던질 수 있음
+
+<br>
+
+**Example.**
+
+```kotlin
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+ 
+class UnhappyFlowException: Exception()
+ 
+// 플로우를 수집하면 5개의 원소 (0부터 4)가 배출된 다음에 UnhappyFlowException 예외가 발생
+val exceptionalFlow = flow {
+    repeat(5) { number ->
+        emit(number)
+    }
+    throw UnhappyFlowException()
+}
+```
+
+- 일반적으로 플로우의 일부분에 예외가 발생하면 `collect`에서 예외가 던져짐
+  - e.g. 플로우가 생성되거나 변환되거나 수집되는 중간에 예외 발생 시
+- 즉, `collect` 호출을 `try-catch` 블록으로 감싸면 예상대로 동작한다는 의미
+
+```kotlin
+fun main() = runBlocking {
+    val transformedFlow = exceptionalFlow.map {
+        it * 2
+    }
+    try {
+        transformedFlow.collect {
+            print("$it ")
+        }
+    } catch (u: UnhappyFlowException) {
+        println("\nHandled: $u")
+    }
+}
+```
+
+**Output:**
+
+```
+0 2 4 6 8
+Handled: UnhappyFlowException
+```
+
+<br>
+
+### 18.4.1 Processing upstream exceptions with the catch operator
+
+<small><i>`catch` 연산자로 업스트림 예외 처리</i></small>
+
+복잡하고 긴 플로우 파이프라인을 구축할 때는 catch 연산자를 사용하는 쪽이 더 편리
+
+**`catch` 연산자?**
+- `catch`는 플로우에서 발생한 예외를 처리할 수 있는 중간 연산자
+- 이 함수에 연결된 람다 안에서 플로우에 발생한 예외에 접근할 수 있음
+- **예외**는 **람다의 파라미터로 전달**
+  - 암시적 기본 이름 = `it`
+
+
+**⚠️ Things to Watch Out For**
+- `catch` 연산자는 취소 예외를 자동으로 인식하기 때문에, 취소가 발생한 경우에는 `catch` 블록이 호출되지 않음
+- `catch`는 스스로 값을 방출할 수도 있기 때문에, 예외를 오류 값으로 변환해 다운스트림 플로우에서 소비할 수도 있음
+
+**Example.** `catch` 연산자를 써서 예외 발생 시 기본 값 방출
+
+```
+runBlocking {
+    exceptionalFlow
+        .catch { cause ->
+            println("\nHandled: $cause")
+            emit(-1)
+        }
+        .collect {
+            print("$it ")
+        }
+}
+```
+
+**Output:**
+
+```
+0 1 2 3 4
+Handled: UnhappyFlowException
+-1
+```
+
+- `catch` 연산자는 오직 업스트림에 대해서만 동작
+  - ⚠️ 플로우 처리 예외는 파이프라인의 앞쪽 예외들만 잡음
+- 
+
+```kotlin
+runBlocking {
+    exceptionalFlow
+        .map {
+            it + 1
+        }
+        .catch { cause ->
+            println("\nHandled $cause")
+        }
+        .onEach {       // `catch` 호출 다음에 위치한 `onEach` 람다에서 발생한 예외는 잡히지 않음
+            throw UnhappyFlowException()
+        }
+        .collect()
+}
+```
+
+**Output:**
+
+```
+Exception in thread "main" UnhappyFlowException
+```
+
+<br><img src="./img/figure18-4.png" /><br><br>
+
+> [!NOTE]
+> - `collect` 람다 안에서 발생한 예외를 처리하려면 `collect` 호출을 `try-catch` 블록으로 감싸면 됨
+> - 그 대신 `onEach`, `catch`, `collect` 사슬을 모두 사용하지 않고 로직을 재작성할 수도 있음
+> - 여기서 중요한 점은, 예외가 발생할 수 있는 지점 다음에 `catch` 연산자가 위치해야 한다는 것
+> - `catch` 연산자는 업스트림에서 발생한 예외만 처리하므로, 예외를 `catch` 블록에서 다시 던져서 다운스트림에 있는 다른 `catch` 연산자에서 처리하게 하는 것도 완전히 올바른 코드
+
+<br><br>
+
+### 18.4.2 Retry the collection of a flow if predicate is true: The `retry` operator
+
+<small><i>술어가 참일 때 플로우의 수집 재시도: `retry` 연산자</i></small>
+
+- 플로우 처리 중 예외가 발생했을 때 작업을 재시도할 수 있음
+- 예외를 처리하고 `Boolean` 값을 반환하는 람다를 사용할 수 있음
+  1. 람다에서 `true`를 반환 시
+  2. 지정한 최대 재시도 횟수만큼 재시도가 시작
+  3. (재시도) 업스트림의 플로우가 처음부터 다시 수집되면서 모든 중간 연산이 재실행
+- 재시도할 때는 업스트림 연산자가 **모두 다시 실행**된다는 점 명심
+  - 작업이 멱등성을 갖는지 확인 필요
+
+
+<br />
+
+**Example.** 불안정한 플로우 수집을 재시도하기
+
+```kotlin
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.*
+import kotlin.random.Random
+ 
+class CommunicationException : Exception("Communication failed!")
+ 
+val unreliableFlow = flow {
+    println("Starting the flow!")
+    repeat(10) { number ->
+        if (Random.nextDouble() < 0.1) throw CommunicationException()
+        emit(number)
+    }
+}
+ 
+fun main() = runBlocking {
+    unreliableFlow
+        .retry(5) { cause ->
+            println("\nHandled: $cause")
+            cause is CommunicationException
+        }
+        .collect { number ->
+            print("$number ")
+        }
+}
+```
+
+<br>
+
+### 18.5 Testing coroutines and flows
+
+<small><i>코루틴과 플로우 테스트</i></small>
+
+코틀린 코루틴을 사용하는 코드를 위한 테스트도 일반적인 테스트와 마찬가지로 작동
+
+테스트 메서드에서 코루틴을 사용하려면 `runTest` 코루틴 빌더를 사용
+
+`runBlocking` 빌더 함수는 일반 코틀린 코드와 동시성 코틀린 코드 사이에 다리를 놓는 역할을 하기 때문에, 일시 중단 함수나 코루틴, 플로우를 사용하는 코드를 테스트할 때도 이를 쓸 수 있음.
+
+그렇지만 이 접근 방식에는 단점이 있음
+`runBlocking`을 사용하면 테스트가 실시간으로 실행됨.
+
+이는 코드에 delay가 지정된 경우, 결과가 계산되기 전에 시간 지연이 전부 실행된다는 뜻.
+
+예시:
+
+500ms마다 한 번씩 센서를 질의하는 장치
+
+사용자 입력 후 몇 백 ms 이후 검색하는 시스템
+
+각각의 요청을 시뮬레이션할 때마다 몇 백 밀리초가 걸림.
+
+<br>
+
+### 18.5.1 Making tests using coroutines fast: Virtual time and the test dispatcher
+
+<small><i>코루틴을 사용하는 테스트를 빠르게 만들기: 가상 시간과 테스트 디스패처</i></small>
+
+모든 테스트를 실시간으로 실행해서 지연을 기다리느라 테스트를 느리게 실행하는 대신,
+코틀린 코루틴은 가상 시간을 사용해 테스트 실행을 빠르게 진행할 수 있게 함.
+
+// 20초의 delay를 선언했음에도 이 테스트는 실질적으로 즉시 실행되며, 몇 밀리초 만에 완료
+
+```kotlin
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
+import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
+ 
+class PlaygroundTest {
+    @Test
+    fun testDelay() = runTest {
+        val startTime = System.currentTimeMillis()
+        delay(20.seconds)
+        println(System.currentTimeMillis() - startTime)
+   // 11
+    }
+}
+```
+
+
+> [!NOTE]
+> 
+> 인위적인 지연 시간이 자동으로 빠르게 진행되기 때문에 runTest는 기본적으로 타임아웃을 (실제 시간으로) 60초로 지정함.
+> 가상 시간 메커니즘을 적절히 사용할 경우 이 정도로 충분해야 할 것임.
+> 하지만 때로는 더 많은 시간이 필요할 수도 있음 (예: 통합 테스트).
+> 그런 경우 runTest를 호출할 때 timeout 파라미터를 지정할 수 있음.
+
+`runBlocking`과 마찬가지로, `runTest`의 디스패처는 단일 스레드임.
+따라서 기본적으로 모든 자식 코루틴은 동시에 실행되며, 테스트 코드와 병렬로 실행되지 않음.
+
+단일 스레드 디스패처를 공유하는 경우, 다른 코루틴이 코드를 실행하려면 코드가 일시 중단 지점을 제공해야 하며, runTest도 예외는 아님. (15.2.4절 '취소' 참고)
+
+테스트 단언문을 작성할 때 특히 이를 감안해야 함.
+
+runTest 본문에 일시 중단 지점이 없기 때문에 다음 테스트의 단언문은 실패함.
+이는 launch로 시작한 코루틴이 단언문이 실행되기 전에 실행되게 할 수 있는 방법이 없기 때문.
+
+```kotlin
+@Test
+fun testDelay() = runTest {
+    var x = 0
+    launch {
+        x++
+    }
+    launch {
+        x++
+    }
+    assertEquals(2, x)
+}
+```
+
+
 
 
