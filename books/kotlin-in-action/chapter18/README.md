@@ -1,4 +1,4 @@
-# 18. Flow operators
+# 18. Error handling and testing
 
 <small><i>오류 처리와 테스트</i></small>
 
