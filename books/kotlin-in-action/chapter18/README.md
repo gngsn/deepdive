@@ -691,45 +691,40 @@ fun main() = runBlocking {
 
 <small><i>코루틴을 사용하는 테스트를 빠르게 만들기: 가상 시간과 테스트 디스패처</i></small>
 
-모든 테스트를 실시간으로 실행해서 지연을 기다리느라 테스트를 느리게 실행하는 대신,
-코틀린 코루틴은 가상 시간을 사용해 테스트 실행을 빠르게 진행할 수 있게 함.
-
-// 20초의 delay를 선언했음에도 이 테스트는 실질적으로 즉시 실행되며, 몇 밀리초 만에 완료
+코틀린 코루틴은 가상 시간을 사용해 테스트 실행을 빠르게 진행할 수 있음
 
 ```kotlin
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.test.*
-import kotlin.time.Duration.Companion.seconds
- 
 class PlaygroundTest {
     @Test
     fun testDelay() = runTest {
         val startTime = System.currentTimeMillis()
-        delay(20.seconds)
+        delay(20.seconds)       // 20초 delay를 선언해도, 테스트는 즉시 실행됨. 몇 밀리초 만에 완료
         println(System.currentTimeMillis() - startTime)
    // 11
     }
 }
 ```
 
+<br><br>
 
 > [!NOTE]
 > 
-> 인위적인 지연 시간이 자동으로 빠르게 진행되기 때문에 runTest는 기본적으로 타임아웃을 (실제 시간으로) 60초로 지정함.
-> 가상 시간 메커니즘을 적절히 사용할 경우 이 정도로 충분해야 할 것임.
-> 하지만 때로는 더 많은 시간이 필요할 수도 있음 (예: 통합 테스트).
-> 그런 경우 runTest를 호출할 때 timeout 파라미터를 지정할 수 있음.
+> 인위적인 지연 시간이 자동 진행되기 때문에 `runTest`는 기본적으로 타임아웃을 60초로 지정함 (실제 시간).
+> 
+> 혹은, `runTest`를 호출할 때, `timeout` 파라미터를 지정해서 할 수 있음.
 
-`runBlocking`과 마찬가지로, `runTest`의 디스패처는 단일 스레드임.
-따라서 기본적으로 모든 자식 코루틴은 동시에 실행되며, 테스트 코드와 병렬로 실행되지 않음.
+<br><br>
 
-단일 스레드 디스패처를 공유하는 경우, 다른 코루틴이 코드를 실행하려면 코드가 일시 중단 지점을 제공해야 하며, runTest도 예외는 아님. (15.2.4절 '취소' 참고)
+- `runBlocking`과 마찬가지로 `runTest`의 디스패처는 단일 스레드
 
-테스트 단언문을 작성할 때 특히 이를 감안해야 함.
+- 기본적으로 모든 자식 코루틴은 동시에 실행되며 테스트 코드와 병렬로 실행되지 않음
 
-runTest 본문에 일시 중단 지점이 없기 때문에 다음 테스트의 단언문은 실패함.
-이는 launch로 시작한 코루틴이 단언문이 실행되기 전에 실행되게 할 수 있는 방법이 없기 때문.
+- 단일 스레드 디스패처를 공유하는 경우 다른 코루틴이 코드를 실행하려면 코드가 일시 중단 지점을 제공해야 함 → `runTest`도 동일
+
+- `runTest` 본문에 일시 중단 지점이 없기 때문에 다음 테스트의 단언문은 실패
+
+- `launch`로 시작한 코루틴이 단언문이 실행되기 전에 실행되게 할 수 있는 방법이 없기 때문
+
 
 ```kotlin
 @Test
@@ -745,6 +740,144 @@ fun testDelay() = runTest {
 }
 ```
 
+<br><br>
 
+가상 디스패처의 현재 시간이 궁금하면 `currentTime` 속성을 사용할 수 있음
+
+```kotlin
+@OptIn(ExperimentalCoroutinesApi::class)
+@Test
+fun testDelay() = runTest {
+    var x = 0
+    launch {
+        delay(500.milliseconds)
+        x++
+    }
+    launch {
+        delay(1.second)
+        x++
+    }
+    println(currentTime) // 0
+ 
+    delay(600.milliseconds)
+    assertEquals(1, x)
+    println(currentTime) // 600
+ 
+    delay(500.milliseconds)
+    assertEquals(2, x)
+    println(currentTime) // 1100
+}
+```
+
+- `runTest` 빌더함수의 블록 안에서는 `TestScope`라는 특수한 스코프에 접근할 수 있으며, 이 스코프는 `TestCoroutineScheduler` 기능을 사용할 수 있게 해줌
+  - **`runCurrent`**: 현재 실행하게 예약된 코루틴을 실행
+    - 즉시 실행할 새 코루틴이 예약되면 직접 실행됨
+  - **`advanceUntilIdle`**: 예약된 모든 코루틴을 실행
+    - 미래의 어느 시점에 실행하도록 예약된 코루틴까지 실행하려면 `advanceUntilIdle` 함수 사용
+
+
+```kotlin
+@OptIn(ExperimentalCoroutinesApi::class)
+@Test
+fun testDelay() = runTest {
+    var x = 0
+    launch {
+        x++
+        launch {
+            x++
+        }
+    }
+    launch {
+        delay(200.milliseconds)
+        x++
+    }
+    runCurrent()
+    assertEquals(2, x)
+    advanceUntilIdle()
+    assertEquals(3, x)
+}
+```
+
+
+> [!NOTE]
+>  `Dispatchers.Default` 같은 다른 디스패처는 `TestCoroutineScheduler`에 대해 아무런 정보를 갖고 있지 않기 때문에 가상 시간 메커니즘의 영향을 받지 않음. 
+> 
+> 명시적으로 테스트 디스패처가 아닌 일반 디스패처에서 시작된 코루틴은 항상 지연을 전부 기다려야 함
+> 
+> 따라서 테스트를 더 빠르게 만들려면 디스패처를 변경할 수 있게 코드를 설계하는 것이 바람직
+> 
+> e.g. 디스패처를 파라미터로 받음
+
+
+<br>
+
+### 18.5.2 Testing flows with Turbine
+
+<small><i>터빈으로 플로우 테스트</i></small>
+
+`toList`를 호출해서 유한한 플로우의 모든 원소를 먼저 컬렉션에 수집한 다음, 기대한 모든 원소가 실제로 결과 컬렉션에 있는지 확인할 수 있음
+
+
+```kotlin
+val myFlow = flow {
+    emit(1)
+    emit(2)
+    emit(3)
+}
+ 
+@Test
+fun doTest() = runTest {
+    val results = myFlow.toList()
+    assertEquals(3, results.size)
+}
+```
+
+더 복잡하며 무한한 플로우나 더 까다로운 불변성을 다뤄야할 수도 있음
+
+→ 터빈<sup>Turbine</sup> 라이브러리를 통해 이런 경우를 지원할 수 있음
+
+**터빈<sup>Turbine</sup>**
+- 서드 파티라이브러리
+- 하지만, 보통 플로우 기반 API 테스트에 필수 라이브러리로 간주
+- [🔗 참고 - CashApp Turbine](https://github.com/cashapp/turbine)
+- 핵심 기능은 플로우의 `test` 확장 함수
+- `test` 함수는 새 코루틴을 실행하며 내부적으로 플로우를 수집
+- `test`의 람다에서 `awaitItem`, `awaitComplete`, `awaitError` 함수를 테스트 프레임워크의 일반 단언문과 함께 사용해서 플로우에 대한 불변조건을 지정하고 검증할 수 있음
+- 플로우가 방출한 모든 원소가 테스트에 의해 소비되도록 보장
+
+
+```kotlin
+@Test
+fun doTest() = runTest {
+    val results = myFlow.test {
+        assertEquals(1, awaitItem())
+        assertEquals(2, awaitItem())
+        assertEquals(3, awaitItem())
+        awaitComplete()
+    }
+}
+```
+
+- 여러 플로우를 결합해 테스트하는 기능 제공
+- 테스트를 위해 시스템 일부를 대체할 수 있는 독립적인 Turbine 객체를 만드는 기능도 제공
+
+<br/>
+
+## Summary
+
+- 한 코루틴 내부의 예외는 일반 코드처럼 처리 가능함
+  - 코루틴 경계를 넘는 예외는 특별한 주의가 필요
+- 처리되지 않은 예외 발생 시, 부모와 형제 코루틴이 모두 취소되는 구조적 동시성 적용
+- `supervisorScope`와 `SupervisorJob`은 자식 중 하나가 실패해도 **나머지를 취소하지 않음**. 
+  - 예외 전파를 막는 역할을 함
+- `await`는 `async` 코루틴의 **예외를 다시 던지는 동작**을 함
+- 슈퍼바이저는 장기 실행되는 애플리케이션 영역에서 자주 사용됨
+  - 프레임워크에 내장된 부품으로 제공되는 경우도 있음
+- **처리되지 않은 예외는 슈퍼바이저 또는 최상위 코루틴까지 전파**됨
+  - 이후 `CoroutineExceptionHandler`로 전달되는 흐름을 가짐
+  - 예외 핸들러가 없으면 시스템의 전역 예외 핸들러로 전달됨
+- JVM은 예외를 콘솔에 기록하고, 안드로이드는 앱을 종료시키는 차이점이 있음
+- `CoroutineExceptionHandler`는 예외를 잡지는 못하지만, 예외 기록 방식을 커스터마이징하는 마지막 수단임. 
+  - 계층의 최상단에 있는 **루트 코루틴의 컨텍스트에 위치**함
 
 
