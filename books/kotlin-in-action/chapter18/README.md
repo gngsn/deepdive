@@ -68,7 +68,7 @@ fun main(): Unit = runBlocking {
 </td>
 </table>
 
-- `async`로 생성된 코루틴이 예외를 던지면, 예외가 `await` 으로 호출한 쪽으로 전파됨.
+- `async`로 생성된 코루틴이 예외를 던지면, 예외가 `await` 으로 호출한 쪽으로 전파됨
 - 값을 계산하는 `async` 코루틴 안쪽에서 예외가 발생하기 때문에 `await()`가 그 예외를 다시 던짐
 - 때문에, `await()`를 `try-catch`로 감싸야 함
 
@@ -133,15 +133,14 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ouch!
 
 <small><i>자식이 실패하면 모든 자식을 취소하는 코루틴</i></small>
 
-코루틴 콘텍스트를 설명할 때 코루틴 간의 부모-자식 계층이 `Job` 객체를 통해 구축된다
-코루틴이 `SupervisorJob` 없이 생성된 경우 자식 코루틴에서 발생한 잡히지 않은 예외는 부모 코루틴을 예외로 완료시키는 방식으로 처리된다
+코루틴 콘텍스트를 설명할 때 코루틴 간의 부모-자식 계층이 `Job` 객체를 통해 구축됨
+코루틴이 `SupervisorJob` 없이 생성된 경우, 자식 코루틴에서 발생한 잡히지 않은 예외는 부모 코루틴을 예외로 완료시키는 방식으로 처리됨
 
-실패한 자식 코루틴은 자신의 실패를 부모에게 전파한다. 
-그러면 부모는 다음을 수행한다.
+실패한 자식 코루틴은 자신의 실패를 부모에게 전파 → 부모는 다음을 수행
 
-- 불필요한 작업을 막기 위해 다른 모든 자식을 취소한다. 
-- 같은 예외를 발생시키면서 자신의 실행을 완료시킨다.
-- 자신의 상위 계층으로 예외를 전파한다.
+- 불필요한 작업을 막기 위해 다른 모든 자식을 취소
+- 같은 예외를 발생시키면서 자신의 실행을 완료시킴
+- 자신의 상위 계층으로 예외를 전파
 
 <br><img src="./img/figure18-1.png" width="60%">
 
@@ -210,6 +209,48 @@ Exception in thread "main" java.lang.UnsupportedOperationException: Ow!
   - 때문에 하나의 코루틴이 잡히지 않은 예외로 종료되면, 다른 자식 코루틴들도 취소됨
 - 오류 전파 동작은 모든 코루틴에게도 적용 
   - 예를 들어, launch로 시작된 코루틴 뿐만 아니라 `async`로 시작된 코루틴도 동일하게 동작
+
+
+**Example.**
+
+```kotlin
+runBlocking {
+    launch {
+        try {
+            while (true) {
+                println("Heartbeat!")
+                delay(500.milliseconds)
+            }
+        } catch (e: Exception) {
+            println("Heartbeat terminated: $e")
+            throw e
+        }
+    }
+    launch {
+        try {
+            delay(1.seconds)
+            throw UnsupportedOperationException("Ow!")
+        } catch (u: UnsupportedOperationException) {
+            println("Caught $u")
+        }
+    }
+}
+```
+
+[🔗 section02 - example2](https://github.com/gngsn/deepdive/blob/main/books/kotlin-in-action/chapter18/demo/src/main/kotlin/com/gngsn/section02/example2/Main.kt)
+
+
+**Output:**
+
+```
+Heartbeat!
+Heartbeat!
+Caught java.lang.UnsupportedOperationException: Ow!
+Heartbeat!
+Heartbeat!
+    ...
+```
+
 
 <br>
 
